@@ -21,9 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONObject;
-import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.impl.APIConstants;
-import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.sp_migration.APIMStatMigrationException;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
@@ -108,7 +106,7 @@ public class MigrateFrom200 extends MigrationClientBase implements MigrationClie
                 log.info("Updating tenant-conf.json of tenant " + tenant.getId() + '(' +
                         tenant.getDomain() + ')');
                 // Retrieve the tenant-conf.json of the corresponding tenant
-                JSONObject tenantConf = APIUtil.getTenantConfig(tenant.getDomain());
+                JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
                 if (tenantConf.get(APIConstants.API_TENANT_CONF_DEFAULT_ROLES) == null) {
                     JSONObject defaultRoleConfig = new JSONObject();
                     JSONObject publisherRole = new JSONObject();
@@ -129,14 +127,14 @@ public class MigrateFrom200 extends MigrationClientBase implements MigrationClie
                     ObjectMapper mapper = new ObjectMapper();
                     String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
 
-                    APIUtil.updateTenantConf(formattedTenantConf, tenant.getDomain());
+                    updateTenantConf(formattedTenantConf, tenant.getId());
                     log.info("Updated tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
                             + "\n" + formattedTenantConf);
 
                     log.info("End updating tenant-conf.json to add default role creation configuration for tenant "
                             + tenant.getId() + '(' + tenant.getDomain() + ')');
                 }
-            } catch (APIManagementException e) {
+            } catch (APIMigrationException e) {
                 log.error("Error while retrieving the tenant-conf.json of tenant " + tenant.getId(), e);
             } catch (JsonProcessingException e) {
                 log.error("Error while formatting tenant-conf.json of tenant " + tenant.getId(), e);

@@ -34,21 +34,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class MigrateFrom400 extends MigrationClientBase implements MigrationClient {
+
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
 
     public MigrateFrom400(String tenantArguments, String blackListTenantArguments, String tenantRange,
                           RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
+
         super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
     }
 
     @Override
     public void databaseMigration() throws APIMigrationException, SQLException {
+
         populateApiCategoryOrganizations();
         populateApiOrganizations();
         populateApplicationOrganizations();
     }
 
     private void populateApiCategoryOrganizations() throws APIMigrationException {
+
         try {
             Map<Integer, String> tenantIdsAndOrganizations = APIUtil.getAllTenantsWithSuperTenant().stream()
                     .collect(Collectors.toMap(Tenant::getId, Tenant::getDomain));
@@ -59,10 +63,12 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     }
 
     private void populateApiOrganizations() throws APIMigrationException {
+
         apiMgtDAO.updateApiOrganizations();
     }
 
     private void populateApplicationOrganizations() throws APIMigrationException {
+
         Map<Integer, String> subscriberOrganizations = new HashMap<>();
         Map<Integer, Integer> subscriberIdsAndTenantIds = apiMgtDAO.getSubscriberIdsAndTenantIds();
         for (Map.Entry<Integer, Integer> subscriberIdAndTenantId : subscriberIdsAndTenantIds.entrySet()) {
@@ -125,5 +131,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     @Override
     public void updateScopeRoleMappings() throws APIMigrationException {
 
+        for (Tenant tenant : getTenantsArray()) {
+            loadAndSyncTenantConf(tenant.getId());
+        }
     }
 }
