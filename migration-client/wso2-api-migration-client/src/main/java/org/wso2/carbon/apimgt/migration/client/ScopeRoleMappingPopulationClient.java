@@ -18,19 +18,12 @@ package org.wso2.carbon.apimgt.migration.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.openjpa.persistence.jest.JSON;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.impl.APIConstants;
-import org.wso2.carbon.apimgt.impl.internal.APIManagerComponent;
-import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.sp_migration.APIMStatMigrationException;
 import org.wso2.carbon.apimgt.migration.dao.SharedDAO;
@@ -41,14 +34,9 @@ import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -120,10 +108,10 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
                 registryService.startTenantFlow(tenant);
 
                 // Retrieve the tenant-conf.json of the corresponding tenant from registry
-                JSONObject tenantConfFromRegistry = APIUtil.getTenantConfig(tenant.getDomain());
+                JSONObject tenantConfFromRegistry = getTenantConfigFromRegistry(tenant.getId());
 
                 // Retrieve the tenant-conf.json of the corresponding tenant from file system
-                JSONObject tenantConfFromFile = getTenantConfFromFile();
+                JSONObject tenantConfFromFile = getTenantConfJSONFromFile();
 
                 JSONObject scopeConfigFromRegistry = (JSONObject) tenantConfFromRegistry
                         .get(APIConstants.REST_API_SCOPES_CONFIG);
@@ -159,15 +147,15 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
 
                 ObjectMapper mapper = new ObjectMapper();
                 String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConfFromRegistry);
-                APIUtil.updateTenantConf(formattedTenantConf, tenant.getDomain());
+                updateTenantConf(formattedTenantConf, tenant.getId());
                 log.info("Updated old scope roles of tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
                         + "\n" + formattedTenantConf);
 
                 //update tenant-conf with new scopes
                 if (tenant.getId() != MultitenantConstants.SUPER_TENANT_ID) {
-                    APIUtil.loadAndSyncTenantConf(tenant.getId());
+                    loadAndSyncTenantConf(tenant.getId());
                 }
-            } catch (APIManagementException e) {
+            } catch (APIMigrationException e) {
                 log.error("Error while fetching tenant-conf of tenant " + tenant.getDomain() + " from registry.");
             } catch (IOException e) {
                 log.error("Error while fetching tenant-conf of tenant " + tenant.getDomain() + " from file system.");
@@ -199,7 +187,7 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
             try {
                 registryService.startTenantFlow(tenant);
                 if (tenant.getId() != MultitenantConstants.SUPER_TENANT_ID) {
-                    APIUtil.loadAndSyncTenantConf(tenant.getId());
+                    loadAndSyncTenantConf(tenant.getId());
                 }
 
                 log.info("Updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
@@ -229,7 +217,7 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
                                 Constants.APIM_ADMIN, "/permission"), tenant.getId());
 
                 // Retrieve the tenant-conf.json of the corresponding tenant
-                JSONObject tenantConf = APIUtil.getTenantConfig(tenant.getDomain());
+                JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
 
                 // Extract the RoleMappings object (This will be null if this does not exist at the moment)
                 JSONObject roleMappings = (JSONObject) tenantConf.get(APIConstants.REST_API_ROLE_MAPPINGS_CONFIG);
@@ -246,12 +234,12 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
                 ObjectMapper mapper = new ObjectMapper();
                 String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
 
-                APIUtil.updateTenantConf(formattedTenantConf, tenant.getDomain());
+                updateTenantConf(formattedTenantConf, tenant.getId());
                 log.info("Updated tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
                         + "\n" + formattedTenantConf);
 
                 log.info("End updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
-            } catch (APIManagementException e) {
+            } catch (APIMigrationException e) {
                 log.error("Error while retrieving role names based on existing permissions. ", e);
             } catch (JsonProcessingException e) {
                 log.error("Error while formatting tenant-conf.json of tenant " + tenant.getId());
@@ -385,40 +373,4 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
     }
 
 
-    /**
-     * Gets the content of the local tenant-conf.json as a JSON Object
-     *
-     * @return JSON content of the local tenant-conf.json
-     * @throws IOException error while reading local tenant-conf.json
-     */
-    private static JSONObject getTenantConfFromFile() throws IOException, APIMigrationException {
-        JSONObject tenantConfJson = null;
-        String tenantConfLocation = CarbonUtils.getCarbonHome() + File.separator +
-                APIConstants.RESOURCE_FOLDER_LOCATION + File.separator +
-                APIConstants.API_TENANT_CONF;
-        File tenantConfFile = new File(tenantConfLocation);
-        byte[] data;
-        if (tenantConfFile.exists()) { // Load conf from resources directory in pack if it exists
-            try (FileInputStream fileInputStream = new FileInputStream(tenantConfFile)) {
-                data = IOUtils.toByteArray(fileInputStream);
-            }
-        } else { // Fallback to loading the conf that is stored at jar level if file does not exist in pack
-            try (InputStream inputStream = APIManagerComponent.class
-                    .getResourceAsStream("/tenant/" + APIConstants.API_TENANT_CONF)) {
-                data = IOUtils.toByteArray(inputStream);
-            }
-        }
-
-        try {
-            String tenantConfDataStr = new String(data, Charset.defaultCharset());
-            JSONParser parser = new JSONParser();
-            tenantConfJson = (JSONObject) parser.parse(tenantConfDataStr);
-            if (tenantConfJson == null) {
-                throw new APIMigrationException("tenant-conf.json (in file system) content cannot be null");
-            }
-        } catch (ParseException e) {
-            log.error("Error while parsing tenant-conf.json from file system.");
-        }
-        return tenantConfJson;
-    }
 }

@@ -345,6 +345,7 @@ public class APIMMigrationService implements ServerStartupObserver {
                 log.info("Start migrating databases  ..........");
                 migrateFrom400.databaseMigration();
                 log.info("Successfully migrated databases.");
+                migrateFrom400.updateScopeRoleMappings();
             } else {
                 MigrationClientFactory.initFactory(tenants, blackListTenants, tenantRange, registryService, tenantManager,
                         removeDecryptionFailedKeysFromDB);
