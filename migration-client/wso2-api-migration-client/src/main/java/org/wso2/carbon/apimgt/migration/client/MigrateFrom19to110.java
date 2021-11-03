@@ -633,7 +633,7 @@ public class MigrateFrom19to110 extends MigrationClientBase implements Migration
             try {
                 registryService.startTenantFlow(tenant);
 
-                if (!registryService.isGovernanceRegistryResourceExists(APIConstants.API_TIER_LOCATION)) {
+                if (!registryService.isGovernanceRegistryResourceExists(Constants.API_TIER_LOCATION)) {
                     if (log.isDebugEnabled()) {
                         log.debug("Tier resource does not exist for tenant " + tenant.getId()
                                   + '(' + tenant.getDomain() + ')');
@@ -641,23 +641,23 @@ public class MigrateFrom19to110 extends MigrationClientBase implements Migration
                     continue;
                 } else {
                     String apiTiers = ResourceUtil.getResourceContent(
-                            registryService.getGovernanceRegistryResource(APIConstants.API_TIER_LOCATION));
+                            registryService.getGovernanceRegistryResource(Constants.API_TIER_LOCATION));
 
-                    String updatedApiTiers = ResourceModifier.modifyTiers(apiTiers, APIConstants.API_TIER_LOCATION);
+                    String updatedApiTiers = ResourceModifier.modifyTiers(apiTiers, Constants.API_TIER_LOCATION);
                     registryService.updateGovernanceRegistryResource(
-                                                    APIConstants.API_TIER_LOCATION, updatedApiTiers);
+                                                    Constants.API_TIER_LOCATION, updatedApiTiers);
                 }
 
                 // Since API tiers.xml has been updated it will be used as app and resource tier.xml
                 // We do not care whether there is an already existing file in this location. Theoretically it should
                 // not. If there was, then we override that file too.
                 String apiTiers = ResourceUtil.getResourceContent(registryService.getGovernanceRegistryResource
-                        (APIConstants.API_TIER_LOCATION));
+                        (Constants.API_TIER_LOCATION));
 
-                registryService.addGovernanceRegistryResource(APIConstants.APP_TIER_LOCATION, apiTiers,
+                registryService.addGovernanceRegistryResource(Constants.APP_TIER_LOCATION, apiTiers,
                                                               "application/xml");
 
-                registryService.addGovernanceRegistryResource(APIConstants.RES_TIER_LOCATION, apiTiers,
+                registryService.addGovernanceRegistryResource(Constants.RES_TIER_LOCATION, apiTiers,
                                                               "application/xml");
             } catch (UserStoreException e) {
                 log.error("Error occurred while accessing the user store " + + tenant.getId() + 

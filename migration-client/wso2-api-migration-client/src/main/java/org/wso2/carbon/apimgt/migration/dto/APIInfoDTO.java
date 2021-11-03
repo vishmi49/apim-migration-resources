@@ -10,6 +10,7 @@ public class APIInfoDTO {
     private String uuid;
     private String status;
     private String type;
+    private String organization;
 
     public String getUuid() { return uuid; }
 
@@ -79,5 +80,15 @@ public class APIInfoDTO {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getOrganization() {
+
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+
+        this.organization = organization;
     }
 }
