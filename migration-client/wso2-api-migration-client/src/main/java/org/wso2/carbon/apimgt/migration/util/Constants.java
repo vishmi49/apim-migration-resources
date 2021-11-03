@@ -28,6 +28,7 @@ public class Constants {
     public static final String VERSION_1_10 = "1.10.0";
     public static final String VERSION_2_0_0 = "2.0.0";
     public static final String VERSION_2_1_0 = "2.1.0";
+    public static final String VERSION_4_0_0 = "4.0.0";
     public static final String LINE_BREAK = "\\n";
     public static final String CONSTRAINT = "constraint";
     public static final String ALTER = "alter";
@@ -347,4 +348,29 @@ public class Constants {
     public static final String SCOPE = "Scope";
     public static final String NAME = "Name";
     public static final String ROLES = "Roles";
+
+    //governance registry apimgt root location
+    public static final String APIMGT_REGISTRY_LOCATION = "/apimgt";
+
+    public static final String API_APPLICATION_DATA_LOCATION = APIMGT_REGISTRY_LOCATION + "/applicationdata";
+
+    // Registry location where descriptions and thumbnails of the tags are
+    // stored.
+    public static final String TAGS_INFO_ROOT_LOCATION = API_APPLICATION_DATA_LOCATION + "/tags";
+
+    //registry location of API
+    public static final String API_LOCATION = API_APPLICATION_DATA_LOCATION + "/provider";
+
+    public static final String API_REVISION_LOCATION = API_APPLICATION_DATA_LOCATION + "/apis";
+    public static final String API_TIER_LOCATION = API_APPLICATION_DATA_LOCATION + "/tiers.xml";
+
+    public static final String APP_TIER_LOCATION = API_APPLICATION_DATA_LOCATION + "/app-tiers.xml";
+
+    public static final String RES_TIER_LOCATION = API_APPLICATION_DATA_LOCATION + "/res-tiers.xml";
+
+    public static final String DEFAULT_API_TIER_FILE_NAME = "default-tiers.xml";
+
+    public static final String DEFAULT_APP_TIER_FILE_NAME = "default-app-tiers.xml";
+
+    public static final String DEFAULT_RES_TIER_FILE_NAME = "default-res-tiers.xml";
 }

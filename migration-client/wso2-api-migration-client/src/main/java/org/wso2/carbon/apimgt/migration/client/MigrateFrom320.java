@@ -292,6 +292,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                                     apiInfoDTO.setApiName(api.getId().getApiName());
                                     apiInfoDTO.setApiVersion(api.getId().getVersion());
                                     apiInfoDTO.setType(api.getType());
+                                    apiInfoDTO.setOrganization(api.getOrganization());
                                     apiInfoDTOList.add(apiInfoDTO);
                                 }
                             } else {
@@ -303,6 +304,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                                     apiInfoDTO.setApiName(apiProduct.getId().getName());
                                     apiInfoDTO.setApiVersion(apiProduct.getId().getVersion());
                                     apiInfoDTO.setType(apiProduct.getType());
+                                    apiInfoDTO.setOrganization(apiProduct.getOrganization());
                                     apiInfoDTOList.add(apiInfoDTO);
                                 }
                             }
@@ -317,7 +319,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                         if (!StringUtils.equalsIgnoreCase(apiInfoDTO.getType(), APIConstants.API_PRODUCT)) {
                             revisionId = apiProviderTenant.addAPIRevision(apiRevision, tenant.getDomain());
                         } else {
-                            revisionId = apiProviderTenant.addAPIProductRevision(apiRevision);
+                            revisionId = apiProviderTenant.addAPIProductRevision(apiRevision, tenant.getDomain());
                         }
                         // retrieve api artifacts
                         GenericArtifact apiArtifact = tenantArtifactManager.getGenericArtifact(apiInfoDTO.getUuid());
@@ -365,7 +367,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                         if (!apiRevisionDeployments.isEmpty()) {
                             if (!StringUtils.equalsIgnoreCase(apiInfoDTO.getType(), APIConstants.API_PRODUCT)) {
                                 apiProviderTenant.deployAPIRevision(apiInfoDTO.getUuid(), revisionId,
-                                        apiRevisionDeployments);
+                                        apiRevisionDeployments, tenant.getDomain());
                             } else {
                                 apiProviderTenant.deployAPIProductRevision(apiInfoDTO.getUuid(), revisionId,
                                         apiRevisionDeployments);
