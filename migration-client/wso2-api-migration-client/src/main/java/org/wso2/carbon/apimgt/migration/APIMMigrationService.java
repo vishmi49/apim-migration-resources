@@ -46,6 +46,7 @@ public class APIMMigrationService implements ServerStartupObserver {
     private final String V300 = "3.0.0";
     private final String V320 = "3.2.0";
     private final String V400 = "4.0.0";
+    private final String V410 = "4.1.0";
 
     @Override
     public void completingServerStartup() {
@@ -175,6 +176,14 @@ public class APIMMigrationService implements ServerStartupObserver {
 
                 log.info("Migrated Successfully to APIM 4.0.0");
 
+                log.info("Start Migrating to 4.1.0");
+                MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
+                        tenantRange, registryService, tenantManager);
+                log.info("Start migrating api rxts  ..........");
+                migrateFrom400.registryResourceMigration();
+                migrateFrom400.migrationVersionTimestamp();
+                log.info("Successfully migrated api rxts to include versionTimestamp ..........");
+
             } else if (V210.equals(migrateFromVersion) || V220.equals(migrateFromVersion) ||
                     V250.equals(migrateFromVersion) || V260.equals(migrateFromVersion)) {
                 log.info("Start migration from APIM " + migrateFromVersion + "  ..........");
@@ -250,6 +259,14 @@ public class APIMMigrationService implements ServerStartupObserver {
                 log.info("Successfully replaced KM name by UUID.");
 
                 log.info("Migrated Successfully to 4.0.0");
+
+                log.info("Start Migrating to 4.1.0");
+                MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
+                        tenantRange, registryService, tenantManager);
+                log.info("Start migrating api rxts  ..........");
+                migrateFrom400.registryResourceMigration();
+                migrateFrom400.migrationVersionTimestamp();
+                log.info("Successfully migrated api rxts to include versionTimestamp ..........");
             } else if (isScopeRoleMappingPopulation) {
                 MigrationClient scopeRoleMappingPopulation = new ScopeRoleMappingPopulationClient(tenants, blackListTenants, tenantRange, registryService, tenantManager);
                 log.info("Populating WSO2 API Manager Scope-Role Mapping");
@@ -303,6 +320,15 @@ public class APIMMigrationService implements ServerStartupObserver {
                 log.info("Successfully replaced KM name by UUID.");
 
                 log.info("Migrated Successfully to 4.0.0");
+
+                log.info("Start Migrating to 4.1.0");
+                MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
+                        tenantRange, registryService, tenantManager);
+                log.info("Start migrating api rxts  ..........");
+                migrateFrom400.registryResourceMigration();
+                migrateFrom400.migrationVersionTimestamp();
+                log.info("Successfully migrated api rxts to include versionTimestamp ..........");
+
             } else if (V320.equals(migrateFromVersion)) {
                 commonMigrationClient.moveUUIDToDBFromRegistry();
                 MigrateFrom320 migrateFrom320 = new MigrateFrom320(tenants, blackListTenants,
@@ -339,12 +365,25 @@ public class APIMMigrationService implements ServerStartupObserver {
 
                 log.info("Migrated Successfully to 4.0.0");
 
+                log.info("Start Migrating to 4.1.0");
+                MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
+                        tenantRange, registryService, tenantManager);
+                log.info("Start migrating api rxts  ..........");
+                migrateFrom400.registryResourceMigration();
+                migrateFrom400.migrationVersionTimestamp();
+                log.info("Successfully migrated api rxts to include versionTimestamp ..........");
+
             } else if (V400.equals(migrateFromVersion)) {
                 MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
                         tenantRange, registryService, tenantManager);
+                log.info("Start Migrating to 4.1.0");
                 log.info("Start migrating databases  ..........");
                 migrateFrom400.databaseMigration();
                 log.info("Successfully migrated databases.");
+                log.info("Start migrating api rxts  ..........");
+                migrateFrom400.registryResourceMigration();
+                migrateFrom400.migrationVersionTimestamp();
+                log.info("Successfully migrated api rxts to include versionTimestamp ..........");
                 migrateFrom400.updateScopeRoleMappings();
             } else {
                 MigrationClientFactory.initFactory(tenants, blackListTenants, tenantRange, registryService, tenantManager,

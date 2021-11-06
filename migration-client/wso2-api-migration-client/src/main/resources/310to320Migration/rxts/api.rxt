@@ -32,6 +32,9 @@
         <field type="text" required="true">
             <name>Version</name>
         </field>
+        <field type="text" required="true">
+            <name>Version Timestamp</name>
+        </field>
 		<field type="text" required="true">
             <name>Version Type</name>
         </field>
