@@ -18,7 +18,15 @@
 
 package org.wso2.carbon.apimgt.migration.client;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.ArrayUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.simple.JSONObject;
+import org.wso2.carbon.apimgt.impl.APIConstants.ConfigType;
+import org.wso2.carbon.apimgt.impl.dao.SystemConfigurationsDAO;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
+import org.wso2.carbon.apimgt.migration.APIMMigrationService;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.sp_migration.APIMStatMigrationException;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
@@ -26,16 +34,22 @@ import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.wso2.carbon.apimgt.api.APIManagementException;
+
 
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class MigrateFrom400 extends MigrationClientBase implements MigrationClient {
 
+    private static final Log log = LogFactory.getLog(MigrateFrom400.class);
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
+    SystemConfigurationsDAO systemConfigurationsDAO = SystemConfigurationsDAO.getInstance();
 
     public MigrateFrom400(String tenantArguments, String blackListTenantArguments, String tenantRange,
                           RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
@@ -76,6 +90,29 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
             subscriberOrganizations.put(subscriberIdAndTenantId.getKey(), organization);
         }
         apiMgtDAO.updateApplicationOrganizations(subscriberOrganizations);
+    }
+
+    public void migrateTenantConfToDB() throws APIMigrationException {
+        for (Tenant tenant : getTenantsArray()) {
+            int tenantId = tenant.getId();
+            String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
+            JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
+            ObjectMapper mapper = new ObjectMapper();
+            String formattedTenantConf;
+            try {
+                formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
+            } catch (JsonProcessingException jse) {
+                log.info("Error while JSON Processing tenant conf :"+ jse);
+                log.info("Hence, skipping tenant conf to db migration for tenant Id :"+ tenantId);
+                continue;
+            }
+            try {
+                systemConfigurationsDAO.addSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
+            } catch (APIManagementException ape) {
+                log.info("Error while adding to tenant conf to database for tenant: "+ tenantId + "with Error :" + ape);
+                continue;
+            }
+        }
     }
 
     @Override

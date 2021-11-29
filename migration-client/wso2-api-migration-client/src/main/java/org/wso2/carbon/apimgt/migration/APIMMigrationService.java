@@ -175,6 +175,13 @@ public class APIMMigrationService implements ServerStartupObserver {
 
                 log.info("Migrated Successfully to APIM 4.0.0");
 
+                MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
+                        tenantRange, registryService, tenantManager);
+                migrateFrom400.migrateTenantConfToDB();
+                log.info("Successfully migrated Tenant Conf to Database.");
+
+                log.info("Migrated Successfully to 4.1.0");
+
             } else if (V210.equals(migrateFromVersion) || V220.equals(migrateFromVersion) ||
                     V250.equals(migrateFromVersion) || V260.equals(migrateFromVersion)) {
                 log.info("Start migration from APIM " + migrateFromVersion + "  ..........");
@@ -250,6 +257,13 @@ public class APIMMigrationService implements ServerStartupObserver {
                 log.info("Successfully replaced KM name by UUID.");
 
                 log.info("Migrated Successfully to 4.0.0");
+
+                MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
+                        tenantRange, registryService, tenantManager);
+                migrateFrom400.migrateTenantConfToDB();
+                log.info("Successfully migrated Tenant Conf to Database.");
+
+                log.info("Migrated Successfully to 4.1.0");
             } else if (isScopeRoleMappingPopulation) {
                 MigrationClient scopeRoleMappingPopulation = new ScopeRoleMappingPopulationClient(tenants, blackListTenants, tenantRange, registryService, tenantManager);
                 log.info("Populating WSO2 API Manager Scope-Role Mapping");
@@ -303,6 +317,13 @@ public class APIMMigrationService implements ServerStartupObserver {
                 log.info("Successfully replaced KM name by UUID.");
 
                 log.info("Migrated Successfully to 4.0.0");
+
+                MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
+                        tenantRange, registryService, tenantManager);
+                migrateFrom400.migrateTenantConfToDB();
+                log.info("Successfully migrated Tenant Conf to Database.");
+
+                log.info("Migrated Successfully to 4.1.0");
             } else if (V320.equals(migrateFromVersion)) {
                 commonMigrationClient.moveUUIDToDBFromRegistry();
                 MigrateFrom320 migrateFrom320 = new MigrateFrom320(tenants, blackListTenants,
@@ -339,6 +360,13 @@ public class APIMMigrationService implements ServerStartupObserver {
 
                 log.info("Migrated Successfully to 4.0.0");
 
+                MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
+                        tenantRange, registryService, tenantManager);
+                migrateFrom400.migrateTenantConfToDB();
+                log.info("Successfully migrated Tenant Conf to Database.");
+
+                log.info("Migrated Successfully to 4.1.0");
+
             } else if (V400.equals(migrateFromVersion)) {
                 MigrateFrom400 migrateFrom400 = new MigrateFrom400(tenants, blackListTenants,
                         tenantRange, registryService, tenantManager);
@@ -346,6 +374,11 @@ public class APIMMigrationService implements ServerStartupObserver {
                 migrateFrom400.databaseMigration();
                 log.info("Successfully migrated databases.");
                 migrateFrom400.updateScopeRoleMappings();
+                log.info("Successfully migrated Role Scope Tenant Conf Mappings.");
+                migrateFrom400.migrateTenantConfToDB();
+                log.info("Successfully migrated Tenant Conf to Database.");
+
+                log.info("Migrated Successfully to 4.1.0");
             } else {
                 MigrationClientFactory.initFactory(tenants, blackListTenants, tenantRange, registryService, tenantManager,
                         removeDecryptionFailedKeysFromDB);
