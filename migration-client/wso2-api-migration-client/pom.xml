@@ -6,7 +6,7 @@
 
     <groupId>org.wso2.carbon</groupId>
     <artifactId>org.wso2.carbon.apimgt.migrate.client</artifactId>
-    <version>4.0.0-${buildNumber}</version>
+    <version>4.1.0-${buildNumber}</version>
     <packaging>bundle</packaging>
 
     <repositories>
@@ -208,8 +208,8 @@
     </dependencies>
 
     <properties>
-        <carbon.apimgt.version>9.4.2</carbon.apimgt.version>
-        <carbon.governance.version>4.8.24</carbon.governance.version>
+        <carbon.apimgt.version>9.9.1</carbon.apimgt.version>
+        <carbon.governance.version>4.8.26</carbon.governance.version>
         <carbon.kernel.version>4.6.2</carbon.kernel.version>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
     </properties>
