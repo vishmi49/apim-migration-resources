@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.apimgt.api.model.API;
 import org.wso2.carbon.apimgt.api.model.VHost;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 import org.wso2.carbon.apimgt.api.model.URITemplate;
@@ -200,6 +201,10 @@ public class APIMgtDAO {
             "UPDATE AM_API " +
                     "SET ORGANIZATION = ? " +
                     "WHERE API_PROVIDER = ?";
+    private static String   UPDATE_API_VERSION_TIMESTAMP =
+            "UPDATE AM_API " +
+                    "SET VERSION_TIMESTAMP = ? " +
+                    "WHERE API_UUID = ?" ;
 
     private static String GET_DISTINCT_SUBSCRIBER_ID_TENANT_ID =
             "SELECT DISTINCT AM_SUBSCRIBER.SUBSCRIBER_ID, AM_SUBSCRIBER.TENANT_ID " +
@@ -1180,6 +1185,36 @@ public class APIMgtDAO {
         } catch (SQLException e) {
             throw new APIMigrationException(
                     "Error while updating organizations for APIs in the database " + e);
+        }
+    }
+
+    /**
+     * Sets version_timestamp in the AM_API table
+     *
+     * @throws APIMigrationException
+     */
+    public void populateApiVersionTimestamp(List<API> versionedAPIList) throws APIMigrationException {
+
+        try (Connection conn = APIMgtDBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(UPDATE_API_VERSION_TIMESTAMP)) {
+                for (API api : versionedAPIList) {
+                    ps.setString(1, api.getVersionTimestamp());
+                    ps.setString(2, api.getUuid());
+                    ps.addBatch();
+                    log.info("Persisting version timestamp: " + api.getVersionTimestamp() + " of "
+                            + api.getId().getApiName() + " version: " + api.getId().getVersion());
+                }
+                ps.executeBatch();
+                conn.commit();
+                log.info("Version timestamps are persisted in the db. APIName; " +
+                        versionedAPIList.get(0).getId().getApiName());
+            } catch (SQLException e) {
+                conn.rollback();
+            }
+        } catch (SQLException e) {
+            throw new APIMigrationException(
+                    "Error while updating version timestamps for APIs in the database " + e);
         }
     }
 
