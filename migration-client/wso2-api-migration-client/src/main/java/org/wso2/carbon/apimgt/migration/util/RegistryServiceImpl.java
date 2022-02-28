@@ -342,11 +342,11 @@ public class RegistryServiceImpl implements RegistryService {
         //Update RXT UI Configuration
         Registry configRegistry = ServiceHolder.getRegistryService().getConfigSystemRegistry(tenant.getId());
         String rxtUIConfigPath = Constants.GOVERNANCE_ARTIFACT_CONFIGURATION_PATH + APIConstants.API_KEY;
-        if(configRegistry.resourceExists(rxtUIConfigPath)) {
+        if (configRegistry.resourceExists(rxtUIConfigPath)) {
             Resource rxtUIResource = configRegistry.get(rxtUIConfigPath);
             rxtUIResource.setContent(ResourceUtil.getArtifactUIContentFromConfig(rxtPayload));
             configRegistry.put(rxtUIConfigPath, rxtUIResource);
-            }
+        }
 
     }
 
@@ -462,6 +462,37 @@ public class RegistryServiceImpl implements RegistryService {
                             + "to true.");
                 }
                 artifact.setAttribute(Constants.API_OVERVIEW_ENABLE_STORE, "true");
+                isResourceUpdated = true;
+            }
+            if (isResourceUpdated) {
+                artifactManager.updateGenericArtifact(artifact);
+            }
+        } catch (UserStoreException | RegistryException e) {
+            log.error("Error occurred when updating API Artifact in registry", e);
+        } catch (APIManagementException e) {
+            log.error("Error occurred when getting artifact manager", e);
+        }
+    }
+
+    /**
+     * This method updates the 'gateway Vendor' rxt field in migrated APIs
+     *
+     * @param resourcePath resourcePath
+     * @param artifact artifact
+     */
+    @Override public void updateGatewayVendorInRxt(String resourcePath, GenericArtifact artifact) {
+        try {
+            Registry registry = getGovernanceRegistry();
+            GenericArtifactManager artifactManager = APIUtil.getArtifactManager(registry, APIConstants.API_KEY);
+            boolean isResourceUpdated = false;
+            boolean isGatewayVendorExist = Boolean
+                    .parseBoolean(artifact.getAttribute(Constants.API_OVERVIEW_GATEWAY_VENDOR));
+            if (!isGatewayVendorExist) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Setting " + Constants.API_OVERVIEW_GATEWAY_VENDOR + " property of API at " + resourcePath
+                            + "to " + Constants.DEFAULT_GATEWAY_VENDOR);
+                }
+                artifact.setAttribute(Constants.API_OVERVIEW_GATEWAY_VENDOR, Constants.DEFAULT_GATEWAY_VENDOR);
                 isResourceUpdated = true;
             }
             if (isResourceUpdated) {

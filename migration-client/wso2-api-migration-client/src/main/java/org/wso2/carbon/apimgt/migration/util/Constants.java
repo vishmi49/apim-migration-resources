@@ -313,6 +313,7 @@ public class Constants {
     public static final String API_OVERVIEW_VISIBLE_ROLES = "overview_visibleRoles";
     public static final String API_OVERVIEW_TYPE = "overview_type";
     public static final String API_OVERVIEW_ENABLE_STORE = "overview_enableStore";
+    public static final String API_OVERVIEW_GATEWAY_VENDOR = "overview_gatewayVendor";
     public static final String API_OVERVIEW_NAME = "overview_name";
     public static final String API_OVERVIEW_VERSION = "overview_version";
     public static final String API_OVERVIEW_PROVIDER = "overview_provider";
@@ -373,4 +374,6 @@ public class Constants {
     public static final String DEFAULT_APP_TIER_FILE_NAME = "default-app-tiers.xml";
 
     public static final String DEFAULT_RES_TIER_FILE_NAME = "default-res-tiers.xml";
+
+    public static final String DEFAULT_GATEWAY_VENDOR = "wso2";
 }
