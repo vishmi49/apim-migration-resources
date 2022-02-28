@@ -480,7 +480,8 @@ public class RegistryServiceImpl implements RegistryService {
      * @param resourcePath resourcePath
      * @param artifact artifact
      */
-    @Override public void updateGatewayVendorInRxt(String resourcePath, GenericArtifact artifact) {
+    @Override
+    public void updateGatewayVendorInRxt(String resourcePath, GenericArtifact artifact) {
         try {
             Registry registry = getGovernanceRegistry();
             GenericArtifactManager artifactManager = APIUtil.getArtifactManager(registry, APIConstants.API_KEY);

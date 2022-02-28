@@ -18,16 +18,12 @@
 
 package org.wso2.carbon.apimgt.migration.client;
 
-import io.swagger.models.apideclaration.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.simple.parser.ParseException;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.sp_migration.APIMStatMigrationException;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.dto.ResourceScopeInfoDTO;
-import org.wso2.carbon.apimgt.migration.dto.ResourceScopeMappingDTO;
 import org.wso2.carbon.apimgt.migration.dto.ScopeInfoDTO;
 import org.wso2.carbon.apimgt.migration.dto.APIURLMappingInfoDTO;
 import org.wso2.carbon.apimgt.migration.dto.APIInfoDTO;
@@ -37,21 +33,11 @@ import org.wso2.carbon.apimgt.migration.dto.AMAPIResourceScopeMappingDTO;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
-import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.user.api.Tenant;
-import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.api.UserStoreManager;
-import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.user.core.tenant.TenantManager;
-import org.wso2.carbon.user.core.util.UserCoreUtil;
-import org.wso2.carbon.utils.CarbonUtils;
-import org.wso2.carbon.utils.FileUtil;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,7 +54,8 @@ public class MigrateFrom310 extends MigrationClientBase implements MigrationClie
     private RegistryService registryService;
 
     public MigrateFrom310(String tenantArguments, String blackListTenantArguments, String tenantRange,
-                          RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
+                          RegistryService registryService, TenantManager tenantManager)
+            throws UserStoreException {
 
         super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
         this.registryService = registryService;
@@ -123,6 +110,16 @@ public class MigrateFrom310 extends MigrationClientBase implements MigrationClie
 
     @Override
     public void updateScopeRoleMappings() throws APIMigrationException {
+
+    }
+
+    @Override
+    public void registryDataPopulation() throws APIMigrationException {
+
+    }
+
+    @Override
+    public void migrateTenantConfToDB() throws APIMigrationException {
 
     }
 

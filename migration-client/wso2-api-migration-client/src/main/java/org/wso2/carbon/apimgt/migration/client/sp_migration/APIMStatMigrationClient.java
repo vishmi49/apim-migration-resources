@@ -190,4 +190,14 @@ public class APIMStatMigrationClient extends MigrationClientBase implements Migr
     @Override
     public void updateScopeRoleMappings() throws APIMigrationException {
     }
+
+    @Override
+    public void registryDataPopulation() throws APIMigrationException {
+
+    }
+
+    @Override
+    public void migrateTenantConfToDB() throws APIMigrationException {
+
+    }
 }

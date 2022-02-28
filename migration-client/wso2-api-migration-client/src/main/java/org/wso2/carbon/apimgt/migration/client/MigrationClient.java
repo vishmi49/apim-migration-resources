@@ -117,4 +117,8 @@ public interface MigrationClient {
      * @throws APIMigrationException
      */
     void updateScopeRoleMappings() throws APIMigrationException;
+
+    void registryDataPopulation() throws APIMigrationException;
+
+    void migrateTenantConfToDB() throws APIMigrationException;
 }

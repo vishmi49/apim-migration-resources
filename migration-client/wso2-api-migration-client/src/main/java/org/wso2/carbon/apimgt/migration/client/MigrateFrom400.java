@@ -69,10 +69,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
 
     public MigrateFrom400(String tenantArguments, String blackListTenantArguments, String tenantRange,
             RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
-
         super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
         this.registryService = registryService;
-
     }
 
     @Override
@@ -115,6 +113,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         apiMgtDAO.updateApplicationOrganizations(subscriberOrganizations);
     }
 
+    @Override
     public void migrateTenantConfToDB() throws APIMigrationException {
         for (Tenant tenant : getTenantsArray()) {
             int tenantId = tenant.getId();
@@ -149,6 +148,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     /**
      * This adds version timestamp to the rxt and db.
      */
+    @Override
     public void registryDataPopulation() throws APIMigrationException {
 
         log.info("Registry data population for API Manager " + Constants.VERSION_4_0_0 + " started.");
@@ -204,7 +204,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                                 log.debug("Doing the RXT migration for API : " + artifact.getAttribute("overview_name")
                                         + '-' + artifact.getAttribute("overview_version") + '-' + artifact
                                         .getAttribute("overview_provider") + '-' + artifact
-                                        .getAttribute("version timestamp") + '-' + " of tenant " + tenant.getId() + '('
+                                        .getAttribute("overview_versionComparable") + '-' + " of tenant " + tenant.getId() + '('
                                         + tenant.getDomain() + ")");
                             }
                             if (!apisMap.containsKey(api.getId().getApiName())) {
@@ -236,32 +236,29 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             API apiN = versionedAPIList.get(i - 1);
                             apiN.setVersionTimestamp(versionTimestamp + "");
                             apiToArtifactMapping.get(apiN)
-                                    .setAttribute("overview_versionTimestamp", String.valueOf(versionTimestamp));
-                            log.info("Setting Version Timestamp for API " + apiN.getUuid());
+                                    .setAttribute("overview_versionComparable", String.valueOf(versionTimestamp));
+                            log.info("Setting Version Comparable for API " + apiN.getUuid());
                             artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
                             versionTimestamp -= oneDay;
                             GenericArtifact artifact = artifactManager.getGenericArtifact(apiN.getUuid());
                             API api = APIUtil.getAPI(artifact, registry);
                             if (StringUtils.isEmpty(api.getVersionTimestamp())) {
-                                throw new APIMigrationException(
-                                        "Failed update versionTimeStamp for API: " + apiN.getId().getApiName()
+                                log.error("Failed to update versionComparable for API: " + apiN.getId().getApiName()
                                                 + " version: " + apiN.getId().getVersion() + " timestamp: "
-                                                + versionTimestamp);
+                                                + versionTimestamp + " at registry");
                             } else {
                                 log.info("VersionTimestamp updated API: " + apiN.getId().getApiName() + " version: "
-                                        + apiN.getId().getVersion() + " timestamp: " + versionTimestamp);
+                                        + apiN.getId().getVersion() + " versionComparable: " + versionTimestamp);
                             }
                         }
                         try {
                             apiMgtDAO.populateApiVersionTimestamp(versionedAPIList);
                         } catch (APIMigrationException e) {
-                            log.error("Exception while populating version timestamp for api " + apiName + " tenant: "
-                                    + tenant.getDomain());
-                            throw new APIMigrationException(
-                                    "Failed to update versionTimestamp for API: " + apiName + " tenant: " + tenant
-                                            .getDomain());
+                            log.error("Exception while populating versionComparable for api " + apiName + " tenant: "
+                                    + tenant.getDomain() + "at database");
                         }
                     }
+                    log.info("Successfully migrated data for api rxts to include versionComparable..........");
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("No api artifacts found in registry for tenant " + tenant.getId() + '(' + tenant

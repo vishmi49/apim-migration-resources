@@ -850,4 +850,14 @@ public class MigrateFrom19to110 extends MigrationClientBase implements Migration
     @Override
     public void updateScopeRoleMappings() throws APIMigrationException {
     }
+
+    @Override
+    public void registryDataPopulation() throws APIMigrationException {
+
+    }
+
+    @Override
+    public void migrateTenantConfToDB() throws APIMigrationException {
+
+    }
 }
