@@ -200,8 +200,6 @@ public class MigrationClientBase {
 
             log.info("Start migrating api rxts  ..........");
             serviceClient.registryResourceMigration();
-            serviceClient.registryDataPopulation();
-            log.info("Successfully migrated data for api rxts ..........");
 
             log.info("Start migrating Role Scope Tenant Conf Mappings  ..........");
             serviceClient.updateScopeRoleMappings();
@@ -210,6 +208,9 @@ public class MigrationClientBase {
             log.info("Start migrating Tenant Conf  ..........");
             serviceClient.migrateTenantConfToDB();
             log.info("Successfully migrated Tenant Conf to Database.");
+
+            serviceClient.registryDataPopulation();
+            log.info("Successfully migrated data for api rxts ..........");
         }
     }
 

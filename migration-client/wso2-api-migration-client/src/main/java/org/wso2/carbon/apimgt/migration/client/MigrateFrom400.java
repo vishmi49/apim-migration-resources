@@ -38,7 +38,6 @@ import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
@@ -120,9 +119,12 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
             String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
             JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
             ObjectMapper mapper = new ObjectMapper();
-            String formattedTenantConf;
+            String formattedTenantConf = null;
             try {
-                formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
+                if (tenantConf != null) {
+                    tenantConf.putIfAbsent("IsUnlimitedTierPaid", false);
+                    formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
+                }
             } catch (JsonProcessingException jse) {
                 log.info("Error while JSON Processing tenant conf :" + jse);
                 log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
@@ -142,7 +144,6 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     @Override
     public void registryResourceMigration() throws APIMigrationException {
         rxtMigration(registryService);
-        updateGatewayVendorInRxt();
     }
 
     /**
@@ -333,34 +334,4 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         }
     }
 
-    private void updateGatewayVendorInRxt() {
-        for (Tenant tenant : getTenantsArray()) {
-            try {
-                registryService.startTenantFlow(tenant);
-                log.debug("Updating APIs for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
-                GenericArtifact[] artifacts = registryService.getGenericAPIArtifacts();
-                for (GenericArtifact artifact : artifacts) {
-                    String path = artifact.getPath();
-                    if (registryService.isGovernanceRegistryResourceExists(path)) {
-                        Object apiResource = registryService.getGovernanceRegistryResource(path);
-                        if (apiResource == null) {
-                            continue;
-                        }
-                        registryService.updateGatewayVendorInRxt(path, artifact);
-                    }
-                }
-                log.info("Completed Updating API artifacts tenant ---- " + tenant.getId() + '(' + tenant.getDomain()
-                        + ')');
-            } catch (GovernanceException e) {
-                log.error("Error while accessing API artifact in registry for tenant " + tenant.getId() + '(' + tenant
-                        .getDomain() + ')', e);
-            } catch (RegistryException | UserStoreException e) {
-                log.error(
-                        "Error while updating API artifact in the registry for tenant " + tenant.getId() + '(' + tenant
-                                .getDomain() + ')', e);
-            } finally {
-                registryService.endTenantFlow();
-            }
-        }
-    }
 }
