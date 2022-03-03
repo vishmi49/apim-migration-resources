@@ -219,8 +219,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             }
                         } catch (Exception e) {
                             // we log the error and continue to the next resource.
-                            throw new APIMigrationException(
-                                    "Unable to migrate api metadata definition of API : " + artifact
+                            log.error("Unable to migrate api metadata definition of API : " + artifact
                                             .getAttribute("overview_name") + '-' + artifact
                                             .getAttribute("overview_version") + '-' + artifact
                                             .getAttribute("overview_provider"), e);
@@ -238,18 +237,23 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             apiN.setVersionTimestamp(versionTimestamp + "");
                             apiToArtifactMapping.get(apiN)
                                     .setAttribute("overview_versionComparable", String.valueOf(versionTimestamp));
+                            apiToArtifactMapping.get(apiN)
+                                    .setAttribute("overview_gatewayVendor", Constants.API_OVERVIEW_GATEWAY_VENDOR);
                             log.info("Setting Version Comparable for API " + apiN.getUuid());
                             artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
                             versionTimestamp -= oneDay;
                             GenericArtifact artifact = artifactManager.getGenericArtifact(apiN.getUuid());
                             API api = APIUtil.getAPI(artifact, registry);
-                            if (StringUtils.isEmpty(api.getVersionTimestamp())) {
-                                log.error("Failed to update versionComparable for API: " + apiN.getId().getApiName()
-                                                + " version: " + apiN.getId().getVersion() + " timestamp: "
-                                                + versionTimestamp + " at registry");
+                            if (StringUtils.isEmpty(api.getVersionTimestamp()) ||
+                                    StringUtils.isEmpty(api.getGatewayVendor())) {
+                                log.error("Failed to update versionComparable or gatewayVendor for API: " + apiN.getId()
+                                        .getApiName() + " version: " + apiN.getId().getVersion()
+                                        + " versionComparable: " + api.getVersionTimestamp() + " and gateway Vendor: "
+                                        + api.getGatewayVendor() + " at registry");
                             } else {
                                 log.info("VersionTimestamp updated API: " + apiN.getId().getApiName() + " version: "
-                                        + apiN.getId().getVersion() + " versionComparable: " + versionTimestamp);
+                                        + apiN.getId().getVersion() + " versionComparable: " + api.getVersionTimestamp()
+                                        + " gatewayVendor: " + api.getGatewayVendor());
                             }
                         }
                         try {
