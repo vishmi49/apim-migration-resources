@@ -97,75 +97,7 @@ public class APIMMigrationService implements ServerStartupObserver {
                 }
                 //Check AccessControl-Migration enabled
             } else if (!migrateFromVersion.isEmpty()) {
-                if (V200.equals(migrateFromVersion)) {
-                    MigrationClient migrateFrom200 = new MigrateFrom200(tenants, blackListTenants, tenantRange,
-                            registryService, tenantManager);
-                    log.info("Start Migrating WSO2 API Manager " + migrateFromVersion
-                            + " registry resources ..........");
-                    migrateFrom200.registryResourceMigration();
-                    log.info("Successfully migrated WSO2 API Manager " + migrateFromVersion + " registry resources.");
-
-                    MigrationClient scopeRoleMappingPopulation = new ScopeRoleMappingPopulationClient(tenants,
-                            blackListTenants, tenantRange, registryService, tenantManager);
-
-                    log.info("Populating WSO2 API Manager Scope-Role Mapping from APIM " + migrateFromVersion
-                            + " ..........");
-                    scopeRoleMappingPopulation.updateScopeRoleMappings();
-                    log.info("Successfully updated the Scope Role Mappings..........");
-                    scopeRoleMappingPopulation.populateScopeRoleMapping();
-                    log.info("Successfully populated the Scope Role Mappings ..........");
-
-                    MigrationClient migrateFrom310 = new MigrateFrom310(tenants, blackListTenants, tenantRange,
-                            registryService, tenantManager);
-                    log.info("Start scope migration from APIM 3.1.0 ..........");
-                    migrateFrom310.scopeMigration();
-                    log.info("Successfully migrated the Scopes from APIM 3.1.0 ..........");
-
-                    log.info("Start SP migration from APIM 3.1.0 ..........");
-                    migrateFrom310.spMigration();
-                    log.info("Successfully migrated the SP from APIM 3.1.0 ..........");
-
-                    log.info("Starting Migration from API Manager 3.2 to 4.0");
-                    log.info("Start moving UUIDs to DB from registry ..........");
-                    commonMigrationClient.moveUUIDToDBFromRegistry();
-                    log.info("Successfully moved the UUIDs to DB from registry ..........");
-
-                    log.info("Start identity scope migration ..........");
-                    identityScopeMigration.migrateScopes();
-                    log.info("Successfully migrated the identity scopes. ");
-                    MigrateFrom320 migrateFrom320 = new MigrateFrom320(tenants, blackListTenants, tenantRange,
-                            registryService, tenantManager);
-                    log.info("Start migrating WebSocket APIs ..........");
-                    migrateFrom320.migrateWebSocketAPI();
-                    log.info("Successfully migrated WebSocket APIs ..........");
-
-                    log.info("Start migrating API Product Mappings  ..........");
-                    migrateFrom320.migrateProductMappingTable();
-                    log.info("Successfully migrated API Product Mappings ..........");
-
-                    log.info("Start migrating registry paths of Icon and WSDLs  ..........");
-                    migrateFrom320.updateRegistryPathsOfIconAndWSDL();
-                    log.info("Successfully migrated API registry paths of Icon and WSDLs.");
-
-                    log.info("Start removing unnecessary fault handlers from fault sequences ..........");
-                    migrateFrom320.removeUnnecessaryFaultHandlers();
-                    log.info("Successfully removed the unnecessary fault handlers from fault sequences.");
-
-                    log.info("Start API Revision related migration ..........");
-                    migrateFrom320.apiRevisionRelatedMigration();
-                    log.info("API Revision related migration is successful.");
-
-                    log.info("Start migrating Endpoint Certificates  ..........");
-                    migrateFrom320.migrateEndpointCertificates();
-                    log.info("Successfully migrated Endpoint Certificates.");
-
-                    log.info("Start replacing KM name by UUID  ..........");
-                    migrateFrom320.replaceKMNamebyUUID();
-                    log.info("Successfully replaced KM name by UUID.");
-
-                    log.info("Migrated Successfully to APIM 4.0.0");
-                } else if (V210.equals(migrateFromVersion) || V220.equals(migrateFromVersion) ||
-                        V250.equals(migrateFromVersion) || V260.equals(migrateFromVersion)) {
+                if (V260.equals(migrateFromVersion)) {
                     log.info("Start migration from APIM " + migrateFromVersion + "  ..........");
 
                     MigrationClient migrateFrom210 = new MigrateFrom210(tenants, blackListTenants, tenantRange,
@@ -212,11 +144,9 @@ public class APIMMigrationService implements ServerStartupObserver {
                     migrateFrom320.migrateWebSocketAPI();
                     log.info("Successfully migrated WebSocket APIs ..........");
 
-                    if (V250.equals(migrateFromVersion) || V260.equals(migrateFromVersion)) {
-                        log.info("Migrating lables to vhosts in APIM " + migrateFromVersion);
-                        migrateFrom320.migrateLabelsToVhosts();
-                        log.info("Successfully Migrated lables to vhosts in APIM " + migrateFromVersion);
-                    }
+                    log.info("Migrating lables to vhosts in APIM " + migrateFromVersion);
+                    migrateFrom320.migrateLabelsToVhosts();
+                    log.info("Successfully Migrated lables to vhosts in APIM " + migrateFromVersion);
                     log.info("Start migrating API Product Mappings  ..........");
                     migrateFrom320.migrateProductMappingTable();
                     log.info("Successfully migrated API Product Mappings ..........");
