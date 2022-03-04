@@ -88,8 +88,6 @@ public class APIMMigrationService implements ServerStartupObserver {
                 dbManager.initialize(migrateFromVersion);
                 if (migrateFromVersion.equals(V310)) {
                     dbManager.sortGraphQLOperation();
-                } else if (migrateFromVersion.equals(V220) || migrateFromVersion.equals(V250)) {
-                    migrateStatDB.statsMigration();
                 }
                 log.info("------------------------------Stat migration completed----------------------------------");
                 if (log.isDebugEnabled()) {
