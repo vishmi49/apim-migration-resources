@@ -75,7 +75,7 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/320to410Migration.rxts</directory>
+            <directory>${project.basedir}/src/main/resources/400to410Migration.rxts</directory>
             <outputDirectory>migration-resources/rxts</outputDirectory>
             <includes>
                 <include>*.rxt</include>

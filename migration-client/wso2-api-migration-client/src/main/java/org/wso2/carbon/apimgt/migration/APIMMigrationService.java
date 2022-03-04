@@ -63,6 +63,7 @@ public class APIMMigrationService implements ServerStartupObserver {
         }
 
         String migrateFromVersion = System.getProperty(Constants.ARG_MIGRATE_FROM_VERSION);
+        String continueFromStep = System.getProperty(Constants.MIGRATION_STEP);
         log.info("Starting APIM Migration from APIM " + migrateFromVersion + " ..............");
         String tenants = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
         String tenantRange = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
@@ -332,14 +333,14 @@ public class APIMMigrationService implements ServerStartupObserver {
                     log.info("Migrated Successfully to 4.0.0");
                 }
 
-                // API-M 400 -> 4.1.0 migration
+                // ------------------------------Migration from API-M 400------------------------------
                 MigrationClientBase migrationClient = new MigrationClientBase(tenants, blackListTenants,
                         tenantRange, tenantManager);
+
+                //sortedMap by key
                 TreeMap<String, MigrationClient> migrationServiceList = migrationClient
                         .getMigrationServiceList(registryService, migrateFromVersion);
-
-                log.info("Start Migrating to 4.1.0");
-                migrationClient.doMigration(migrationServiceList);
+                migrationClient.doMigration(migrationServiceList, continueFromStep);
                 log.info("Migrated Successfully to 4.1.0");
             }
         } catch (APIMigrationException e) {

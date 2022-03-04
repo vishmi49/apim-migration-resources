@@ -38,6 +38,7 @@ import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
@@ -190,8 +191,11 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             }
                             API api = APIUtil.getAPI(artifact, registry);
                             if (StringUtils.isNotEmpty(api.getVersionTimestamp())) {
-                                log.info("VersionTimestamp already available in APIName: " + api.getId().getApiName()
-                                        + api.getId().getVersion());
+                                if (log.isDebugEnabled()) {
+                                    log.info(
+                                            "VersionTimestamp already available in APIName: " + api.getId().getApiName()
+                                                    + api.getId().getVersion());
+                                }
                             }
                             if (api == null) {
                                 log.error("Cannot find corresponding api for registry artifact " + artifact
@@ -219,7 +223,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             }
                         } catch (Exception e) {
                             // we log the error and continue to the next resource.
-                            log.error("Unable to migrate api metadata definition of API : " + artifact
+                           throw new APIMigrationException("Unable to migrate api metadata definition of API : " + artifact
                                             .getAttribute("overview_name") + '-' + artifact
                                             .getAttribute("overview_version") + '-' + artifact
                                             .getAttribute("overview_provider"), e);
@@ -240,16 +244,32 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             apiToArtifactMapping.get(apiN)
                                     .setAttribute("overview_gatewayVendor", Constants.API_OVERVIEW_GATEWAY_VENDOR);
                             log.info("Setting Version Comparable for API " + apiN.getUuid());
-                            artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
+                            try {
+                                artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
+                            } catch (GovernanceException e) {
+                                throw new APIMigrationException(
+                                        "Failed to update versionComparable or gatewayVendor for API: " + apiN.getId()
+                                                .getApiName() + " version: " + apiN.getId().getVersion()
+                                                + " versionComparable: " + apiN.getVersionTimestamp()
+                                                + " and gateway Vendor: " + apiN.getGatewayVendor() + " at registry");
+                            }
                             versionTimestamp -= oneDay;
-                            GenericArtifact artifact = artifactManager.getGenericArtifact(apiN.getUuid());
+                            GenericArtifact artifact;
+                            try {
+                                artifact = artifactManager.getGenericArtifact(apiN.getUuid());
+                            } catch (GovernanceException e) {
+                                throw new APIMigrationException(
+                                        "Failed to retrieve API: " + apiN.getId().getApiName() + " version: " + apiN
+                                                .getId().getVersion() + " from registry.");
+                            }
                             API api = APIUtil.getAPI(artifact, registry);
                             if (StringUtils.isEmpty(api.getVersionTimestamp()) ||
                                     StringUtils.isEmpty(api.getGatewayVendor())) {
-                                log.error("Failed to update versionComparable or gatewayVendor for API: " + apiN.getId()
-                                        .getApiName() + " version: " + apiN.getId().getVersion()
-                                        + " versionComparable: " + api.getVersionTimestamp() + " and gateway Vendor: "
-                                        + api.getGatewayVendor() + " at registry");
+                                throw new APIMigrationException(
+                                        "VersionComparable or gatewayVendor values are empty for API: " + apiN.getId()
+                                                .getApiName() + " version: " + apiN.getId().getVersion()
+                                                + " versionComparable: " + api.getVersionTimestamp()
+                                                + " and gateway Vendor: " + api.getGatewayVendor() + " at registry");
                             } else {
                                 log.info("VersionTimestamp updated API: " + apiN.getId().getApiName() + " version: "
                                         + apiN.getId().getVersion() + " versionComparable: " + api.getVersionTimestamp()
@@ -259,8 +279,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                         try {
                             apiMgtDAO.populateApiVersionTimestamp(versionedAPIList);
                         } catch (APIMigrationException e) {
-                            log.error("Exception while populating versionComparable for api " + apiName + " tenant: "
-                                    + tenant.getDomain() + "at database");
+                            throw new APIMigrationException("Exception while populating versionComparable for api "
+                                    + apiName + " tenant: " + tenant.getDomain() + "at database");
                         }
                     }
                     log.info("Successfully migrated data for api rxts to include versionComparable..........");

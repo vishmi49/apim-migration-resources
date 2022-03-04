@@ -47,6 +47,12 @@ public class Constants {
     // Migration client argument property names
     public static final String ARG_RUN_SPECIFIC_VERSION = "runSpecificVersion";
     public static final String ARG_MIGRATE_FROM_VERSION = "migrateFromVersion";
+    public static final String MIGRATION_STEP = "continueFromStep";
+    public static final String DB_MIGRATION = "databaseMigration";
+    public static final String REGISTRY_RESOURCE_MIGRATION = "registryResourceMigration";
+    public static final String SCOPE_ROLE_MAPPING_MIGRATION = "updateScopeRoleMappings";
+    public static final String TENANT_CONF_MIGRATION = "migrateTenantConfToDB";
+    public static final String REGISTRY_DATA_POPULATION = "registryDataPopulation";
     public static final String ARG_OPTIONS = "options";
     public static final String ARG_COMPONENT = "component";
     public static final String ARG_MIGRATE_TENANTS = "tenants";
