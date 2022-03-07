@@ -342,11 +342,11 @@ public class RegistryServiceImpl implements RegistryService {
         //Update RXT UI Configuration
         Registry configRegistry = ServiceHolder.getRegistryService().getConfigSystemRegistry(tenant.getId());
         String rxtUIConfigPath = Constants.GOVERNANCE_ARTIFACT_CONFIGURATION_PATH + APIConstants.API_KEY;
-        if(configRegistry.resourceExists(rxtUIConfigPath)) {
+        if (configRegistry.resourceExists(rxtUIConfigPath)) {
             Resource rxtUIResource = configRegistry.get(rxtUIConfigPath);
             rxtUIResource.setContent(ResourceUtil.getArtifactUIContentFromConfig(rxtPayload));
             configRegistry.put(rxtUIConfigPath, rxtUIResource);
-            }
+        }
 
     }
 

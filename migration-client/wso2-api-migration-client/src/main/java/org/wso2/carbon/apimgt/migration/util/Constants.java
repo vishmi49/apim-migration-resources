@@ -47,6 +47,12 @@ public class Constants {
     // Migration client argument property names
     public static final String ARG_RUN_SPECIFIC_VERSION = "runSpecificVersion";
     public static final String ARG_MIGRATE_FROM_VERSION = "migrateFromVersion";
+    public static final String MIGRATION_STEP = "continueFromStep";
+    public static final String DB_MIGRATION = "databaseMigration";
+    public static final String REGISTRY_RESOURCE_MIGRATION = "registryResourceMigration";
+    public static final String SCOPE_ROLE_MAPPING_MIGRATION = "updateScopeRoleMappings";
+    public static final String TENANT_CONF_MIGRATION = "migrateTenantConfToDB";
+    public static final String REGISTRY_DATA_POPULATION = "registryDataPopulation";
     public static final String ARG_OPTIONS = "options";
     public static final String ARG_COMPONENT = "component";
     public static final String ARG_MIGRATE_TENANTS = "tenants";
@@ -313,6 +319,7 @@ public class Constants {
     public static final String API_OVERVIEW_VISIBLE_ROLES = "overview_visibleRoles";
     public static final String API_OVERVIEW_TYPE = "overview_type";
     public static final String API_OVERVIEW_ENABLE_STORE = "overview_enableStore";
+    public static final String API_OVERVIEW_GATEWAY_VENDOR = "overview_gatewayVendor";
     public static final String API_OVERVIEW_NAME = "overview_name";
     public static final String API_OVERVIEW_VERSION = "overview_version";
     public static final String API_OVERVIEW_PROVIDER = "overview_provider";
@@ -373,4 +380,6 @@ public class Constants {
     public static final String DEFAULT_APP_TIER_FILE_NAME = "default-app-tiers.xml";
 
     public static final String DEFAULT_RES_TIER_FILE_NAME = "default-res-tiers.xml";
+
+    public static final String DEFAULT_GATEWAY_VENDOR = "wso2";
 }

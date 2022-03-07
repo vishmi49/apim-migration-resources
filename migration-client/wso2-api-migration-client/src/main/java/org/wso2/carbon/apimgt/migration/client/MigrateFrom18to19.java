@@ -1276,6 +1276,16 @@ public class MigrateFrom18to19 extends MigrationClientBase implements MigrationC
     public void updateScopeRoleMappings() throws APIMigrationException {
     }
 
+    @Override
+    public void registryDataPopulation() throws APIMigrationException {
+
+    }
+
+    @Override
+    public void migrateTenantConfToDB() throws APIMigrationException {
+
+    }
+
     /**
      * This method will be used to populate SP_APP table
      */

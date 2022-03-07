@@ -166,6 +166,14 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     public void updateScopeRoleMappings() throws APIMigrationException {
     }
 
+    @Override public void registryDataPopulation() throws APIMigrationException {
+
+    }
+
+    @Override public void migrateTenantConfToDB() throws APIMigrationException {
+
+    }
+
     @Override
     public void scopeMigration() throws APIMigrationException {
     }

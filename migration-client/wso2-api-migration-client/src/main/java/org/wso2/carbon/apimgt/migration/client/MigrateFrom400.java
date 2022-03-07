@@ -18,23 +18,17 @@
 
 package org.wso2.carbon.apimgt.migration.client;
 
-import javafx.collections.transformation.SortedList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.model.API;
-import org.wso2.carbon.apimgt.api.model.APIIdentifier;
 import org.wso2.carbon.apimgt.impl.APIConstants;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.lang3.ArrayUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.wso2.carbon.apimgt.impl.APIConstants.ConfigType;
 import org.wso2.carbon.apimgt.impl.dao.SystemConfigurationsDAO;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
-import org.wso2.carbon.apimgt.migration.APIMMigrationService;
 import org.wso2.carbon.apimgt.impl.utils.APIVersionComparator;
 
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
@@ -44,31 +38,27 @@ import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
+import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
 import org.wso2.carbon.governance.api.util.GovernanceUtils;
-import org.wso2.carbon.registry.api.RegistryException;
-import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.registry.core.RegistryConstants;
+import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.wso2.carbon.apimgt.api.APIManagementException;
-
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
+
+import static org.wso2.carbon.utils.multitenancy.MultitenantUtils.getTenantAwareUsername;
 
 public class MigrateFrom400 extends MigrationClientBase implements MigrationClient {
 
@@ -76,12 +66,11 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
     SystemConfigurationsDAO systemConfigurationsDAO = SystemConfigurationsDAO.getInstance();
     private RegistryService registryService;
-    public MigrateFrom400(String tenantArguments, String blackListTenantArguments, String tenantRange,
-                          RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
 
+    public MigrateFrom400(String tenantArguments, String blackListTenantArguments, String tenantRange,
+            RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
         super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
         this.registryService = registryService;
-
     }
 
     @Override
@@ -90,6 +79,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         populateApiCategoryOrganizations();
         populateApiOrganizations();
         populateApplicationOrganizations();
+        populateGWEnvironmentOrganizations();
     }
 
     private void populateApiCategoryOrganizations() throws APIMigrationException {
@@ -101,6 +91,10 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         } catch (UserStoreException e) {
             throw new APIMigrationException("Failed to retrieve tenants");
         }
+    }
+
+    private void populateGWEnvironmentOrganizations() throws APIMigrationException {
+        apiMgtDAO.populateGWEnvironmentOrganizations();
     }
 
     private void populateApiOrganizations() throws APIMigrationException {
@@ -119,24 +113,30 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         apiMgtDAO.updateApplicationOrganizations(subscriberOrganizations);
     }
 
+    @Override
     public void migrateTenantConfToDB() throws APIMigrationException {
         for (Tenant tenant : getTenantsArray()) {
             int tenantId = tenant.getId();
             String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
             JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
             ObjectMapper mapper = new ObjectMapper();
-            String formattedTenantConf;
+            String formattedTenantConf = null;
             try {
-                formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
+                if (tenantConf != null) {
+                    tenantConf.putIfAbsent("IsUnlimitedTierPaid", false);
+                    formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
+                }
             } catch (JsonProcessingException jse) {
-                log.info("Error while JSON Processing tenant conf :"+ jse);
-                log.info("Hence, skipping tenant conf to db migration for tenant Id :"+ tenantId);
+                log.info("Error while JSON Processing tenant conf :" + jse);
+                log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
                 continue;
             }
             try {
-                systemConfigurationsDAO.addSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
+                systemConfigurationsDAO
+                        .addSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
             } catch (APIManagementException ape) {
-                log.info("Error while adding to tenant conf to database for tenant: "+ tenantId + "with Error :" + ape);
+                log.info(
+                        "Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :" + ape);
                 continue;
             }
         }
@@ -149,11 +149,11 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
 
     /**
      * This adds version timestamp to the rxt and db.
-     *
      */
-    public void migrationVersionTimestamp() {
+    @Override
+    public void registryDataPopulation() throws APIMigrationException {
 
-        log.info("Vertion Timestamp migration for API Manager " + Constants.VERSION_4_0_0 + " started.");
+        log.info("Registry data population for API Manager " + Constants.VERSION_4_0_0 + " started.");
 
         boolean isTenantFlowStarted = false;
         for (Tenant tenant : getTenantsArray()) {
@@ -167,47 +167,50 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenant.getDomain(), true);
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenant.getId(), true);
 
-                String adminName = ServiceHolder.getRealmService().getTenantUserRealm(tenant.getId())
-                        .getRealmConfiguration().getAdminUserName();
+                String adminName = getTenantAwareUsername(APIUtil.replaceEmailDomainBack(tenant.getAdminName()));
 
                 if (log.isDebugEnabled()) {
                     log.debug("Tenant admin username : " + adminName);
                 }
 
                 ServiceHolder.getTenantRegLoader().loadTenantRegistry(tenant.getId());
-                Registry registry = ServiceHolder.getRegistryService().getGovernanceUserRegistry(adminName, tenant
-                        .getId());
+                UserRegistry registry = ServiceHolder.getRegistryService().getGovernanceSystemRegistry(tenant.getId());
                 GenericArtifactManager artifactManager = APIUtil.getArtifactManager(registry, APIConstants.API_KEY);
 
                 if (artifactManager != null) {
-                    GovernanceUtils.loadGovernanceArtifacts((UserRegistry) registry);
+                    GovernanceUtils.loadGovernanceArtifacts(registry);
                     GenericArtifact[] artifacts = artifactManager.getAllGenericArtifacts();
                     Map<String, List<API>> apisMap = new TreeMap<>();
                     Map<API, GenericArtifact> apiToArtifactMapping = new HashMap<>();
 
                     for (GenericArtifact artifact : artifacts) {
                         try {
+                            String artifactPath = ((GenericArtifactImpl) artifact).getArtifactPath();
+                            if (artifactPath.contains("/apimgt/applicationdata/apis/")) {
+                                continue;
+                            }
                             API api = APIUtil.getAPI(artifact, registry);
-                            if (StringUtils.isNotEmpty(api.getVersionTimestamp())){
-                                log.info("VersionTimestamp already available in APIName: " + api.getId().getApiName() +
-                                        api.getId().getVersion());
+                            if (StringUtils.isNotEmpty(api.getVersionTimestamp())) {
+                                if (log.isDebugEnabled()) {
+                                    log.info(
+                                            "VersionTimestamp already available in APIName: " + api.getId().getApiName()
+                                                    + api.getId().getVersion());
+                                }
                             }
                             if (api == null) {
-                                log.error("Cannot find corresponding api for registry artifact " +
-                                        artifact.getAttribute("overview_name") + '-' +
-                                        artifact.getAttribute("overview_version") + '-' +
-                                        artifact.getAttribute("overview_provider") +
-                                        " of tenant " + tenant.getId() + '(' + tenant.getDomain() + ") in AM_DB");
+                                log.error("Cannot find corresponding api for registry artifact " + artifact
+                                        .getAttribute("overview_name") + '-' + artifact.getAttribute("overview_version")
+                                        + '-' + artifact.getAttribute("overview_provider") + " of tenant " + tenant
+                                        .getId() + '(' + tenant.getDomain() + ") in AM_DB");
                                 continue;
                             }
 
                             if (log.isDebugEnabled()) {
-                                log.debug("Doing the RXT migration for API : " +
-                                        artifact.getAttribute("overview_name") + '-' +
-                                        artifact.getAttribute("overview_version") + '-' +
-                                        artifact.getAttribute("overview_provider") + '-' +
-                                        artifact.getAttribute("version timestamp") + '-' +
-                                        " of tenant " + tenant.getId() + '(' + tenant.getDomain() + ")");
+                                log.debug("Doing the RXT migration for API : " + artifact.getAttribute("overview_name")
+                                        + '-' + artifact.getAttribute("overview_version") + '-' + artifact
+                                        .getAttribute("overview_provider") + '-' + artifact
+                                        .getAttribute("overview_versionComparable") + '-' + " of tenant " + tenant.getId() + '('
+                                        + tenant.getDomain() + ")");
                             }
                             if (!apisMap.containsKey(api.getId().getApiName())) {
                                 List<API> versionedAPIsList = new ArrayList<>();
@@ -220,35 +223,67 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             }
                         } catch (Exception e) {
                             // we log the error and continue to the next resource.
-                            log.error("Unable to migrate api metadata definition of API : " +
-                                    artifact.getAttribute("overview_name") + '-' +
-                                    artifact.getAttribute("overview_version") + '-' +
-                                    artifact.getAttribute("overview_provider"), e);
+                           throw new APIMigrationException("Unable to migrate api metadata definition of API : " + artifact
+                                            .getAttribute("overview_name") + '-' + artifact
+                                            .getAttribute("overview_version") + '-' + artifact
+                                            .getAttribute("overview_provider"), e);
                         }
                     }
+
                     // set the versionTimestamp for each API
                     for (String apiName : apisMap.keySet()) {
                         List<API> versionedAPIList = apisMap.get(apiName);
                         versionedAPIList.sort(new APIVersionComparator());
-                        long timestamp = System.currentTimeMillis();
+                        long versionTimestamp = System.currentTimeMillis();
                         long oneDay = 86400;
                         for (int i = versionedAPIList.size(); i > 0; i--) {
                             API apiN = versionedAPIList.get(i - 1);
-                            apiN.setVersionTimestamp(timestamp + "");
-                            apiToArtifactMapping.get(apiN).setAttribute("overview_versionTimestamp",
-                                    String.valueOf(timestamp));
-                            artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
-                            log.info("VersionTimestamp updated API: " + apiN.getId().getApiName() + " version: " +
-                                    apiN.getId().getVersion() + " timestamp: " + timestamp);
-                            timestamp -= oneDay;
+                            apiN.setVersionTimestamp(versionTimestamp + "");
+                            apiToArtifactMapping.get(apiN)
+                                    .setAttribute("overview_versionComparable", String.valueOf(versionTimestamp));
+                            apiToArtifactMapping.get(apiN)
+                                    .setAttribute("overview_gatewayVendor", Constants.API_OVERVIEW_GATEWAY_VENDOR);
+                            log.info("Setting Version Comparable for API " + apiN.getUuid());
+                            try {
+                                artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
+                            } catch (GovernanceException e) {
+                                throw new APIMigrationException(
+                                        "Failed to update versionComparable or gatewayVendor for API: " + apiN.getId()
+                                                .getApiName() + " version: " + apiN.getId().getVersion()
+                                                + " versionComparable: " + apiN.getVersionTimestamp()
+                                                + " and gateway Vendor: " + apiN.getGatewayVendor() + " at registry");
+                            }
+                            versionTimestamp -= oneDay;
+                            GenericArtifact artifact;
+                            try {
+                                artifact = artifactManager.getGenericArtifact(apiN.getUuid());
+                            } catch (GovernanceException e) {
+                                throw new APIMigrationException(
+                                        "Failed to retrieve API: " + apiN.getId().getApiName() + " version: " + apiN
+                                                .getId().getVersion() + " from registry.");
+                            }
+                            API api = APIUtil.getAPI(artifact, registry);
+                            if (StringUtils.isEmpty(api.getVersionTimestamp()) ||
+                                    StringUtils.isEmpty(api.getGatewayVendor())) {
+                                throw new APIMigrationException(
+                                        "VersionComparable or gatewayVendor values are empty for API: " + apiN.getId()
+                                                .getApiName() + " version: " + apiN.getId().getVersion()
+                                                + " versionComparable: " + api.getVersionTimestamp()
+                                                + " and gateway Vendor: " + api.getGatewayVendor() + " at registry");
+                            } else {
+                                log.info("VersionTimestamp updated API: " + apiN.getId().getApiName() + " version: "
+                                        + apiN.getId().getVersion() + " versionComparable: " + api.getVersionTimestamp()
+                                        + " gatewayVendor: " + api.getGatewayVendor());
+                            }
                         }
                         try {
                             apiMgtDAO.populateApiVersionTimestamp(versionedAPIList);
                         } catch (APIMigrationException e) {
-                            log.error("Exception while populating version timestamp for api " + apiName +
-                                    " tenant: " + tenant.getDomain());
+                            throw new APIMigrationException("Exception while populating versionComparable for api "
+                                    + apiName + " tenant: " + tenant.getDomain() + "at database");
                         }
                     }
+                    log.info("Successfully migrated data for api rxts to include versionComparable..........");
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("No api artifacts found in registry for tenant " + tenant.getId() + '(' + tenant
@@ -256,11 +291,9 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                     }
                 }
             } catch (APIManagementException e) {
-                log.error("Error occurred while reading API from the artifact ", e);
+                throw new APIMigrationException("Error occurred while reading API from the artifact ", e);
             } catch (RegistryException e) {
-                log.error("Error occurred while accessing the registry", e);
-            } catch (UserStoreException e) {
-                log.error("Error occurred while reading tenant information", e);
+                throw new APIMigrationException("Error occurred while accessing the registry ", e);
             } finally {
                 if (isTenantFlowStarted) {
                     PrivilegedCarbonContext.endTenantFlow();
@@ -295,7 +328,6 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
 
     @Override
     public void updateArtifacts() throws APIMigrationException {
-
     }
 
     @Override
@@ -325,4 +357,5 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
             loadAndSyncTenantConf(tenant.getId());
         }
     }
+
 }

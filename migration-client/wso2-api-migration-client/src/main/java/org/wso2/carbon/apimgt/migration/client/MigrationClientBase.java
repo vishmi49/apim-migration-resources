@@ -65,13 +65,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import static org.wso2.carbon.apimgt.impl.utils.APIUtil.getTenantDomainFromTenantId;
+import static org.wso2.carbon.apimgt.migration.util.Constants.*;
 
-public abstract class MigrationClientBase {
+public class MigrationClientBase {
     private static final Log log = LogFactory.getLog(MigrationClientBase.class);
     private List<Tenant> tenantsArray;
     private static final String IS_MYSQL_SESION_MODE_EXISTS = "SELECT COUNT(@@SESSION.sql_mode)";
@@ -80,19 +83,31 @@ public abstract class MigrationClientBase {
     private static final String MIGRATION = "Migration";
     private static final String VERSION_3 = "3.0.0";
     private static final String META = "Meta";
+    private final String V400 = "4.0.0";
+    private String tenantArguments;
+    private String blackListTenantArguments;
+    private final String tenantRange;
+    private final TenantManager tenantManager;
+
     public MigrationClientBase(String tenantArguments, String blackListTenantArguments, String tenantRange,
-            TenantManager tenantManager) throws UserStoreException {
+            TenantManager tenantManager)
+            throws UserStoreException {
+
+        this.tenantManager = tenantManager;
+        this.tenantRange = tenantRange;
         if (tenantArguments != null) {  // Tenant arguments have been provided so need to load specific ones
             tenantArguments = tenantArguments.replaceAll("\\s", ""); // Remove spaces and tabs
 
             tenantsArray = new ArrayList<>();
 
             buildTenantList(tenantManager, tenantsArray, tenantArguments);
+            this.tenantArguments = tenantArguments;
         } else if (blackListTenantArguments != null) {
             blackListTenantArguments = blackListTenantArguments.replaceAll("\\s", ""); // Remove spaces and tabs
 
             List<Tenant> blackListTenants = new ArrayList<>();
             buildTenantList(tenantManager, blackListTenants, blackListTenantArguments);
+            this.blackListTenantArguments = blackListTenantArguments;
 
             List<Tenant> allTenants = new ArrayList<>(Arrays.asList(tenantManager.getAllTenants()));
             Tenant superTenant = new Tenant();
@@ -141,6 +156,102 @@ public abstract class MigrationClientBase {
             tenantsArray.add(superTenant);
         }
         setAdminUserName(tenantManager);
+    }
+
+    /**
+     *
+     * @param registryService registryService
+     * @param migrateFromVersion migrateFromVersion
+     * @return
+     */
+    public TreeMap<String, MigrationClient> getMigrationServiceList(RegistryService registryService,
+            String migrateFromVersion) {
+
+        HashMap<String, MigrationClient> serviceList = new HashMap<>();
+
+        if (V400.equals(migrateFromVersion)) {
+            MigrateFrom400 migrateFrom400 = null;
+            try {
+                migrateFrom400 = new MigrateFrom400(tenantArguments, blackListTenantArguments, tenantRange,
+                        registryService, tenantManager);
+            } catch (UserStoreException e) {
+                log.error("User store  exception occurred while creating 400 migration client", e);
+            }
+            serviceList.put(V400, migrateFrom400);
+        }
+
+        return new TreeMap<>(serviceList);
+    }
+
+    /**
+     *
+     * @param migrationServiceList
+     * @param continueFromStep
+     * @throws APIMigrationException
+     * @throws SQLException
+     */
+    public void doMigration(TreeMap<String, MigrationClient> migrationServiceList, String continueFromStep)
+            throws APIMigrationException, SQLException {
+
+        for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
+
+            MigrationClient serviceClient = service.getValue();
+            switch (continueFromStep) {
+            case REGISTRY_RESOURCE_MIGRATION:
+                registryResourceMigration(serviceClient);
+                updateScopeRoleMappings(serviceClient);
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
+                break;
+            case SCOPE_ROLE_MAPPING_MIGRATION:
+                updateScopeRoleMappings(serviceClient);
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
+                break;
+            case TENANT_CONF_MIGRATION:
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
+                break;
+            case REGISTRY_DATA_POPULATION:
+                registryDataPopulation(serviceClient);
+                break;
+            default:
+                databaseMigration(serviceClient);
+                registryResourceMigration(serviceClient);
+                updateScopeRoleMappings(serviceClient);
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
+            }
+        }
+    }
+
+    private void databaseMigration(MigrationClient serviceClient) throws APIMigrationException, SQLException {
+        log.info("Start migrating databases  ..........");
+        serviceClient.databaseMigration();
+        log.info("Successfully migrated databases.");
+    }
+
+    private void registryResourceMigration(MigrationClient serviceClient) throws APIMigrationException {
+        log.info("Start migrating api rxts  ..........");
+        serviceClient.registryResourceMigration();
+        log.info("Successfully migrated api rxt.");
+    }
+
+    private void updateScopeRoleMappings(MigrationClient serviceClient) throws APIMigrationException {
+        log.info("Start migrating Role Scope Tenant Conf Mappings  ..........");
+        serviceClient.updateScopeRoleMappings();
+        log.info("Successfully migrated Role Scope Tenant Conf Mappings.");
+    }
+
+    private void migrateTenantConfToDB(MigrationClient serviceClient) throws APIMigrationException {
+        log.info("Start migrating Tenant Conf  ..........");
+        serviceClient.migrateTenantConfToDB();
+        log.info("Successfully migrated Tenant Conf to Database.");
+    }
+
+    private void registryDataPopulation(MigrationClient serviceClient) throws APIMigrationException {
+        serviceClient.registryDataPopulation();
+        log.info("Successfully migrated data for api rxts ..........");
     }
 
     private void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
