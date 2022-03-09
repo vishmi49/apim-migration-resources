@@ -1200,7 +1200,7 @@ public class APIMgtDAO {
             try (PreparedStatement ps = conn.prepareStatement(GET_DISTINCT_TENANT_DOMAIN)) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        tenantDomains.add(rs.getString(GET_DISTINCT_TENANT_DOMAIN));
+                        tenantDomains.add(rs.getString(TENANT_DOMAIN_COLUMN));
                     }
                 }
             }

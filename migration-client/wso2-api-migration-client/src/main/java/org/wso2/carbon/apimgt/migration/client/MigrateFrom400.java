@@ -261,16 +261,14 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             }
                             // validate data
                             API api = APIUtil.getAPI(artifact, registry);
-                            if (StringUtils.isEmpty(api.getVersionTimestamp()) ||
-                                    StringUtils.isEmpty(api.getGatewayVendor())) {
-                               log.error("VersionComparable or gatewayVendor values are empty for API: "
-                                       + apiN.getId().getApiName() + " version: " + apiN.getId().getVersion()
-                                                + " versionComparable: " + api.getVersionTimestamp()
-                                                + " and gateway Vendor: " + api.getGatewayVendor() + " at registry.");
+                            if (StringUtils.isEmpty(api.getVersionTimestamp())) {
+                                log.error("VersionComparable is empty for API: " + apiN.getId().getApiName()
+                                        + " version: " + apiN.getId().getVersion() + " versionComparable: " + api
+                                        .getVersionTimestamp() + " at registry.");
                             } else {
                                 log.info("VersionTimestamp updated API: " + apiN.getId().getApiName() + " version: "
-                                        + apiN.getId().getVersion() + " versionComparable: " + api.getVersionTimestamp()
-                                        + " gatewayVendor: " + api.getGatewayVendor());
+                                        + apiN.getId().getVersion() + " versionComparable: " + api
+                                        .getVersionTimestamp());
                             }
                         }
                         try {
