@@ -65,7 +65,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     private static final Log log = LogFactory.getLog(MigrateFrom400.class);
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
     SystemConfigurationsDAO systemConfigurationsDAO = SystemConfigurationsDAO.getInstance();
-    private RegistryService registryService;
+    private final RegistryService registryService;
 
     public MigrateFrom400(String tenantArguments, String blackListTenantArguments, String tenantRange,
             RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
@@ -123,7 +123,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
             String formattedTenantConf = null;
             try {
                 if (tenantConf != null) {
-                    tenantConf.putIfAbsent("IsUnlimitedTierPaid", false);
+                    tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
                     formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
                 }
             } catch (JsonProcessingException jse) {
@@ -262,14 +262,14 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                                         "Failed to retrieve API: " + apiN.getId().getApiName() + " version: " + apiN
                                                 .getId().getVersion() + " from registry.");
                             }
+                            // validate data
                             API api = APIUtil.getAPI(artifact, registry);
                             if (StringUtils.isEmpty(api.getVersionTimestamp()) ||
                                     StringUtils.isEmpty(api.getGatewayVendor())) {
-                                throw new APIMigrationException(
-                                        "VersionComparable or gatewayVendor values are empty for API: " + apiN.getId()
-                                                .getApiName() + " version: " + apiN.getId().getVersion()
+                               log.error("VersionComparable or gatewayVendor values are empty for API: "
+                                       + apiN.getId().getApiName() + " version: " + apiN.getId().getVersion()
                                                 + " versionComparable: " + api.getVersionTimestamp()
-                                                + " and gateway Vendor: " + api.getGatewayVendor() + " at registry");
+                                                + " and gateway Vendor: " + api.getGatewayVendor() + " at registry.");
                             } else {
                                 log.info("VersionTimestamp updated API: " + apiN.getId().getApiName() + " version: "
                                         + apiN.getId().getVersion() + " versionComparable: " + api.getVersionTimestamp()

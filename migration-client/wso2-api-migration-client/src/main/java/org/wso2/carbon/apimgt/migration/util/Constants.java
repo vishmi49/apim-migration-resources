@@ -54,6 +54,7 @@ public class Constants {
     public static final String TENANT_CONF_MIGRATION = "migrateTenantConfToDB";
     public static final String REGISTRY_DATA_POPULATION = "registryDataPopulation";
     public static final String All_STEPS = "all";
+    public static final String IS_UNLIMITED_TIER_PAID = "IsUnlimitedTierPaid";
     public static final String ARG_OPTIONS = "options";
     public static final String ARG_COMPONENT = "component";
     public static final String ARG_MIGRATE_TENANTS = "tenants";

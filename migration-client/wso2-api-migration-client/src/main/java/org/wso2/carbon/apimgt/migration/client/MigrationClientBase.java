@@ -238,7 +238,7 @@ public class MigrationClientBase {
     }
 
     private void registryResourceMigration(MigrationClient serviceClient) throws APIMigrationException {
-        log.info("Start migrating api rxts  ..........");
+        log.info("Start migrating api rxt ..........");
         serviceClient.registryResourceMigration();
         log.info("Successfully migrated api rxt.");
     }
@@ -256,8 +256,9 @@ public class MigrationClientBase {
     }
 
     private void registryDataPopulation(MigrationClient serviceClient) throws APIMigrationException {
+        log.info("Start populating data for new properties in api artifacts ..........");
         serviceClient.registryDataPopulation();
-        log.info("Successfully migrated data for api rxts ..........");
+        log.info("Successfully migrated data for api artifacts..........");
     }
 
     private void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
