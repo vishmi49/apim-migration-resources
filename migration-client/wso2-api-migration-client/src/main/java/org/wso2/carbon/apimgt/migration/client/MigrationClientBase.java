@@ -193,6 +193,10 @@ public class MigrationClientBase {
     public void doMigration(TreeMap<String, MigrationClient> migrationServiceList, String continueFromStep)
             throws APIMigrationException, SQLException {
 
+        if (continueFromStep == null) {
+            continueFromStep = All_STEPS;
+        }
+
         for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
 
             MigrationClient serviceClient = service.getValue();
@@ -215,12 +219,14 @@ public class MigrationClientBase {
             case REGISTRY_DATA_POPULATION:
                 registryDataPopulation(serviceClient);
                 break;
-            default:
+            case All_STEPS:
                 databaseMigration(serviceClient);
                 registryResourceMigration(serviceClient);
                 updateScopeRoleMappings(serviceClient);
                 migrateTenantConfToDB(serviceClient);
                 registryDataPopulation(serviceClient);
+            default:
+                log.info("The step: " + continueFromStep  + " is not defined");
             }
         }
     }
@@ -232,7 +238,7 @@ public class MigrationClientBase {
     }
 
     private void registryResourceMigration(MigrationClient serviceClient) throws APIMigrationException {
-        log.info("Start migrating api rxts  ..........");
+        log.info("Start migrating api rxt ..........");
         serviceClient.registryResourceMigration();
         log.info("Successfully migrated api rxt.");
     }
@@ -250,8 +256,9 @@ public class MigrationClientBase {
     }
 
     private void registryDataPopulation(MigrationClient serviceClient) throws APIMigrationException {
+        log.info("Start populating data for new properties in api artifacts ..........");
         serviceClient.registryDataPopulation();
-        log.info("Successfully migrated data for api rxts ..........");
+        log.info("Successfully migrated data for api artifacts..........");
     }
 
     private void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)

@@ -123,7 +123,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
             String formattedTenantConf = null;
             try {
                 if (tenantConf != null) {
-                    tenantConf.putIfAbsent("IsUnlimitedTierPaid", false);
+                    tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
                     formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
                 }
             } catch (JsonProcessingException jse) {
@@ -241,17 +241,14 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             apiN.setVersionTimestamp(versionTimestamp + "");
                             apiToArtifactMapping.get(apiN)
                                     .setAttribute("overview_versionComparable", String.valueOf(versionTimestamp));
-                            apiToArtifactMapping.get(apiN)
-                                    .setAttribute("overview_gatewayVendor", Constants.API_OVERVIEW_GATEWAY_VENDOR);
                             log.info("Setting Version Comparable for API " + apiN.getUuid());
                             try {
                                 artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
                             } catch (GovernanceException e) {
                                 throw new APIMigrationException(
-                                        "Failed to update versionComparable or gatewayVendor for API: " + apiN.getId()
-                                                .getApiName() + " version: " + apiN.getId().getVersion()
-                                                + " versionComparable: " + apiN.getVersionTimestamp()
-                                                + " and gateway Vendor: " + apiN.getGatewayVendor() + " at registry");
+                                        "Failed to update versionComparable for API: " + apiN.getId().getApiName()
+                                                + " version: " + apiN.getId().getVersion() + " versionComparable: "
+                                                + apiN.getVersionTimestamp() + " at registry");
                             }
                             versionTimestamp -= oneDay;
                             GenericArtifact artifact;
@@ -262,18 +259,16 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                                         "Failed to retrieve API: " + apiN.getId().getApiName() + " version: " + apiN
                                                 .getId().getVersion() + " from registry.");
                             }
+                            // validate data
                             API api = APIUtil.getAPI(artifact, registry);
-                            if (StringUtils.isEmpty(api.getVersionTimestamp()) ||
-                                    StringUtils.isEmpty(api.getGatewayVendor())) {
-                                throw new APIMigrationException(
-                                        "VersionComparable or gatewayVendor values are empty for API: " + apiN.getId()
-                                                .getApiName() + " version: " + apiN.getId().getVersion()
-                                                + " versionComparable: " + api.getVersionTimestamp()
-                                                + " and gateway Vendor: " + api.getGatewayVendor() + " at registry");
+                            if (StringUtils.isEmpty(api.getVersionTimestamp())) {
+                                log.error("VersionComparable is empty for API: " + apiN.getId().getApiName()
+                                        + " version: " + apiN.getId().getVersion() + " versionComparable: " + api
+                                        .getVersionTimestamp() + " at registry.");
                             } else {
                                 log.info("VersionTimestamp updated API: " + apiN.getId().getApiName() + " version: "
-                                        + apiN.getId().getVersion() + " versionComparable: " + api.getVersionTimestamp()
-                                        + " gatewayVendor: " + api.getGatewayVendor());
+                                        + apiN.getId().getVersion() + " versionComparable: " + api
+                                        .getVersionTimestamp());
                             }
                         }
                         try {

@@ -201,8 +201,10 @@ public class APIMgtDAO {
                     "WHERE AM_GATEWAY_ENVIRONMENT.TENANT_DOMAIN = ?";
 
     private static String GET_DISTINCT_TENANT_DOMAIN = "SELECT DISTINCT TENANT_DOMAIN FROM AM_GATEWAY_ENVIRONMENT";
+    private static String TENANT_DOMAIN_COLUMN = "TENANT_DOMAIN";
 
     private static String GET_DISTINCT_API_PROVIDERS = "SELECT DISTINCT API_PROVIDER FROM AM_API";
+    private static String API_PROVIDER_COLUMN = "API_PROVIDER";
 
     private static String UPDATE_API_ORGANIZATION =
             "UPDATE AM_API " +
@@ -1168,18 +1170,8 @@ public class APIMgtDAO {
     public void populateGWEnvironmentOrganizations()
             throws APIMigrationException {
 
-        List<String> tenantDomains = new ArrayList<>();
-        try (Connection conn = APIMgtDBUtil.getConnection()) {
-            try (PreparedStatement ps = conn.prepareStatement(GET_DISTINCT_TENANT_DOMAIN)) {
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        tenantDomains.add(rs.getString("TENANT_DOMAIN"));
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            throw new APIMigrationException("Error while getting API providers from the database " + e);
-        }
+        List<String> tenantDomains = getGatewayTenantDomains();
+        String tenantDomainsList = String.join(",", tenantDomains);
 
         try (Connection conn = APIMgtDBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -1198,6 +1190,24 @@ public class APIMgtDAO {
             throw new APIMigrationException("Error while updating organizations for APIs/APIs default version"
                     + " in the database " + e);
         }
+        log.info("successfully persisted organization data in AM_GATEWAY_ENVIRONMENT tenantDomains: "
+                + tenantDomainsList);
+    }
+
+    private List<String> getGatewayTenantDomains() throws APIMigrationException {
+        List<String> tenantDomains = new ArrayList<>();
+        try (Connection conn = APIMgtDBUtil.getConnection()) {
+            try (PreparedStatement ps = conn.prepareStatement(GET_DISTINCT_TENANT_DOMAIN)) {
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        tenantDomains.add(rs.getString(TENANT_DOMAIN_COLUMN));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new APIMigrationException("Error while getting tenantDomains from the database " + e);
+        }
+        return tenantDomains;
     }
 
     /**
@@ -1206,21 +1216,31 @@ public class APIMgtDAO {
      * @throws APIMigrationException
      */
     public void updateApiOrganizations() throws APIMigrationException {
+        List<String> apiProviders = getAPIProviders();
+        String providerList = String.join(",", apiProviders);
+
+        updateAPIOrganizations(apiProviders, UPDATE_API_ORGANIZATION);
+        log.info("successfully persisted organization data in AM_API table for apis created by" + providerList);
+
+        updateAPIOrganizations(apiProviders, UPDATE_API_DEFAULT_VERSION_ORGANIZATION);
+        log.info("successfully persisted organization data in AM_API_DEFAULT_VERSION for apis "
+                + "created by" + providerList);
+    }
+
+    private List<String> getAPIProviders() throws APIMigrationException {
         List<String> apiProviders = new ArrayList<>();
         try (Connection conn = APIMgtDBUtil.getConnection()) {
             try (PreparedStatement ps = conn.prepareStatement(GET_DISTINCT_API_PROVIDERS)) {
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
-                        apiProviders.add(rs.getString("API_PROVIDER"));
+                        apiProviders.add(rs.getString(API_PROVIDER_COLUMN));
                     }
                 }
             }
         } catch (SQLException e) {
             throw new APIMigrationException("Error while getting API providers from the database " + e);
         }
-
-        updateAPIOrganizations(apiProviders, UPDATE_API_ORGANIZATION);
-        updateAPIOrganizations(apiProviders, UPDATE_API_DEFAULT_VERSION_ORGANIZATION);
+        return apiProviders;
     }
 
     private void updateAPIOrganizations(List<String> apiProviders, String query) throws APIMigrationException {
@@ -1345,7 +1365,8 @@ public class APIMgtDAO {
                 conn.rollback();
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while updating organizations for application default versions in the database " + e);
+            throw new APIMigrationException("Error while updating organizations for application default versions "
+                    + "in the database " + e);
         }
     }
 }
