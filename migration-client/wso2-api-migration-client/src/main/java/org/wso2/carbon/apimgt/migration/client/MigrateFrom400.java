@@ -65,7 +65,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     private static final Log log = LogFactory.getLog(MigrateFrom400.class);
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
     SystemConfigurationsDAO systemConfigurationsDAO = SystemConfigurationsDAO.getInstance();
-    private final RegistryService registryService;
+    private RegistryService registryService;
 
     public MigrateFrom400(String tenantArguments, String blackListTenantArguments, String tenantRange,
             RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
@@ -241,17 +241,14 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             apiN.setVersionTimestamp(versionTimestamp + "");
                             apiToArtifactMapping.get(apiN)
                                     .setAttribute("overview_versionComparable", String.valueOf(versionTimestamp));
-                            apiToArtifactMapping.get(apiN)
-                                    .setAttribute("overview_gatewayVendor", Constants.DEFAULT_GATEWAY_VENDOR);
                             log.info("Setting Version Comparable for API " + apiN.getUuid());
                             try {
                                 artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
                             } catch (GovernanceException e) {
                                 throw new APIMigrationException(
-                                        "Failed to update versionComparable or gatewayVendor for API: " + apiN.getId()
-                                                .getApiName() + " version: " + apiN.getId().getVersion()
-                                                + " versionComparable: " + apiN.getVersionTimestamp()
-                                                + " and gateway Vendor: " + apiN.getGatewayVendor() + " at registry");
+                                        "Failed to update versionComparable for API: " + apiN.getId().getApiName()
+                                                + " version: " + apiN.getId().getVersion() + " versionComparable: "
+                                                + apiN.getVersionTimestamp() + " at registry");
                             }
                             versionTimestamp -= oneDay;
                             GenericArtifact artifact;
