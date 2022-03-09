@@ -38,15 +38,10 @@ import java.util.TreeMap;
 public class APIMMigrationService implements ServerStartupObserver {
 
     private static final Log log = LogFactory.getLog(APIMMigrationService.class);
-    private final String V200 = "2.0.0";
-    private final String V210 = "2.1.0";
-    private final String V220 = "2.2.0";
-    private final String V250 = "2.5.0";
     private final String V260 = "2.6.0";
     private final String V310 = "3.1.0";
     private final String V300 = "3.0.0";
     private final String V320 = "3.2.0";
-    private final String V400 = "4.0.0";
 
     @Override
     public void completingServerStartup() {

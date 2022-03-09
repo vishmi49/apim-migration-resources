@@ -242,7 +242,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             apiToArtifactMapping.get(apiN)
                                     .setAttribute("overview_versionComparable", String.valueOf(versionTimestamp));
                             apiToArtifactMapping.get(apiN)
-                                    .setAttribute("overview_gatewayVendor", Constants.API_OVERVIEW_GATEWAY_VENDOR);
+                                    .setAttribute("overview_gatewayVendor", Constants.DEFAULT_GATEWAY_VENDOR);
                             log.info("Setting Version Comparable for API " + apiN.getUuid());
                             try {
                                 artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));

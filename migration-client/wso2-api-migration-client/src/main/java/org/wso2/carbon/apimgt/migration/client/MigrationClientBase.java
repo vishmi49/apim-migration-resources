@@ -193,6 +193,10 @@ public class MigrationClientBase {
     public void doMigration(TreeMap<String, MigrationClient> migrationServiceList, String continueFromStep)
             throws APIMigrationException, SQLException {
 
+        if (continueFromStep == null) {
+            continueFromStep = All_STEPS;
+        }
+
         for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
 
             MigrationClient serviceClient = service.getValue();
@@ -215,12 +219,14 @@ public class MigrationClientBase {
             case REGISTRY_DATA_POPULATION:
                 registryDataPopulation(serviceClient);
                 break;
-            default:
+            case All_STEPS:
                 databaseMigration(serviceClient);
                 registryResourceMigration(serviceClient);
                 updateScopeRoleMappings(serviceClient);
                 migrateTenantConfToDB(serviceClient);
                 registryDataPopulation(serviceClient);
+            default:
+                log.info("The step: " + continueFromStep  + " is not defined");
             }
         }
     }
