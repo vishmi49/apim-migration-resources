@@ -179,6 +179,11 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
     }
 
     @Override
+    public void preMigrationValidation(String validateStep) throws APIMigrationException {
+
+    }
+
+    @Override
     public void scopeMigration() throws APIMigrationException {
     }
 
