@@ -124,6 +124,11 @@ public class MigrateFrom310 extends MigrationClientBase implements MigrationClie
     }
 
     @Override
+    public void preMigrationValidation(String validateStep) throws APIMigrationException {
+
+    }
+
+    @Override
     public void scopeMigration() throws APIMigrationException {
 
         APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();

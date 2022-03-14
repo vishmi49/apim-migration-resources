@@ -860,4 +860,9 @@ public class MigrateFrom19to110 extends MigrationClientBase implements Migration
     public void migrateTenantConfToDB() throws APIMigrationException {
 
     }
+
+    @Override
+    public void preMigrationValidation(String validateStep) throws APIMigrationException {
+
+    }
 }

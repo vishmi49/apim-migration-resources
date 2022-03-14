@@ -121,4 +121,6 @@ public interface MigrationClient {
     void registryDataPopulation() throws APIMigrationException;
 
     void migrateTenantConfToDB() throws APIMigrationException;
+
+    void preMigrationValidation(String validateStep) throws APIMigrationException;
 }

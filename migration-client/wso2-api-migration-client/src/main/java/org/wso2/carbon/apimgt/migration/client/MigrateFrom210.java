@@ -106,4 +106,8 @@ public class MigrateFrom210 extends MigrationClientBase implements MigrationClie
     public void migrateTenantConfToDB() throws APIMigrationException {
 
     }
+
+    @Override public void preMigrationValidation(String validateStep) throws APIMigrationException {
+
+    }
 }

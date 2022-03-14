@@ -144,7 +144,6 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
                         }
                     }
                 }
-
                 ObjectMapper mapper = new ObjectMapper();
                 String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConfFromRegistry);
                 updateTenantConf(formattedTenantConf, tenant.getId());
@@ -175,6 +174,11 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
 
     @Override
     public void migrateTenantConfToDB() throws APIMigrationException {
+
+    }
+
+    @Override
+    public void preMigrationValidation(String validateStep) throws APIMigrationException {
 
     }
 

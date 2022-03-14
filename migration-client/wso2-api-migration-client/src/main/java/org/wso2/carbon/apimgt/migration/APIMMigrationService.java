@@ -59,7 +59,7 @@ public class APIMMigrationService implements ServerStartupObserver {
 
         String migrateFromVersion = System.getProperty(Constants.ARG_MIGRATE_FROM_VERSION);
         String continueFromStep = System.getProperty(Constants.MIGRATION_STEP);
-        log.info("Starting APIM Migration from APIM " + migrateFromVersion + " ..............");
+        String preMigrationStep = System.getProperty(Constants.PRE_MIGRATION_STEP);
         String tenants = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
         String tenantRange = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
         String blackListTenants = System.getProperty(Constants.ARG_MIGRATE_BLACKLIST_TENANTS);
@@ -263,8 +263,19 @@ public class APIMMigrationService implements ServerStartupObserver {
                 //sortedMap by key
                 TreeMap<String, MigrationClient> migrationServiceList = migrationClient
                         .getMigrationServiceList(registryService, migrateFromVersion);
-                migrationClient.doMigration(migrationServiceList, continueFromStep);
-                log.info("Migrated Successfully to 4.1.0");
+
+                if (migrationServiceList.size() > 0) {
+                    // preValidationService
+                    if (preMigrationStep != null) {
+                        migrationClient.doValidation(migrationServiceList, preMigrationStep);
+                    } else {
+                        log.info("Starting APIM Migration from APIM " + migrateFromVersion + " ..............");
+                        migrationClient.doMigration(migrationServiceList, continueFromStep);
+                        log.info("Migrated Successfully to 4.1.0");
+                    }
+                } else {
+                    log.info("Migration service list is empty ...............");
+                }
             }
         } catch (APIMigrationException e) {
             log.error("API Management  exception occurred while migrating", e);

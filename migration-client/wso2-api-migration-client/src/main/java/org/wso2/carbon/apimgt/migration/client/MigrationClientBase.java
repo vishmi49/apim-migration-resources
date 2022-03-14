@@ -231,6 +231,16 @@ public class MigrationClientBase {
         }
     }
 
+    public void doValidation(TreeMap<String, MigrationClient> migrationServiceList, String runPreMigrationStep)
+            throws APIMigrationException {
+        log.info("Executing pre migration step ..........");
+        for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
+            MigrationClient serviceClient = service.getValue();
+            serviceClient.preMigrationValidation(runPreMigrationStep);
+        }
+        log.info("Successfully executed the pre validation step.");
+    }
+
     private void databaseMigration(MigrationClient serviceClient) throws APIMigrationException, SQLException {
         log.info("Start migrating databases  ..........");
         serviceClient.databaseMigration();
