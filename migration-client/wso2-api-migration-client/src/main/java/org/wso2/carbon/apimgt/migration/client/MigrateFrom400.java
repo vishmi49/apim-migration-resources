@@ -593,7 +593,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             Charset.defaultCharset());
                 }
             } catch (RegistryException e) {
-                log.error(" Error while getting AsyncAPI definition. " + e);
+                log.error(" Error while getting AsyncAPI definition for API: " + api.getId().getApiName() + " version: "
+                        + api.getId().getVersion() + e);
             }
 
             if (!asyncAPIDefinition.isEmpty()) {
@@ -609,7 +610,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 }
             }
             if (log.isDebugEnabled()) {
-                log.debug("Validating streaming api definition of " + api.getId().getApiName() + " version: "
+                log.debug("Validating streaming api definition of API:" + api.getId().getApiName() + " version: "
                         + api.getId().getVersion() + "type: " + api.getType());
             }
         } else {
