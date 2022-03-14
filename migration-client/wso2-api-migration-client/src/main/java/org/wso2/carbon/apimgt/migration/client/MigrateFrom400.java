@@ -143,42 +143,37 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     @Override
     public void migrateTenantConfToDB() throws APIMigrationException {
         for (Tenant tenant : getTenantsArray()) {
-            migrateTenantConfToDB(tenant);
-        }
-    }
+            int tenantId = tenant.getId();
+            String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
+            JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
+            ObjectMapper mapper = new ObjectMapper();
+            String formattedTenantConf = null;
 
-
-    private void migrateTenantConfToDB(Tenant tenant) throws APIMigrationException {
-        int tenantId = tenant.getId();
-        String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
-        JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
-        ObjectMapper mapper = new ObjectMapper();
-        String formattedTenantConf = null;
-
-        try {
-            if (tenantConf != null) {
-                tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
-                formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
-            }
-        } catch (JsonProcessingException jse) {
-            log.info("Error while JSON Processing tenant conf :" + jse);
-            log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
-        }
-
-         if (formattedTenantConf != null) {
             try {
-                systemConfigurationsDAO
-                        .addSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
-            } catch (APIManagementException e) {
-                log.info("Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :" + e);
+                if (tenantConf != null) {
+                    tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
+                    formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
+                }
+            } catch (JsonProcessingException jse) {
+                log.error("Error while JSON Processing tenant conf :" + jse);
+                log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
             }
-        } else {
-             if (log.isDebugEnabled()) {
-                 log.debug("tenant conf value is empty");
-             }
-         }
-    }
 
+            if (formattedTenantConf != null) {
+                try {
+                    systemConfigurationsDAO
+                            .addSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
+                } catch (APIManagementException e) {
+                    log.info("Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :"
+                            + e);
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    log.debug("tenant conf value is empty.");
+                }
+            }
+        }
+    }
 
     @Override
     public void registryResourceMigration() throws APIMigrationException {
@@ -340,9 +335,10 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     }
 
     /**
-     *  This method can be used as prevalidation step
+     * This method can be used as pre-validation step
+     *
      * @param validateStep validateStep
-     * @throws APIMigrationException
+     * @throws APIMigrationException APIMigrationException due to pre migration validation failure
      */
     @Override
     public void preMigrationValidation(String validateStep) throws APIMigrationException {
@@ -388,7 +384,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 }
             }
         } else {
-            log.info("Pre migration step" + validateStep + " is not defined.");
+            log.warn("Pre migration step" + validateStep + " is not defined.");
         }
     }
 
@@ -401,14 +397,15 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
             if (artifactManager != null) {
                 GovernanceUtils.loadGovernanceArtifacts(registry);
                 GenericArtifact[] artifacts = artifactManager.getAllGenericArtifacts();
+                String artifactPath = "";
 
                 log.info("Starting validate the api definitions of tenant " + tenant.getDomain() + "..........");
 
                 for (GenericArtifact artifact : artifacts) {
                     try {
-                        String artifactPath = ((GenericArtifactImpl) artifact).getArtifactPath();
+                        artifactPath = ((GenericArtifactImpl) artifact).getArtifactPath();
                         if (log.isDebugEnabled()) {
-                            log.debug("artifact path:  " + artifactPath );
+                            log.debug("artifact path:  " + artifactPath);
                         }
 
                         if (artifactPath.contains("/apimgt/applicationdata/apis/")) {
@@ -420,7 +417,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                         // validate API Definitions
                         validateAPIDefinitions(api, registry);
                     } catch (Exception e) {
-                        throw new APIMigrationException("Error occurred while retrieving API from the registry: ", e);
+                        throw new APIMigrationException("Error occurred while retrieving API from the registry: "
+                                + "artifact path name " + artifactPath, e);
                     }
                 }
                 log.info("Successfully validated the api definitions of tenant " + tenant.getDomain() + "..........");
@@ -473,7 +471,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
             String swaggerDefinition = OASParserUtil.getAPIDefinition(api.getId(), registry);
             validationResponse = OASParserUtil.validateAPIDefinition(swaggerDefinition, Boolean.TRUE);
         } catch (APIManagementException e) {
-            log.error(" Error while validating open api definition. " + e);
+            log.error(" Error while validating open api definition for " + api.getId().getApiName() +
+                    " version: " + api.getId().getVersion() + " " + e);
         }
 
         if (validationResponse != null && !validationResponse.isValid()) {
@@ -505,7 +504,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 graphQLValidationResponseDTO = PublisherCommonUtils
                         .validateGraphQLSchema("schema.graphql", graphqlSchema);
             } catch (APIManagementException e) {
-                log.error(" Error while validating graphql api definition. " + e);
+                log.error(" Error while validating graphql api definition for API:" + api.getId().getApiName()
+                        + " version: " + api.getId().getVersion() + " " + e);
             }
         }
 
@@ -549,7 +549,9 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         } catch (RegistryException e) {
             log.error(" Error while getting wsdl file. " + e);
         } catch (APIManagementException e) {
-            log.error(" Error while validating wsdl file. " + e);
+            log.error(
+                    " Error while validating wsdl file of API:" + api.getId().getApiName() + " version: " + api.getId()
+                            .getVersion() + " " + e);
         }
 
 
@@ -599,7 +601,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                     validationResponse = AsyncApiParserUtil.validateAsyncAPISpecification(asyncAPIDefinition,
                             true);
                 } catch (APIManagementException e) {
-                    log.error(" Error while validating AsyncAPI definition. " + e);
+                    log.error(" Error while validating AsyncAPI definition for API:" + api.getId().getApiName() +
+                    " version: " + api.getId().getVersion() + " " + e);
                 }
                 if (validationResponse != null && !validationResponse.isValid()) {
                     log.error(" Invalid AsyncAPI definition found. " + validationResponse.getErrorItems());
