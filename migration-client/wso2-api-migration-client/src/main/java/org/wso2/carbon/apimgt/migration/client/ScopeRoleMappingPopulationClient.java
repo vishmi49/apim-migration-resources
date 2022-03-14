@@ -144,7 +144,6 @@ public class ScopeRoleMappingPopulationClient extends MigrationClientBase implem
                         }
                     }
                 }
-
                 ObjectMapper mapper = new ObjectMapper();
                 String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConfFromRegistry);
                 updateTenantConf(formattedTenantConf, tenant.getId());

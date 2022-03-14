@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIDefinitionValidationResponse;
 import org.wso2.carbon.apimgt.api.APIManagementException;
+import org.wso2.carbon.apimgt.api.APIProvider;
 import org.wso2.carbon.apimgt.api.ErrorHandler;
 import org.wso2.carbon.apimgt.api.model.API;
 import org.wso2.carbon.apimgt.api.model.ResourceFile;
@@ -32,11 +33,14 @@ import org.json.simple.JSONObject;
 import org.wso2.carbon.apimgt.impl.APIConstants.ConfigType;
 import org.wso2.carbon.apimgt.impl.dao.SystemConfigurationsDAO;
 import org.wso2.carbon.apimgt.impl.definitions.AsyncApiParserUtil;
+import org.wso2.carbon.apimgt.impl.definitions.GraphQLSchemaDefinition;
 import org.wso2.carbon.apimgt.impl.definitions.OASParserUtil;
+import org.wso2.carbon.apimgt.impl.utils.APIFileUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIMWSDLReader;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIVersionComparator;
 
+import org.wso2.carbon.apimgt.impl.wsdl.WSDLProcessor;
 import org.wso2.carbon.apimgt.impl.wsdl.model.WSDLValidationResponse;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
@@ -44,6 +48,7 @@ import org.wso2.carbon.apimgt.migration.client.sp_migration.APIMStatMigrationExc
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
+import org.wso2.carbon.apimgt.persistence.dto.Organization;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.PublisherCommonUtils;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.GraphQLValidationResponseDTO;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -52,6 +57,9 @@ import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
 import org.wso2.carbon.governance.api.util.GovernanceUtils;
+import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.RegistryConstants;
+import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.Tenant;
@@ -59,7 +67,12 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,6 +81,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static org.wso2.carbon.apimgt.impl.utils.APIMWSDLReader.getWSDLProcessor;
 import static org.wso2.carbon.utils.multitenancy.MultitenantUtils.getTenantAwareUsername;
 
 public class MigrateFrom400 extends MigrationClientBase implements MigrationClient {
@@ -129,31 +143,39 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     @Override
     public void migrateTenantConfToDB() throws APIMigrationException {
         for (Tenant tenant : getTenantsArray()) {
-            int tenantId = tenant.getId();
-            String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
-            JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
-            ObjectMapper mapper = new ObjectMapper();
-            String formattedTenantConf = null;
-            try {
-                if (tenantConf != null) {
-                    tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
-                    formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
-                }
-            } catch (JsonProcessingException jse) {
-                log.info("Error while JSON Processing tenant conf :" + jse);
-                log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
-                continue;
+            migrateTenantConfToDB(tenant);
+        }
+    }
+
+
+    private void migrateTenantConfToDB(Tenant tenant) throws APIMigrationException {
+        int tenantId = tenant.getId();
+        String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
+        JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
+        ObjectMapper mapper = new ObjectMapper();
+        String formattedTenantConf = null;
+
+        try {
+            if (tenantConf != null) {
+                tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
+                formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
             }
+        } catch (JsonProcessingException jse) {
+            log.info("Error while JSON Processing tenant conf :" + jse);
+            log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
+        }
+
+         if (formattedTenantConf != null) {
+
             try {
                 systemConfigurationsDAO
                         .addSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
-            } catch (APIManagementException ape) {
-                log.info(
-                        "Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :" + ape);
-                continue;
+            } catch (APIManagementException e) {
+                log.info("Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :" + e);
             }
         }
     }
+
 
     @Override
     public void registryResourceMigration() throws APIMigrationException {
@@ -318,8 +340,19 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     public void preMigrationValidation(String validateStep) throws APIMigrationException {
 
         boolean isTenantFlowStarted = false;
+        ObjectMapper mapper = new ObjectMapper();
         if (preValidationServiceList.contains(validateStep)) {
             for (Tenant tenant : getTenantsArray()) {
+                JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
+                tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
+                String formattedTenantConf = null;
+                try {
+                    formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
+                } catch (JsonProcessingException e) {
+                    log.error("Error while JSON Processing tenant conf :" + e);
+                }
+                updateTenantConf(formattedTenantConf, tenant.getId());
+
                 if (log.isDebugEnabled()) {
                     log.debug("Start api definition validation for tenant " + tenant.getId() + '(' + tenant.getDomain()
                             + ')');
@@ -330,15 +363,12 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
 
                     PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenant.getDomain(), true);
                     PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenant.getId(), true);
-
                     String adminName = getTenantAwareUsername(APIUtil.replaceEmailDomainBack(tenant.getAdminName()));
 
                     if (log.isDebugEnabled()) {
                         log.debug("Tenant admin username : " + adminName);
                     }
-
                     validateRegistryData(tenant);
-
                 } finally {
                     if (isTenantFlowStarted) {
                         PrivilegedCarbonContext.endTenantFlow();
@@ -362,7 +392,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 GovernanceUtils.loadGovernanceArtifacts(registry);
                 GenericArtifact[] artifacts = artifactManager.getAllGenericArtifacts();
 
-                log.info("Starting validate the api definitions ..........");
+                log.info("Starting validate the api definitions of tenant " + tenant.getDomain() + "..........");
 
                 for (GenericArtifact artifact : artifacts) {
                     try {
@@ -373,13 +403,13 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                         API api = APIUtil.getAPI(artifact, registry);
 
                         // validate API Definitions
-                        validateAPIDefinitions(api);
+                        validateAPIDefinitions(api, registry);
                     } catch (Exception e) {
                         throw new APIMigrationException("Error occurred while retrieving API from the registry: ", e);
                     }
                 }
 
-                log.info("Successfully validated the api definitions  ..........");
+                log.info("Successfully validated the api definitions of tenant " + tenant.getDomain() + "..........");
             } else {
                 if (log.isDebugEnabled()) {
                     log.debug(
@@ -394,7 +424,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         }
     }
 
-    private void validateAPIDefinitions(API api) {
+    private void validateAPIDefinitions(API api, Registry registry) {
 
         String apiType = api.getType();
         if (!isStreamingAPI(apiType)) {
@@ -402,23 +432,25 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 log.debug("Validating api definitions of api " + api.getId().getApiName() + " version: " + api.getId()
                         .getVersion() + "type: " + apiType);
             }
-            // Validate swagger content except for streaming APIs
-            openAPIValidation(api.getSwaggerDefinition());
+
+            // validate swagger content except for streaming APIs
+            openAPIValidation(api, registry);
 
             // validate GraphQL API definition and WSDL API definitions
             if (APIConstants.APITransportType.GRAPHQL.toString().equalsIgnoreCase(apiType)) {
-                graphqlAPIDefinitionValidation(api.getGraphQLSchema());
+                graphqlAPIDefinitionValidation(api, registry);
             } else if (APIConstants.API_TYPE_SOAP.equalsIgnoreCase(apiType)) {
-                wsdlValidation(api.getWsdlResource());
+                wsdlValidation(api, registry);
             }
         } else {
-            streamingAPIDefinitionValidation(api.getAsyncApiDefinition());
+            streamingAPIDefinitionValidation(api, registry);
         }
     }
 
-    private void openAPIValidation(String swaggerDefinition) {
+    private void openAPIValidation(API api, Registry registry) {
         APIDefinitionValidationResponse validationResponse = null;
         try {
+            String swaggerDefinition = OASParserUtil.getAPIDefinition(api.getId(), registry);
             validationResponse = OASParserUtil.validateAPIDefinition(swaggerDefinition, Boolean.TRUE);
         } catch (APIManagementException e) {
             log.error(" Error while validating open api definition. " + e);
@@ -432,51 +464,110 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         }
     }
 
-    private void graphqlAPIDefinitionValidation(String graphQLSchema) {
+    private void graphqlAPIDefinitionValidation(API api, Registry registry) {
         GraphQLValidationResponseDTO graphQLValidationResponseDTO = null;
-        try {
-            graphQLValidationResponseDTO = PublisherCommonUtils
-                    .validateGraphQLSchema("schema.graphql", graphQLSchema);
-        } catch (APIManagementException e) {
-            log.error(" Error while validating GraphQL definition. " + e);
+        if (api.getGraphQLSchema() == null) {
+            GraphQLSchemaDefinition definition = new GraphQLSchemaDefinition();
+            try {
+                String graphqlSchema = definition.getGraphqlSchemaDefinition(api.getId(), registry);
+                graphQLValidationResponseDTO = PublisherCommonUtils
+                        .validateGraphQLSchema("schema.graphql", graphqlSchema);
+            } catch (APIManagementException e) {
+                log.error(" Error while validating graphql api definition. " + e);
+            }
         }
         if (graphQLValidationResponseDTO != null && !graphQLValidationResponseDTO.isIsValid()) {
             log.error(" Invalid GraphQL definition found. " + "ErrorMessage: " + graphQLValidationResponseDTO
                     .getErrorMessage());
         }
+
     }
 
-    private void wsdlValidation(ResourceFile wsdlDefinition) {
+    private void wsdlValidation(API api, Registry registry) {
         WSDLValidationResponse wsdlValidationResponse = null;
-        if (wsdlDefinition.getContentType().contains(APIConstants.APPLICATION_ZIP)) {
-            try {
-                wsdlValidationResponse = APIMWSDLReader
-                        .extractAndValidateWSDLArchive(wsdlDefinition.getContent());
-            } catch (APIManagementException e) {
-                log.error(" Error while validating wsdl archive. " + e);
+        String wsdlArchivePath = APIUtil.getWsdlArchivePath(api.getId());
+        byte[] wsdl;
+
+        try {
+            if (registry.resourceExists(wsdlArchivePath)) {
+                wsdl = (byte[]) registry.get(wsdlArchivePath).getContent();
+                InputStream targetStream = new ByteArrayInputStream(wsdl);
+                wsdlValidationResponse = APIMWSDLReader.extractAndValidateWSDLArchive(targetStream);
+            } else {
+                String apiPath = APIUtil.getAPIPath(api.getId());
+                int prependIndex = apiPath.indexOf(api.getId().getVersion()) + api.getId().getVersion().length();
+                String apiSourcePath = apiPath.substring(0, prependIndex);
+                String wsdlResourcePath =
+                        apiSourcePath + RegistryConstants.PATH_SEPARATOR + api.getId().getProviderName() + "--" + api
+                                .getId().getApiName() + api.getId().getVersion() + ".wsdl";
+                wsdl = (byte[]) registry.get(wsdlResourcePath).getContent();
+                wsdlValidationResponse = APIMWSDLReader.validateWSDLFile(wsdl);
             }
-        } else {
-            try {
-                wsdlValidationResponse = APIMWSDLReader.validateWSDLFile(wsdlDefinition.getContent());
-            } catch (APIManagementException e) {
-                log.error(" Error while validating wsdl file. " + e);
-            }
+        } catch (RegistryException e) {
+            log.error(" Error while getting wsdl file. " + e);
+        } catch (APIManagementException e) {
+            log.error(" Error while validating wsdl file. " + e);
         }
         if (wsdlValidationResponse != null && !wsdlValidationResponse.isValid()) {
             log.error(" Invalid WSDL definition found. " + wsdlValidationResponse.getError());
         }
     }
 
-    private void streamingAPIDefinitionValidation(String asyncAPIDefinition) {
-        APIDefinitionValidationResponse validationResponse = null;
+    private void wsdlURLValidation(String url) {
+        URL wsdlUrl = null;
+        WSDLValidationResponse wsdlValidationResponse = null;
         try {
-            validationResponse = AsyncApiParserUtil
-                    .validateAsyncAPISpecification(asyncAPIDefinition, true);
+            wsdlUrl = new URL(url);
+            wsdlValidationResponse = APIMWSDLReader.validateWSDLUrl(wsdlUrl);
+        } catch (MalformedURLException e) {
+            log.error("Invalid/Malformed URL : " + url);
         } catch (APIManagementException e) {
-            log.error(" Error while validating AsyncAPI definition. " + e);
+            log.error(" Error while validating wsdl file. " + e);
         }
-        if (validationResponse != null && !validationResponse.isValid()) {
-            log.error(" Invalid AsyncAPI definition found. " + validationResponse.getErrorItems());
+        if (wsdlValidationResponse != null && !wsdlValidationResponse.isValid()) {
+            log.error(" Invalid WSDL definition found from wsdl URL: " + url);
+        }
+    }
+
+
+    private void streamingAPIDefinitionValidation(API api, Registry registry) {
+
+        String apiPath = null;
+        String asyncAPIDefinition = "";
+        APIDefinitionValidationResponse validationResponse = null;
+
+        try {
+            apiPath = GovernanceUtils.getArtifactPath(registry, api.getUuid());
+        } catch (GovernanceException e) {
+            log.error(" Error while getting AsyncAPI definition. " + e);
+        }
+
+        if  (apiPath != null) {
+            int prependIndex = apiPath.lastIndexOf("/api");
+            String apiSourcePath = apiPath.substring(0, prependIndex);
+            String definitionPath = apiSourcePath + "/" + "asyncapi.json";
+
+            try {
+                if (registry.resourceExists(definitionPath)) {
+                    Resource apiDocResource = registry.get(definitionPath);
+                    asyncAPIDefinition = new String((byte[]) ((byte[]) apiDocResource.getContent()),
+                            Charset.defaultCharset());
+                }
+            } catch (RegistryException e) {
+                log.error(" Error while getting AsyncAPI definition. " + e);
+            }
+
+            if (!asyncAPIDefinition.isEmpty()) {
+                try {
+                    validationResponse = AsyncApiParserUtil.validateAsyncAPISpecification(asyncAPIDefinition,
+                            true);
+                } catch (APIManagementException e) {
+                    log.error(" Error while validating AsyncAPI definition. " + e);
+                }
+                if (validationResponse != null && !validationResponse.isValid()) {
+                    log.error(" Invalid AsyncAPI definition found. " + validationResponse.getErrorItems());
+                }
+            }
         }
     }
 
