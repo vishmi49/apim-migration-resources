@@ -274,7 +274,7 @@ public class APIMMigrationService implements ServerStartupObserver {
                         log.info("Migrated Successfully to 4.1.0");
                     }
                 } else {
-                    log.info("Migration service list is  empty. ..............");
+                    log.info("Migration service list is empty ...............");
                 }
             }
         } catch (APIMigrationException e) {

@@ -166,14 +166,17 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         }
 
          if (formattedTenantConf != null) {
-
             try {
                 systemConfigurationsDAO
                         .addSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
             } catch (APIManagementException e) {
                 log.info("Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :" + e);
             }
-        }
+        } else {
+             if (log.isDebugEnabled()) {
+                 log.debug("tenant conf value is empty");
+             }
+         }
     }
 
 
@@ -336,6 +339,11 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         log.info("Rxt resource migration done for all the tenants");
     }
 
+    /**
+     *  This method can be used as prevalidation step
+     * @param validateStep validateStep
+     * @throws APIMigrationException
+     */
     @Override
     public void preMigrationValidation(String validateStep) throws APIMigrationException {
 
@@ -379,6 +387,8 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             .getDomain() + ')');
                 }
             }
+        } else {
+            log.info("Pre migration step" + validateStep + " is not defined.");
         }
     }
 
@@ -397,9 +407,14 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 for (GenericArtifact artifact : artifacts) {
                     try {
                         String artifactPath = ((GenericArtifactImpl) artifact).getArtifactPath();
+                        if (log.isDebugEnabled()) {
+                            log.debug("artifact path:  " + artifactPath );
+                        }
+
                         if (artifactPath.contains("/apimgt/applicationdata/apis/")) {
                             continue;
                         }
+
                         API api = APIUtil.getAPI(artifact, registry);
 
                         // validate API Definitions
@@ -408,7 +423,6 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                         throw new APIMigrationException("Error occurred while retrieving API from the registry: ", e);
                     }
                 }
-
                 log.info("Successfully validated the api definitions of tenant " + tenant.getDomain() + "..........");
             } else {
                 if (log.isDebugEnabled()) {
@@ -448,7 +462,13 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     }
 
     private void openAPIValidation(API api, Registry registry) {
+
         APIDefinitionValidationResponse validationResponse = null;
+        if (log.isDebugEnabled()) {
+            log.debug("Validating open api definition of  " + api.getId().getApiName() + " version: " + api.getId()
+                    .getVersion() + "type: " + api.getType());
+        }
+
         try {
             String swaggerDefinition = OASParserUtil.getAPIDefinition(api.getId(), registry);
             validationResponse = OASParserUtil.validateAPIDefinition(swaggerDefinition, Boolean.TRUE);
@@ -461,11 +481,23 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 log.error("Open API Definition is invalid. ErrorMessage: " + error.getErrorMessage()
                         + " ErrorDescription: " + error.getErrorDescription());
             }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug(
+                        "Successfully validated open api definition of " + api.getId().getApiName() + " version: " + api
+                                .getId().getVersion() + "type: " + api.getType());
+            }
         }
     }
 
     private void graphqlAPIDefinitionValidation(API api, Registry registry) {
+
         GraphQLValidationResponseDTO graphQLValidationResponseDTO = null;
+        if (log.isDebugEnabled()) {
+            log.debug("Validating graphQL schema definition of " + api.getId().getApiName() + " version: "
+                    + api.getId().getVersion() + "type: " + api.getType());
+        }
+
         if (api.getGraphQLSchema() == null) {
             GraphQLSchemaDefinition definition = new GraphQLSchemaDefinition();
             try {
@@ -476,17 +508,28 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                 log.error(" Error while validating graphql api definition. " + e);
             }
         }
+
         if (graphQLValidationResponseDTO != null && !graphQLValidationResponseDTO.isIsValid()) {
             log.error(" Invalid GraphQL definition found. " + "ErrorMessage: " + graphQLValidationResponseDTO
                     .getErrorMessage());
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully validated graphql schema of " + api.getId().getApiName() + " version: " + api
+                        .getId().getVersion() + "type: " + api.getType());
+            }
         }
-
     }
 
     private void wsdlValidation(API api, Registry registry) {
+
         WSDLValidationResponse wsdlValidationResponse = null;
         String wsdlArchivePath = APIUtil.getWsdlArchivePath(api.getId());
         byte[] wsdl;
+
+        if (log.isDebugEnabled()) {
+            log.debug("Validating wsdl of " + api.getId().getApiName() + " version: " + api.getId().getVersion()
+                    + "type: " + api.getType());
+        }
 
         try {
             if (registry.resourceExists(wsdlArchivePath)) {
@@ -508,33 +551,27 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         } catch (APIManagementException e) {
             log.error(" Error while validating wsdl file. " + e);
         }
+
+
         if (wsdlValidationResponse != null && !wsdlValidationResponse.isValid()) {
             log.error(" Invalid WSDL definition found. " + wsdlValidationResponse.getError());
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Successfully validated wsdl file of " + api.getId().getApiName() + " version: "
+                        + api.getId().getVersion() + "type: " + api.getType());
+            }
         }
     }
-
-    private void wsdlURLValidation(String url) {
-        URL wsdlUrl = null;
-        WSDLValidationResponse wsdlValidationResponse = null;
-        try {
-            wsdlUrl = new URL(url);
-            wsdlValidationResponse = APIMWSDLReader.validateWSDLUrl(wsdlUrl);
-        } catch (MalformedURLException e) {
-            log.error("Invalid/Malformed URL : " + url);
-        } catch (APIManagementException e) {
-            log.error(" Error while validating wsdl file. " + e);
-        }
-        if (wsdlValidationResponse != null && !wsdlValidationResponse.isValid()) {
-            log.error(" Invalid WSDL definition found from wsdl URL: " + url);
-        }
-    }
-
 
     private void streamingAPIDefinitionValidation(API api, Registry registry) {
-
         String apiPath = null;
         String asyncAPIDefinition = "";
         APIDefinitionValidationResponse validationResponse = null;
+
+        if (log.isDebugEnabled()) {
+            log.debug("Validating streaming api definition of " + api.getId().getApiName() + " version: "
+                    + api.getId().getVersion() + "type: " + api.getType());
+        }
 
         try {
             apiPath = GovernanceUtils.getArtifactPath(registry, api.getUuid());
@@ -568,6 +605,13 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                     log.error(" Invalid AsyncAPI definition found. " + validationResponse.getErrorItems());
                 }
             }
+            if (log.isDebugEnabled()) {
+                log.debug("Validating streaming api definition of " + api.getId().getApiName() + " version: "
+                        + api.getId().getVersion() + "type: " + api.getType());
+            }
+        } else {
+            log.error("apiPath of  " + api.getId().getApiName() + " version: " + api.getId().getVersion() + " "
+                    + "is null");
         }
     }
 
