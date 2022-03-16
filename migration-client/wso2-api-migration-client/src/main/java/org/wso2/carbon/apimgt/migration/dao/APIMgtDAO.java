@@ -226,8 +226,8 @@ public class APIMgtDAO {
 
     private static String UPDATE_APPLICATION_ORGANIZATION =
             "UPDATE AM_APPLICATION " +
-                    "SET AM_APPLICATION.ORGANIZATION = ? " +
-                    "WHERE AM_APPLICATION.SUBSCRIBER_ID = ?";
+                    "SET ORGANIZATION = ? " +
+                    "WHERE SUBSCRIBER_ID = ?";
 
     private APIMgtDAO() {
 
@@ -1155,10 +1155,12 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
+                throw new APIMigrationException(
+                        "Error while updating organizations for API Categories in the database " + e);
             }
         } catch (SQLException e) {
             throw new APIMigrationException(
-                    "Error while updating organizations for API Categories in the database " + e);
+                    "Error while deriving the database connection " + e);
         }
     }
 
@@ -1185,10 +1187,11 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
+                throw new APIMigrationException("Error while updating organizations for APIs/APIs default version"
+                        + " in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while updating organizations for APIs/APIs default version"
-                    + " in the database " + e);
+            throw new APIMigrationException("Error while deriving the database connection" + e);
         }
         log.info("successfully persisted organization data in AM_GATEWAY_ENVIRONMENT tenantDomains: "
                 + tenantDomainsList);
@@ -1257,10 +1260,11 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
+                throw new APIMigrationException("Error while updating organizations for APIs/APIs default version"
+                        + " in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while updating organizations for APIs/APIs default version"
-                    + " in the database " + e);
+            throw new APIMigrationException("Error while deriving the database connection" + e);
         }
     }
 
@@ -1287,10 +1291,12 @@ public class APIMgtDAO {
                         versionedAPIList.get(0).getId().getApiName());
             } catch (SQLException e) {
                 conn.rollback();
+                throw new APIMigrationException(
+                        "Error while updating version timestamps for APIs in the database " + e);
             }
         } catch (SQLException e) {
             throw new APIMigrationException(
-                    "Error while updating version timestamps for APIs in the database " + e);
+                    "Error while deriving the database connection" + e);
         }
     }
 
@@ -1336,9 +1342,11 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
+                throw new APIMigrationException(
+                        "Error while updating organizations for applications in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while updating organizations for applications in the database " + e);
+            throw new APIMigrationException("Error while deriving the database connection " + e);
         }
     }
 
@@ -1363,10 +1371,11 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
+                throw new APIMigrationException("Error while updating organizations for application default versions "
+                        + "in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while updating organizations for application default versions "
-                    + "in the database " + e);
+            throw new APIMigrationException("Error while deriving database connection" + e);
         }
     }
 }
