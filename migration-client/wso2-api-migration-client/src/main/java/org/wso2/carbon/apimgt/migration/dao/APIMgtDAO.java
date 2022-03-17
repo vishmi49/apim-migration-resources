@@ -192,13 +192,13 @@ public class APIMgtDAO {
 
     private static String UPDATE_API_CATEGORY_ORGANIZATION =
             "UPDATE AM_API_CATEGORIES " +
-                    "SET AM_API_CATEGORIES.ORGANIZATION = ? " +
-                    "WHERE AM_API_CATEGORIES.TENANT_ID = ?";
+                    "SET ORGANIZATION = ? " +
+                    "WHERE TENANT_ID = ?";
 
     private static String UPDATE_GATEWAY_ENVIRONMENT_ORGANIZATION =
             "UPDATE AM_GATEWAY_ENVIRONMENT " +
-                    "SET AM_GATEWAY_ENVIRONMENT.ORGANIZATION = ? " +
-                    "WHERE AM_GATEWAY_ENVIRONMENT.TENANT_DOMAIN = ?";
+                    "SET ORGANIZATION = ? " +
+                    "WHERE TENANT_DOMAIN = ?";
 
     private static String GET_DISTINCT_TENANT_DOMAIN = "SELECT DISTINCT TENANT_DOMAIN FROM AM_GATEWAY_ENVIRONMENT";
     private static String TENANT_DOMAIN_COLUMN = "TENANT_DOMAIN";
