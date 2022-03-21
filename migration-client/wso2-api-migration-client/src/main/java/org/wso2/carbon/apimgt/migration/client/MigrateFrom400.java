@@ -143,34 +143,44 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     @Override
     public void migrateTenantConfToDB() throws APIMigrationException {
         for (Tenant tenant : getTenantsArray()) {
-            int tenantId = tenant.getId();
-            String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
-            JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
-            ObjectMapper mapper = new ObjectMapper();
-            String formattedTenantConf = null;
+            addTenantConfToDB(tenant);
+        }
+    }
 
-            try {
-                if (tenantConf != null) {
-                    tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
-                    formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
-                }
-            } catch (JsonProcessingException jse) {
-                log.error("Error while JSON Processing tenant conf :" + jse);
-                log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
+    public void addTenantConfToDB(Tenant tenant) throws APIMigrationException {
+        int tenantId = tenant.getId();
+        String organization = APIUtil.getTenantDomainFromTenantId(tenantId);
+        JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
+        ObjectMapper mapper = new ObjectMapper();
+        String formattedTenantConf = null;
+
+        try {
+            if (tenantConf != null) {
+                formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
             }
+        } catch (JsonProcessingException jse) {
+            log.error("Error while JSON Processing tenant conf :" + jse);
+            log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
+        }
 
-            if (formattedTenantConf != null) {
-                try {
+        if (formattedTenantConf != null) {
+            try {
+                String tenantConfig = systemConfigurationsDAO
+                        .getSystemConfig(organization, ConfigType.TENANT.toString());
+                if (StringUtils.isEmpty(tenantConfig)) {
                     systemConfigurationsDAO
                             .addSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
-                } catch (APIManagementException e) {
-                    log.info("Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :"
-                            + e);
+                } else {
+                    systemConfigurationsDAO
+                            .updateSystemConfig(organization, ConfigType.TENANT.toString(), formattedTenantConf);
                 }
-            } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("tenant conf value is empty.");
-                }
+            } catch (APIManagementException e) {
+                log.info("Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :"
+                        + e);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("tenant conf value is empty.");
             }
         }
     }
@@ -344,19 +354,9 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     public void preMigrationValidation(String validateStep) throws APIMigrationException {
 
         boolean isTenantFlowStarted = false;
-        ObjectMapper mapper = new ObjectMapper();
         if (preValidationServiceList.contains(validateStep)) {
             for (Tenant tenant : getTenantsArray()) {
-                JSONObject tenantConf = getTenantConfigFromRegistry(tenant.getId());
-                tenantConf.putIfAbsent(Constants.IS_UNLIMITED_TIER_PAID, false);
-                String formattedTenantConf = null;
-                try {
-                    formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
-                } catch (JsonProcessingException e) {
-                    log.error("Error while JSON Processing tenant conf :" + e);
-                }
-                updateTenantConf(formattedTenantConf, tenant.getId());
-
+                addTenantConfToDB(tenant);
                 if (log.isDebugEnabled()) {
                     log.debug("Start api definition validation for tenant " + tenant.getId() + '(' + tenant.getDomain()
                             + ')');
