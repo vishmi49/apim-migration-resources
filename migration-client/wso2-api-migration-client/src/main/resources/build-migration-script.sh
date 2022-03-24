@@ -71,7 +71,7 @@ cat $oracleFileList > $targetPath/scripts/$1/oracle.sql
 
 function_create_script migration-4.0.0_to_4.1.0
 function_create_script migration-3.2.0_to_4.1.0
-#function_create_script migration-3.1.0_to_4.1.0
+function_create_script migration-3.1.0_to_4.1.0
 function_create_script migration-3.0.0_to_4.1.0
 function_create_script migration-2.6.0_to_4.1.0
 function_create_script post-migration-script
