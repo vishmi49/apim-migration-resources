@@ -14,9 +14,9 @@
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}</directory>
-            <outputDirectory>scripts</outputDirectory>
+            <outputDirectory></outputDirectory>
             <includes>
-                <include>*.sql</include>
+                <include>*.jar</include>
             </includes>
         </fileSet>
         <fileSet>
