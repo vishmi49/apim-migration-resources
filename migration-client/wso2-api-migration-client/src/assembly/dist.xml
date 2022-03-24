@@ -14,9 +14,51 @@
         </fileSet>
         <fileSet>
             <directory>${project.build.directory}</directory>
-            <outputDirectory></outputDirectory>
+            <outputDirectory>scripts</outputDirectory>
             <includes>
-                <include>*.jar</include>
+                <include>*.sql</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/assembly/scripts/migration-4.0.0_to_4.1.0</directory>
+            <outputDirectory>migration-4.0.0_to_4.1.0</outputDirectory>
+            <includes>
+                <include>*.sql</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/assembly/scripts/migration-3.2.0_to_4.1.0</directory>
+            <outputDirectory>migration-3.2.0_to_4.1.0</outputDirectory>
+            <includes>
+                <include>*.sql</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/assembly/scripts/migration-3.1.0_to_4.1.0</directory>
+            <outputDirectory>migration-3.1.0_to_4.1.0</outputDirectory>
+            <includes>
+                <include>*.sql</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/assembly/scripts/migration-3.0.0_to_4.1.0</directory>
+            <outputDirectory>migration-3.0.0_to_4.1.0</outputDirectory>
+            <includes>
+                <include>*.sql</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/assembly/scripts/migration-2.6.0_to_4.1.0</directory>
+            <outputDirectory>migration-2.6.0_to_4.1.0</outputDirectory>
+            <includes>
+                <include>*.sql</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/assembly/scripts/post-migration-script</directory>
+            <outputDirectory>post-migration-script</outputDirectory>
+            <includes>
+                <include>*.sql</include>
             </includes>
         </fileSet>
     </fileSets>
