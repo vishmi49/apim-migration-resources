@@ -177,7 +177,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
 
     @Override
     public void preMigrationValidation(String validateStep) throws APIMigrationException {
-
+        log.info("..........Pre migration steps are not defined for 3.2.0..........");
     }
 
     @Override

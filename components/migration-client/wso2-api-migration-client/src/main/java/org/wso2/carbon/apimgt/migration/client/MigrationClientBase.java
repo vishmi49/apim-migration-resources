@@ -84,6 +84,7 @@ public class MigrationClientBase {
     private static final String VERSION_3 = "3.0.0";
     private static final String META = "Meta";
     private final String V400 = "4.0.0";
+    private final String V320 = "3.2.0";
     private String tenantArguments;
     private String blackListTenantArguments;
     private final String tenantRange;
@@ -169,15 +170,24 @@ public class MigrationClientBase {
 
         HashMap<String, MigrationClient> serviceList = new HashMap<>();
 
-        if (V400.equals(migrateFromVersion)) {
-            MigrateFrom400 migrateFrom400 = null;
+        MigrateFrom400 migrateFrom400 = null;
+        try {
+            migrateFrom400 = new MigrateFrom400(tenantArguments, blackListTenantArguments, tenantRange,
+                    registryService, tenantManager);
+        } catch (UserStoreException e) {
+            log.error("User store  exception occurred while creating 400 migration client", e);
+        }
+        serviceList.put(V400, migrateFrom400);
+
+        if (V320.equals(migrateFromVersion)) {
+            MigrateFrom320 migrateFrom320 = null;
             try {
-                migrateFrom400 = new MigrateFrom400(tenantArguments, blackListTenantArguments, tenantRange,
+                migrateFrom320 = new MigrateFrom320(tenantArguments, blackListTenantArguments, tenantRange,
                         registryService, tenantManager);
             } catch (UserStoreException e) {
-                log.error("User store  exception occurred while creating 400 migration client", e);
+                log.error("User store  exception occurred while creating 320 migration client", e);
             }
-            serviceList.put(V400, migrateFrom400);
+            serviceList.put(V320, migrateFrom320);
         }
 
         return new TreeMap<>(serviceList);
@@ -198,35 +208,36 @@ public class MigrationClientBase {
         }
 
         for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
-
-            MigrationClient serviceClient = service.getValue();
-            switch (continueFromStep) {
-            case REGISTRY_RESOURCE_MIGRATION:
-                registryResourceMigration(serviceClient);
-                updateScopeRoleMappings(serviceClient);
-                migrateTenantConfToDB(serviceClient);
-                registryDataPopulation(serviceClient);
-                break;
-            case SCOPE_ROLE_MAPPING_MIGRATION:
-                updateScopeRoleMappings(serviceClient);
-                migrateTenantConfToDB(serviceClient);
-                registryDataPopulation(serviceClient);
-                break;
-            case TENANT_CONF_MIGRATION:
-                migrateTenantConfToDB(serviceClient);
-                registryDataPopulation(serviceClient);
-                break;
-            case REGISTRY_DATA_POPULATION:
-                registryDataPopulation(serviceClient);
-                break;
-            case All_STEPS:
-                databaseMigration(serviceClient);
-                registryResourceMigration(serviceClient);
-                updateScopeRoleMappings(serviceClient);
-                migrateTenantConfToDB(serviceClient);
-                registryDataPopulation(serviceClient);
-            default:
-                log.info("The step: " + continueFromStep  + " is not defined");
+            if (V400.equals(service.getKey())) {
+                MigrationClient serviceClient = service.getValue();
+                switch (continueFromStep) {
+                case REGISTRY_RESOURCE_MIGRATION:
+                    registryResourceMigration(serviceClient);
+                    updateScopeRoleMappings(serviceClient);
+                    migrateTenantConfToDB(serviceClient);
+                    registryDataPopulation(serviceClient);
+                    break;
+                case SCOPE_ROLE_MAPPING_MIGRATION:
+                    updateScopeRoleMappings(serviceClient);
+                    migrateTenantConfToDB(serviceClient);
+                    registryDataPopulation(serviceClient);
+                    break;
+                case TENANT_CONF_MIGRATION:
+                    migrateTenantConfToDB(serviceClient);
+                    registryDataPopulation(serviceClient);
+                    break;
+                case REGISTRY_DATA_POPULATION:
+                    registryDataPopulation(serviceClient);
+                    break;
+                case All_STEPS:
+                    databaseMigration(serviceClient);
+                    registryResourceMigration(serviceClient);
+                    updateScopeRoleMappings(serviceClient);
+                    migrateTenantConfToDB(serviceClient);
+                    registryDataPopulation(serviceClient);
+                default:
+                    log.info("The step: " + continueFromStep + " is not defined");
+                }
             }
         }
     }

@@ -3,8 +3,6 @@
 sourcePath=../../../../../migration-scripts
 targetPath=../../../src/assembly
 
-rm -r $targetPath/scripts
-
 function_create_script()
 {
 
@@ -55,11 +53,8 @@ if [ $1 == $version400 ]; then
      fi
 fi
 
-if [ -d "$targetPath/scripts/$1" ]; then
-echo "$1 directory already exists" ;
-else
-`mkdir -p $targetPath/scripts/$1`;
-echo "$1 directory is created"
+if [ ! -d "$targetPath/scripts/$1" ]; then
+  `mkdir -p $targetPath/scripts/$1`;
 fi
 
 cat $mysqlFileList > $targetPath/scripts/$1/mssql.sql
@@ -68,6 +63,10 @@ cat $postgresqlFileList > $targetPath/scripts/$1/postgresql.sql
 cat $oracleFileList > $targetPath/scripts/$1/oracle.sql
 
 }
+
+if [ -e "$targetPath/scripts" ];then
+rm -r $targetPath/scripts
+fi
 
 function_create_script migration-4.0.0_to_4.1.0
 function_create_script migration-3.2.0_to_4.1.0

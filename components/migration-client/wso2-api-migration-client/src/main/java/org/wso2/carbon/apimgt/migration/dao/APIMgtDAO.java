@@ -162,7 +162,7 @@ public class APIMgtDAO {
                     "INNER JOIN AM_KEY_MANAGER ON AM_KEY_MANAGER.NAME=AM_APPLICATION_KEY_MAPPING.KEY_MANAGER " +
                     "WHERE " +
                     "AM_SUBSCRIBER.TENANT_ID = ? AND " +
-                    "AM_KEY_MANAGER.TENANT_DOMAIN = ?";
+                    "AM_KEY_MANAGER.ORGANIZATION = ?";
 
     private static String GET_APP_REG =
             "SELECT AM_APPLICATION_REGISTRATION.REG_ID AS REG_ID, AM_KEY_MANAGER.UUID AS" +
@@ -174,7 +174,7 @@ public class APIMgtDAO {
                     "INNER JOIN AM_KEY_MANAGER ON AM_KEY_MANAGER.NAME=AM_APPLICATION_REGISTRATION.KEY_MANAGER " +
                     "WHERE " +
                     "AM_SUBSCRIBER.TENANT_ID = ? AND " +
-                    "AM_KEY_MANAGER.TENANT_DOMAIN = ?";
+                    "AM_KEY_MANAGER.ORGANIZATION = ?";
 
     private static String UPDATE_KEY_MAPPINGS =
             "UPDATE AM_APPLICATION_KEY_MAPPING " +
