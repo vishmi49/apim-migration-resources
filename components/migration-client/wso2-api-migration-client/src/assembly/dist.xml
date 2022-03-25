@@ -7,59 +7,58 @@
     <fileSets>
         <fileSet>
             <directory>${project.basedir}/src/main/resources/400to410Migration.rxts</directory>
-            <outputDirectory>migration-resources/rxts</outputDirectory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-resources/rxts</outputDirectory>
             <includes>
                 <include>*.rxt</include>
             </includes>
         </fileSet>
         <fileSet>
-            <directory>${project.build.directory}</directory>
-            <outputDirectory></outputDirectory>
-            <includes>
-                <include>*.jar</include>
-            </includes>
-        </fileSet>
-        <fileSet>
             <directory>${project.basedir}/src/assembly/scripts/migration-4.0.0_to_4.1.0</directory>
-            <outputDirectory>migration-4.0.0_to_4.1.0</outputDirectory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-4.0.0_to_4.1.0</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/src/assembly/scripts/migration-3.2.0_to_4.1.0</directory>
-            <outputDirectory>migration-3.2.0_to_4.1.0</outputDirectory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-3.2.0_to_4.1.0</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/src/assembly/scripts/migration-3.1.0_to_4.1.0</directory>
-            <outputDirectory>migration-3.1.0_to_4.1.0</outputDirectory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-3.1.0_to_4.1.0</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/src/assembly/scripts/migration-3.0.0_to_4.1.0</directory>
-            <outputDirectory>migration-3.0.0_to_4.1.0</outputDirectory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-3.0.0_to_4.1.0</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/src/assembly/scripts/migration-2.6.0_to_4.1.0</directory>
-            <outputDirectory>migration-2.6.0_to_4.1.0</outputDirectory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-2.6.0_to_4.1.0</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/src/assembly/scripts/post-migration-script</directory>
-            <outputDirectory>post-migration-script</outputDirectory>
+            <outputDirectory>wso2am-migration-${project.version}/post-migration-script</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>
         </fileSet>
     </fileSets>
+    <files>
+        <file>
+            <source>target/org.wso2.carbon.apimgt.migrate.client-${project.version}.jar</source>
+            <outputDirectory>wso2am-migration-${project.version}/dropins/</outputDirectory>
+        </file>
+    </files>
 </assembly>
