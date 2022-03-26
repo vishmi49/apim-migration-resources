@@ -33,6 +33,7 @@ import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
+import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
 import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.user.api.Tenant;
@@ -76,16 +77,14 @@ public class MigrateUUIDToDB extends MigrationClientBase{
                     if (tenantArtifactManager != null) {
                         GenericArtifact[] tenantArtifacts = tenantArtifactManager.getAllGenericArtifacts();
                         for (GenericArtifact artifact : tenantArtifacts) {
-                            API api = APIUtil.getAPI(artifact);
-                            if (api != null) {
                                 APIInfoDTO apiInfoDTO = new APIInfoDTO();
-                                apiInfoDTO.setUuid(api.getUUID());
-                                apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(api.getId().getProviderName()));
-                                apiInfoDTO.setApiName(api.getId().getApiName());
-                                apiInfoDTO.setApiVersion(api.getId().getVersion());
-                                apiInfoDTO.setStatus(api.getStatus());
+                                apiInfoDTO.setUuid(artifact.getId());
+                                apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(
+                                        artifact.getAttribute("overview_provider")));
+                                apiInfoDTO.setApiName(artifact.getAttribute("overview_name"));
+                                apiInfoDTO.setApiVersion(artifact.getAttribute("overview_version"));
+                                apiInfoDTO.setStatus(((GenericArtifactImpl) artifact).getLcState());
                                 apiInfoDTOList.add(apiInfoDTO);
-                            }
                         }
                     }
                 } finally {
