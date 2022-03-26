@@ -1,7 +1,7 @@
 
 #!/bin/sh
 sourcePath=../../../../../migration-scripts
-targetPath=../../../src/assembly
+targetPath=../../../target/
 
 function_create_script()
 {
