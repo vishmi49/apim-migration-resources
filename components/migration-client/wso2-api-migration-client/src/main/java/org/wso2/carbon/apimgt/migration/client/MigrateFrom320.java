@@ -116,6 +116,11 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     private static final String KEY_STORE_TYPE = "JKS";
     private static final String APPLICATION_ROLE_PREFIX = "Application/";
     private RegistryService registryService;
+    private static final String OVERVIEW_PROVIDER = "overview_provider";
+    private static final String OVERVIEW_VERSION = "overview_version";
+    private static final String OVERVIEW_NAME = "overview_name";
+    private static final String OVERVIEW_TYPE = "overview_type";
+
     protected Registry registry;
     private TenantManager tenantManager;
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
@@ -203,13 +208,13 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 if (tenantArtifactManager != null) {
                     GenericArtifact[] tenantArtifacts = tenantArtifactManager.getAllGenericArtifacts();
                     for (GenericArtifact artifact : tenantArtifacts) {
-                        API api = APIUtil.getAPI(artifact);
-                        if (api != null) {
+                        if(artifact != null) {
                             APIInfoDTO apiInfoDTO = new APIInfoDTO();
-                            apiInfoDTO.setUuid(api.getUUID());
-                            apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(api.getId().getProviderName()));
-                            apiInfoDTO.setApiName(api.getId().getApiName());
-                            apiInfoDTO.setApiVersion(api.getId().getVersion());
+                            apiInfoDTO.setUuid(artifact.getId());
+                            apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(
+                                    artifact.getAttribute(OVERVIEW_PROVIDER)));
+                            apiInfoDTO.setApiName(artifact.getAttribute(OVERVIEW_NAME));
+                            apiInfoDTO.setApiVersion(artifact.getAttribute(OVERVIEW_VERSION));
                             apiInfoDTOList.add(apiInfoDTO);
                         }
                     }
@@ -296,32 +301,15 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                                 org.wso2.carbon.apimgt.impl.APIConstants.CREATED) &&
                                 !StringUtils.equalsIgnoreCase(artifact.getAttribute(APIConstants.API_OVERVIEW_STATUS),
                                         org.wso2.carbon.apimgt.impl.APIConstants.RETIRED)) {
-                            if (!StringUtils.equalsIgnoreCase(artifact.getAttribute(APIConstants.API_OVERVIEW_TYPE),
-                                    APIConstants.API_PRODUCT)) {
-                                API api = APIUtil.getAPI(artifact);
-                                if (api != null) {
                                     APIInfoDTO apiInfoDTO = new APIInfoDTO();
-                                    apiInfoDTO.setUuid(api.getUUID());
-                                    apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(api.getId().getProviderName()));
-                                    apiInfoDTO.setApiName(api.getId().getApiName());
-                                    apiInfoDTO.setApiVersion(api.getId().getVersion());
-                                    apiInfoDTO.setType(api.getType());
-                                    apiInfoDTO.setOrganization(api.getOrganization());
+                                    apiInfoDTO.setUuid(artifact.getId());
+                                    apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(
+                                            artifact.getAttribute(OVERVIEW_PROVIDER)));
+                                    apiInfoDTO.setApiName(artifact.getAttribute(OVERVIEW_NAME));
+                                    apiInfoDTO.setApiVersion(artifact.getAttribute(OVERVIEW_VERSION));
+                                    apiInfoDTO.setType(artifact.getAttribute(OVERVIEW_TYPE));
+                                    //apiInfoDTO.setOrganization(api.getOrganization());
                                     apiInfoDTOList.add(apiInfoDTO);
-                                }
-                            } else {
-                                APIProduct apiProduct = APIUtil.getAPIProduct(artifact, this.registry);
-                                if (apiProduct != null) {
-                                    APIInfoDTO apiInfoDTO = new APIInfoDTO();
-                                    apiInfoDTO.setUuid(apiProduct.getUuid());
-                                    apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(apiProduct.getId().getProviderName()));
-                                    apiInfoDTO.setApiName(apiProduct.getId().getName());
-                                    apiInfoDTO.setApiVersion(apiProduct.getId().getVersion());
-                                    apiInfoDTO.setType(apiProduct.getType());
-                                    apiInfoDTO.setOrganization(apiProduct.getOrganization());
-                                    apiInfoDTOList.add(apiInfoDTO);
-                                }
-                            }
                         }
                     }
                     for (APIInfoDTO apiInfoDTO : apiInfoDTOList) {
