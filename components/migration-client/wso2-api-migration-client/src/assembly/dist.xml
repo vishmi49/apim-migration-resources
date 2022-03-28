@@ -48,8 +48,15 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/target/post-migration-script</directory>
-            <outputDirectory>wso2am-migration-${project.version}/post-migration-script</outputDirectory>
+            <directory>${project.basedir}/target/scripts/post-migration-script/am_db</directory>
+            <outputDirectory>wso2am-migration-${project.version}/post-migration-script/am-db</outputDirectory>
+            <includes>
+                <include>*.sql</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/target/scripts/post-migration-script/reg_db</directory>
+            <outputDirectory>wso2am-migration-${project.version}/post-migration-script/reg-db</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>
