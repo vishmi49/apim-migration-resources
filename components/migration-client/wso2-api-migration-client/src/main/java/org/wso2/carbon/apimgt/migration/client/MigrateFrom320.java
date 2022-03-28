@@ -52,6 +52,7 @@ import org.wso2.carbon.apimgt.persistence.utils.RegistryPersistenceUtil;
 import org.wso2.carbon.apimgt.persistence.exceptions.APIPersistenceException;
 import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
+import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
 import org.wso2.carbon.governance.api.util.GovernanceUtils;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -297,6 +298,10 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                     APIProvider apiProviderTenant = APIManagerFactory.getInstance().getAPIProvider(
                             APIUtil.getTenantAdminUserName(tenant.getDomain()));
                     for (GenericArtifact artifact : tenantArtifacts) {
+                        String artifactPath = ((GenericArtifactImpl) artifact).getArtifactPath();
+                        if (artifactPath.contains("/apimgt/applicationdata/apis/")) {
+                            continue;
+                        }
                         if (!StringUtils.equalsIgnoreCase(artifact.getAttribute(APIConstants.API_OVERVIEW_STATUS),
                                 org.wso2.carbon.apimgt.impl.APIConstants.CREATED) &&
                                 !StringUtils.equalsIgnoreCase(artifact.getAttribute(APIConstants.API_OVERVIEW_STATUS),
