@@ -717,7 +717,7 @@ public class APIMgtDAO {
             try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_UUID_BY_THE_IDENTIFIER)) {
                 for (APIInfoDTO apiInfoDTO : apiInfoDTOS) {
                     preparedStatement.setString(1, apiInfoDTO.getUuid());
-                    preparedStatement.setString(2, apiInfoDTO.getStatus());
+                    preparedStatement.setString(2, apiInfoDTO.getStatus().toUpperCase());
                     preparedStatement.setString(3, apiInfoDTO.getApiProvider());
                     preparedStatement.setString(4, apiInfoDTO.getApiName());
                     preparedStatement.setString(5, apiInfoDTO.getApiVersion());
