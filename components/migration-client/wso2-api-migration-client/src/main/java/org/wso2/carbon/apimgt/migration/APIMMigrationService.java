@@ -42,6 +42,7 @@ public class APIMMigrationService implements ServerStartupObserver {
     private final String V310 = "3.1.0";
     private final String V300 = "3.0.0";
     private final String V320 = "3.2.0";
+    private final String V400 = "4.0.0";
 
     @Override
     public void completingServerStartup() {
@@ -226,6 +227,8 @@ public class APIMMigrationService implements ServerStartupObserver {
                     } else if (V320.equals(migrateFromVersion)) {
                         log.info("Starting Migration from API Manager 3.2 to 4.1");
                         commonMigrationClient.moveUUIDToDBFromRegistry();
+                    } else if (V400.equals(migrateFromVersion)) {
+                        log.info("Starting Migration from API Manager 4.0 to 4.1");
                     }
 
                     migrationClient.doMigration(migrationServiceList, continueFromStep);
