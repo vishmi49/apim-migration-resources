@@ -48,8 +48,9 @@ import org.wso2.carbon.apimgt.migration.client.sp_migration.APIMStatMigrationExc
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
-import org.wso2.carbon.apimgt.persistence.dto.Organization;
+import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.APIMappingUtil;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.PublisherCommonUtils;
+import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.APIDTO;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.GraphQLValidationResponseDTO;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.governance.api.exception.GovernanceException;
@@ -98,6 +99,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
         this.registryService = registryService;
         preValidationServiceList.add(Constants.preValidationService.API_DEFINITION_VALIDATION);
+        preValidationServiceList.add(Constants.preValidationService.API_ENDPOINT_VALIDATION);
     }
 
     @Override
@@ -372,7 +374,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                     if (log.isDebugEnabled()) {
                         log.debug("Tenant admin username : " + adminName);
                     }
-                    validateRegistryData(tenant);
+                    validateRegistryData(tenant, validateStep);
                 } finally {
                     if (isTenantFlowStarted) {
                         PrivilegedCarbonContext.endTenantFlow();
@@ -388,7 +390,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
         }
     }
 
-    private void validateRegistryData(Tenant tenant) throws APIMigrationException {
+    private void validateRegistryData(Tenant tenant, String validateStep) throws APIMigrationException {
         try {
             ServiceHolder.getTenantRegLoader().loadTenantRegistry(tenant.getId());
             UserRegistry registry = ServiceHolder.getRegistryService().getGovernanceSystemRegistry(tenant.getId());
@@ -414,8 +416,11 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
 
                         API api = APIUtil.getAPI(artifact, registry);
 
-                        // validate API Definitions
-                        validateAPIDefinitions(api, registry);
+                        if (Constants.preValidationService.API_ENDPOINT_VALIDATION.equals(validateStep)) {
+                            validateEndpoints(api);
+                        } else if (Constants.preValidationService.API_DEFINITION_VALIDATION.equals(validateStep)) {
+                            validateAPIDefinitions(api, registry);
+                        }
                     } catch (Exception e) {
                         throw new APIMigrationException("Error occurred while retrieving API from the registry: "
                                 + "artifact path name " + artifactPath, e);
@@ -433,6 +438,20 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
             throw new APIMigrationException("Error occurred while reading API from the artifact ", e);
         } catch (RegistryException e) {
             throw new APIMigrationException("Error occurred while accessing the registry ", e);
+        }
+    }
+
+    private void validateEndpoints(API api) {
+        try {
+            APIDTO apiDto = APIMappingUtil.fromAPItoDTO(api);
+            if (!PublisherCommonUtils.validateEndpoints(apiDto)) {
+                log.error(
+                        "Invalid/Malformed endpoint URL(s) detected in " + api.getId().getApiName() + " version: " + api
+                                .getId().getVersion());
+            }
+        } catch (APIManagementException e) {
+            log.error("Error while mapping API to API DTO for " + api.getId().getApiName() + " version: " + api.getId()
+                    .getVersion() , e);
         }
     }
 
