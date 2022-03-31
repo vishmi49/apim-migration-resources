@@ -156,6 +156,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     @Override
     public void registryResourceMigration() throws APIMigrationException {
 
+        rxtMigration(registryService);
         log.info("Start migrating WebSocket APIs ..........");
         migrateWebSocketAPI();
         log.info("Successfully migrated WebSocket APIs ..........");
