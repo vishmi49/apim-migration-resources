@@ -135,10 +135,43 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
 
     @Override
     public void databaseMigration() throws APIMigrationException, SQLException {
+
+        log.info("Start migrating Labels to Vhosts ..........");
+        migrateLabelsToVhosts();
+        log.info("Successfully migrated Labels to Vhosts ..........");
+
+        log.info("Start migrating API Product Mappings  ..........");
+        migrateProductMappingTable();
+        log.info("Successfully migrated API Product Mappings ..........");
+
+        log.info("Start migrating Endpoint Certificates  ..........");
+        migrateEndpointCertificates();
+        log.info("Successfully migrated Endpoint Certificates.");
+
+        log.info("Start replacing KM name by UUID  ..........");
+        replaceKMNamebyUUID();
+        log.info("Successfully replaced KM name by UUID.");
     }
 
     @Override
     public void registryResourceMigration() throws APIMigrationException {
+
+        rxtMigration(registryService);
+        log.info("Start migrating WebSocket APIs ..........");
+        migrateWebSocketAPI();
+        log.info("Successfully migrated WebSocket APIs ..........");
+
+        log.info("Start migrating registry paths of Icon and WSDLs  ..........");
+        updateRegistryPathsOfIconAndWSDL();
+        log.info("Successfully migrated API registry paths of Icon and WSDLs.");
+
+        log.info("Start removing unnecessary fault handlers from fault sequences ..........");
+        removeUnnecessaryFaultHandlers();
+        log.info("Successfully removed the unnecessary fault handlers from fault sequences.");
+
+        log.info("Start API Revision related migration ..........");
+        apiRevisionRelatedMigration();
+        log.info("Successfully done the API Revision related migration.");
     }
 
     @Override

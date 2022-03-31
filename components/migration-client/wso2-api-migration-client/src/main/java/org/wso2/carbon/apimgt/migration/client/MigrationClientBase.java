@@ -208,36 +208,34 @@ public class MigrationClientBase {
         }
 
         for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
-            if (V400.equals(service.getKey())) {
-                MigrationClient serviceClient = service.getValue();
-                switch (continueFromStep) {
-                case REGISTRY_RESOURCE_MIGRATION:
-                    registryResourceMigration(serviceClient);
-                    updateScopeRoleMappings(serviceClient);
-                    migrateTenantConfToDB(serviceClient);
-                    registryDataPopulation(serviceClient);
-                    break;
-                case SCOPE_ROLE_MAPPING_MIGRATION:
-                    updateScopeRoleMappings(serviceClient);
-                    migrateTenantConfToDB(serviceClient);
-                    registryDataPopulation(serviceClient);
-                    break;
-                case TENANT_CONF_MIGRATION:
-                    migrateTenantConfToDB(serviceClient);
-                    registryDataPopulation(serviceClient);
-                    break;
-                case REGISTRY_DATA_POPULATION:
-                    registryDataPopulation(serviceClient);
-                    break;
-                case All_STEPS:
-                    databaseMigration(serviceClient);
-                    registryResourceMigration(serviceClient);
-                    updateScopeRoleMappings(serviceClient);
-                    migrateTenantConfToDB(serviceClient);
-                    registryDataPopulation(serviceClient);
-                default:
-                    log.info("The step: " + continueFromStep + " is not defined");
-                }
+            MigrationClient serviceClient = service.getValue();
+            switch (continueFromStep) {
+            case REGISTRY_RESOURCE_MIGRATION:
+                registryResourceMigration(serviceClient);
+                updateScopeRoleMappings(serviceClient);
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
+                break;
+            case SCOPE_ROLE_MAPPING_MIGRATION:
+                updateScopeRoleMappings(serviceClient);
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
+                break;
+            case TENANT_CONF_MIGRATION:
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
+                break;
+            case REGISTRY_DATA_POPULATION:
+                registryDataPopulation(serviceClient);
+                break;
+            case All_STEPS:
+                databaseMigration(serviceClient);
+                registryResourceMigration(serviceClient);
+                updateScopeRoleMappings(serviceClient);
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
+            default:
+                log.info("The step: " + continueFromStep + " is not defined");
             }
         }
     }

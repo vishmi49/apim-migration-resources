@@ -42,6 +42,7 @@ public class APIMMigrationService implements ServerStartupObserver {
     private final String V310 = "3.1.0";
     private final String V300 = "3.0.0";
     private final String V320 = "3.2.0";
+    private final String V400 = "4.0.0";
 
     @Override
     public void completingServerStartup() {
@@ -224,44 +225,12 @@ public class APIMMigrationService implements ServerStartupObserver {
                         log.info("Successfully replaced KM name by UUID.");
                         log.info("Migrated Successfully to 4.0.0");
                     } else if (V320.equals(migrateFromVersion)) {
+                        log.info("Starting Migration from API Manager 3.2 to 4.1");
                         commonMigrationClient.moveUUIDToDBFromRegistry();
-                        MigrateFrom320 migrateFrom320 = new MigrateFrom320(tenants, blackListTenants, tenantRange,
-                                registryService, tenantManager);
-
-                        log.info("Start migrating WebSocket APIs ..........");
-                        migrateFrom320.migrateWebSocketAPI();
-                        log.info("Successfully migrated WebSocket APIs ..........");
-
-                        migrateFrom320.migrateLabelsToVhosts();
-                        log.info("Start migrating API Product Mappings  ..........");
-                        migrateFrom320.migrateProductMappingTable();
-                        log.info("Successfully migrated API Product Mappings ..........");
-
-                        log.info("Start migrating registry paths of Icon and WSDLs  ..........");
-                        migrateFrom320.updateRegistryPathsOfIconAndWSDL();
-                        log.info("Successfully migrated API registry paths of Icon and WSDLs.");
-
-                        log.info("Start removing unnecessary fault handlers from fault sequences ..........");
-                        migrateFrom320.removeUnnecessaryFaultHandlers();
-                        log.info("Successfully removed the unnecessary fault handlers from fault sequences.");
-
-                        log.info("Start API Revision related migration ..........");
-                        migrateFrom320.apiRevisionRelatedMigration();
-                        log.info("Successfully done the API Revision related migration.");
-
-                        log.info("Start migrating Endpoint Certificates  ..........");
-                        migrateFrom320.migrateEndpointCertificates();
-                        log.info("Successfully migrated Endpoint Certificates.");
-
-                        log.info("Start replacing KM name by UUID  ..........");
-                        migrateFrom320.replaceKMNamebyUUID();
-                        log.info("Successfully replaced KM name by UUID.");
-
-                        log.info("Migrated Successfully to 4.0.0");
+                    } else if (V400.equals(migrateFromVersion)) {
+                        log.info("Starting Migration from API Manager 4.0 to 4.1");
                     }
 
-                    // ------------------------------Migration from API-M 400------------------------------
-                    log.info("Starting Migration from API Manager 4.0 to 4.1");
                     migrationClient.doMigration(migrationServiceList, continueFromStep);
                     log.info("Migrated Successfully to 4.1.0");
                 }
