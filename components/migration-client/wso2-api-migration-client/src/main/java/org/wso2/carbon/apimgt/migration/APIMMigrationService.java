@@ -97,9 +97,8 @@ public class APIMMigrationService implements ServerStartupObserver {
                     }
                     //Check AccessControl-Migration enabled
                 } else if (!migrateFromVersion.isEmpty()) {
+                    log.info("Start migration from API-M " + migrateFromVersion + " to 4.1.0..........");
                     if (V260.equals(migrateFromVersion)) {
-                        log.info("Start migration from APIM " + migrateFromVersion + "  ..........");
-
                         MigrationClient migrateFrom210 = new MigrateFrom210(tenants, blackListTenants, tenantRange,
                                 registryService, tenantManager);
                         log.info("Migrating WSO2 API Manager registry resources ..........");
@@ -108,7 +107,8 @@ public class APIMMigrationService implements ServerStartupObserver {
 
                         MigrationClient scopeRoleMappingPopulation = new ScopeRoleMappingPopulationClient(tenants,
                                 blackListTenants, tenantRange, registryService, tenantManager);
-                        log.info("Populating WSO2 API Manager Scope-Role Mapping to migrate from APIM " + migrateFromVersion);
+                        log.info("Populating WSO2 API Manager Scope-Role Mapping to migrate from APIM "
+                                + migrateFromVersion);
                         scopeRoleMappingPopulation.updateScopeRoleMappings();
                         log.info("Successfully updated the Scope Role Mappings ..........");
                         scopeRoleMappingPopulation.populateScopeRoleMapping();
@@ -224,13 +224,10 @@ public class APIMMigrationService implements ServerStartupObserver {
                         migrateFrom320.replaceKMNamebyUUID();
                         log.info("Successfully replaced KM name by UUID.");
                         log.info("Migrated Successfully to 4.0.0");
-                    } else if (V320.equals(migrateFromVersion)) {
-                        log.info("Starting Migration from API Manager 3.2 to 4.1");
-                        commonMigrationClient.moveUUIDToDBFromRegistry();
-                    } else if (V400.equals(migrateFromVersion)) {
-                        log.info("Starting Migration from API Manager 4.0 to 4.1");
                     }
-
+                    else if (V320.equals(migrateFromVersion)) {
+                        commonMigrationClient.moveUUIDToDBFromRegistry();
+                    }
                     migrationClient.doMigration(migrationServiceList, continueFromStep);
                     log.info("Migrated Successfully to 4.1.0");
                 }
