@@ -979,30 +979,6 @@ public class APIMgtDAO {
     }
 
     /**
-     * Get count of the revisions created for a particular API.
-     *
-     * @return revision count
-     * @throws APIManagementException if an error occurs while retrieving revision count
-     */
-    public int getRevisionCountByAPI(String apiUUID) throws APIMigrationException {
-
-        int count = 0;
-        try (Connection connection = APIMgtDBUtil.getConnection();
-                PreparedStatement statement = connection
-                        .prepareStatement(SQLConstants.APIRevisionSqlConstants.GET_REVISION_COUNT_BY_API_UUID)) {
-            statement.setString(1, apiUUID);
-            try (ResultSet rs = statement.executeQuery()) {
-                while (rs.next()) {
-                    count = rs.getInt(1);
-                }
-            }
-        } catch (SQLException e) {
-            throw new APIMigrationException("Failed to get revision count by API", e);
-        }
-        return count;
-    }
-
-    /**
      * This method is used to insert dynamic environments to the table AM_GATEWAY_ENVIRONMENT
      * and VHosts to the table AM_GW_VHOST
      *
