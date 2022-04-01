@@ -27,16 +27,18 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.wso2.carbon.apimgt.api.APIManagementException;
-import org.wso2.carbon.apimgt.api.model.API;
-import org.wso2.carbon.apimgt.api.model.APIProduct;
+import org.wso2.carbon.apimgt.api.APIMgtResourceNotFoundException;
+import org.wso2.carbon.apimgt.api.ExceptionCodes;
+import org.wso2.carbon.apimgt.api.model.*;
 import org.wso2.carbon.apimgt.api.APIProvider;
-import org.wso2.carbon.apimgt.api.model.APIRevision;
-import org.wso2.carbon.apimgt.api.model.APIRevisionDeployment;
-import org.wso2.carbon.apimgt.api.model.Environment;
-import org.wso2.carbon.apimgt.api.model.VHost;
-import org.wso2.carbon.apimgt.impl.certificatemgt.ResponseCode;
 import org.wso2.carbon.apimgt.impl.dao.ApiMgtDAO;
+import org.wso2.carbon.apimgt.impl.dao.GatewayArtifactsMgtDAO;
 import org.wso2.carbon.apimgt.impl.definitions.AsyncApiParser;
+import org.wso2.carbon.apimgt.impl.gatewayartifactsynchronizer.ArtifactSaver;
+import org.wso2.carbon.apimgt.impl.gatewayartifactsynchronizer.exception.ArtifactSynchronizerException;
+import org.wso2.carbon.apimgt.impl.importexport.APIImportExportException;
+import org.wso2.carbon.apimgt.impl.importexport.ExportFormat;
+import org.wso2.carbon.apimgt.impl.importexport.ImportExportAPI;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.APIManagerFactory;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
@@ -48,9 +50,9 @@ import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.apimgt.migration.util.TenantUtil;
 import org.wso2.carbon.apimgt.persistence.APIConstants;
+import org.wso2.carbon.apimgt.persistence.dto.Organization;
 import org.wso2.carbon.apimgt.persistence.utils.RegistryPersistenceUtil;
 import org.wso2.carbon.apimgt.persistence.exceptions.APIPersistenceException;
-import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
 import org.wso2.carbon.governance.api.util.GovernanceUtils;
@@ -62,18 +64,14 @@ import org.wso2.carbon.user.core.tenant.TenantManager;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.registry.core.config.RegistryContext;
-import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -95,7 +93,6 @@ import java.util.Set;
 import com.google.gson.Gson;
 import org.xml.sax.InputSource;
 
-import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
@@ -125,12 +122,19 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     protected Registry registry;
     private TenantManager tenantManager;
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
+    private ApiMgtDAO apiMgtDAO1 = ApiMgtDAO.getInstance();
+    protected ArtifactSaver artifactSaver;
+    protected ImportExportAPI importExportAPI;
+    protected GatewayArtifactsMgtDAO gatewayArtifactsMgtDAO;
 
     public MigrateFrom320(String tenantArguments, String blackListTenantArguments, String tenantRange,
                           RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
         super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
         this.registryService = registryService;
         this.tenantManager = tenantManager;
+        this.artifactSaver = ServiceReferenceHolder.getInstance().getArtifactSaver();
+        this.importExportAPI = ServiceReferenceHolder.getInstance().getImportExportService();
+        this.gatewayArtifactsMgtDAO = GatewayArtifactsMgtDAO.getInstance();
     }
 
     @Override
@@ -156,7 +160,6 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     @Override
     public void registryResourceMigration() throws APIMigrationException {
 
-        rxtMigration(registryService);
         log.info("Start migrating WebSocket APIs ..........");
         migrateWebSocketAPI();
         log.info("Successfully migrated WebSocket APIs ..........");
@@ -357,9 +360,9 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                         apiRevision.setDescription("Initial revision created in migration process");
                         String revisionId;
                         if (!StringUtils.equalsIgnoreCase(apiInfoDTO.getType(), APIConstants.API_PRODUCT)) {
-                            revisionId = apiProviderTenant.addAPIRevision(apiRevision, tenant.getDomain());
+                            revisionId = addAPIRevision(apiRevision, tenant.getDomain(), apiProviderTenant, tenantArtifactManager);
                         } else {
-                            revisionId = apiProviderTenant.addAPIProductRevision(apiRevision, tenant.getDomain());
+                            revisionId = addAPIProductRevision(apiRevision, tenant.getDomain(), tenantArtifactManager);
                         }
                         // retrieve api artifacts
                         GenericArtifact apiArtifact = tenantArtifactManager.getGenericArtifact(apiInfoDTO.getUuid());
@@ -417,7 +420,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 }
             }
         } catch (RegistryException e) {
-            log.error("Error while intitiation the registry", e);
+            log.error("Error while initiation the registry", e);
         } catch (UserStoreException e){
             log.error("Error while retrieving the tenants", e);
         } catch (APIManagementException e) {
@@ -425,6 +428,180 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+    }
+
+    private String addAPIRevision(APIRevision apiRevision, String organization, APIProvider apiProviderTenant,
+            GenericArtifactManager artifactManager) throws APIMigrationException {
+        int revisionId = 0;
+        try {
+            revisionId = apiMgtDAO1.getMostRecentRevisionId(apiRevision.getApiUUID()) + 1;
+        } catch (APIManagementException e) {
+            log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID());
+        }
+        apiRevision.setId(revisionId);
+        APIIdentifier apiId;
+        try {
+            apiId = APIUtil.getAPIIdentifierFromUUID(apiRevision.getApiUUID());
+        } catch (APIManagementException e) {
+            throw new APIMigrationException("Couldn't retrieve APIIdentifier from revision UUID: " + apiRevision.getApiUUID());
+        }
+        if (apiId == null) {
+            throw new APIMigrationException(
+                    "Couldn't retrieve existing API with API UUID: " + apiRevision.getApiUUID());
+        }
+        apiId.setUuid(apiRevision.getApiUUID());
+        String revisionUUID;
+        try {
+            revisionUUID = addAPIRevisionToRegistry(apiId.getUUID(), revisionId, artifactManager);
+        } catch (APIPersistenceException e) {
+            throw new APIMigrationException(
+                    "Failed to add revision registry artifacts for API: "
+                            + apiId.getUUID() + " revision uuid: " + apiRevision.getApiUUID());
+        }
+        if (StringUtils.isEmpty(revisionUUID)) {
+            throw new APIMigrationException(
+                    "Failed to retrieve revision from registry artifacts for API: "
+                            + apiId.getUUID() + " revision uuid: " + apiRevision.getApiUUID());
+        }
+
+        apiRevision.setRevisionUUID(revisionUUID);
+        try {
+            apiMgtDAO1.addAPIRevision(apiRevision);
+        } catch (APIManagementException e) {
+            throw new APIMigrationException(
+                    "Failed to  add revision to database artifacts for API: "
+                            + apiId.getUUID() + " revision uuid: " + apiRevision.getApiUUID());
+        }
+
+        try {
+            File artifact = importExportAPI
+                    .exportAPI(apiRevision.getApiUUID(), revisionUUID, true, ExportFormat.JSON, false, true,
+                            organization);
+            // Keeping the organization as tenant domain since MG does not support organization-wise deployment
+            // Artifacts will be deployed in ST for all organizations
+            gatewayArtifactsMgtDAO
+                    .addGatewayAPIArtifactAndMetaData(apiRevision.getApiUUID(), apiId.getApiName(), apiId.getVersion(),
+                            apiRevision.getRevisionUUID(), organization,
+                            org.wso2.carbon.apimgt.impl.APIConstants.HTTP_PROTOCOL, artifact);
+            if (artifactSaver != null) {
+                // Keeping the organization as tenant domain since MG does not support organization-wise deployment
+                // Artifacts will be deployed in ST for all organizations
+                artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiId.getApiName(), apiId.getVersion(),
+                        apiRevision.getRevisionUUID(), organization, artifact);
+            }
+        } catch (APIImportExportException | ArtifactSynchronizerException | APIManagementException e) {
+            throw new APIMigrationException("Error while Store the Revision Artifact for API: " +
+                    apiId.getUUID() , e);
+        }
+        return revisionUUID;
+    }
+
+    private String addAPIProductRevision(APIRevision apiRevision, String organization,
+            GenericArtifactManager artifactManager) throws APIManagementException {
+        int revisionId = 0;
+        try {
+            revisionId = apiMgtDAO1.getMostRecentRevisionId(apiRevision.getApiUUID()) + 1;
+        } catch (APIManagementException e) {
+            log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID());
+        }
+        apiRevision.setId(revisionId);
+        APIProductIdentifier apiProductIdentifier = APIUtil.getAPIProductIdentifierFromUUID(apiRevision.getApiUUID());
+        if (apiProductIdentifier == null) {
+            throw new APIMgtResourceNotFoundException("Couldn't retrieve existing API Product with ID: "
+                    + apiRevision.getApiUUID(), ExceptionCodes.from(ExceptionCodes.API_NOT_FOUND, apiRevision.getApiUUID()));
+        }
+        apiProductIdentifier.setUUID(apiRevision.getApiUUID());
+        String revisionUUID;
+        try {
+            revisionUUID = addAPIRevisionToRegistry(apiProductIdentifier.getUUID(), revisionId, artifactManager);
+        } catch (APIPersistenceException e) {
+            String errorMessage = "Failed to add revision registry artifacts";
+            throw new APIManagementException(errorMessage, ExceptionCodes.from(ExceptionCodes.
+                    ERROR_CREATING_API_REVISION, apiRevision.getApiUUID()));
+        }
+        if (StringUtils.isEmpty(revisionUUID)) {
+            String errorMessage = "Failed to retrieve revision uuid";
+            throw new APIManagementException(errorMessage,ExceptionCodes.from(ExceptionCodes.API_REVISION_UUID_NOT_FOUND));
+        }
+        apiRevision.setRevisionUUID(revisionUUID);
+        apiMgtDAO1.addAPIProductRevision(apiRevision);
+        try {
+            File artifact = importExportAPI
+                    .exportAPIProduct(apiRevision.getApiUUID(), revisionUUID, true, ExportFormat.JSON,
+                            false, true, organization);
+            gatewayArtifactsMgtDAO
+                    .addGatewayAPIArtifactAndMetaData(apiRevision.getApiUUID(),apiProductIdentifier.getName(),
+                            apiProductIdentifier.getVersion(), apiRevision.getRevisionUUID(), organization,
+                            org.wso2.carbon.apimgt.impl.APIConstants.API_PRODUCT, artifact);
+            if (artifactSaver != null) {
+                artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiProductIdentifier.getName(),
+                        apiProductIdentifier.getVersion(), apiRevision.getRevisionUUID(), organization, artifact);
+            }
+        } catch (APIImportExportException | ArtifactSynchronizerException e) {
+            throw new APIManagementException("Error while Store the Revision Artifact for API product",
+                    ExceptionCodes.from(ExceptionCodes.API_REVISION_UUID_NOT_FOUND));
+        }
+        return revisionUUID;
+    }
+
+    private String addAPIRevisionToRegistry(String apiUUID, int revisionId, GenericArtifactManager artifactManager)
+            throws APIPersistenceException {
+        String revisionUUID;
+        boolean transactionCommitted = false;
+        boolean tenantFlowStarted = false;
+        try {
+            GenericArtifact apiArtifact = artifactManager.getGenericArtifact(apiUUID);
+            if (apiArtifact != null) {
+                API api = RegistryPersistenceUtil.getApiForPublishing(registry, apiArtifact);
+                APIIdentifier apiId = api.getId();
+                String apiPath = RegistryPersistenceUtil.getAPIPath(apiId);
+                int prependIndex = apiPath.lastIndexOf("/api");
+                String apiSourcePath = apiPath.substring(0, prependIndex);
+                String revisionTargetPath = RegistryPersistenceUtil.getRevisionPath(apiId.getUUID(),revisionId);
+                if (registry.resourceExists(revisionTargetPath)) {
+                    log.warn("API revision already exists with id: " + revisionId);
+                }
+                registry.copy(apiSourcePath, revisionTargetPath);
+                Resource apiRevisionArtifact = registry.get(revisionTargetPath + "api");
+                registry.commitTransaction();
+                transactionCommitted = true;
+                if (log.isDebugEnabled()) {
+                    String logMessage =
+                            "Revision for API Name: " + apiId.getApiName() + ", API Version " + apiId.getVersion()
+                                    + " created";
+                    log.debug(logMessage);
+                }
+                revisionUUID = apiRevisionArtifact.getUUID();
+            } else {
+                String msg = "Failed to get API. API artifact corresponding to artifactId " + apiUUID + " does not exist";
+                throw new APIMgtResourceNotFoundException(msg);
+            }
+        } catch (RegistryException e) {
+            try {
+                registry.rollbackTransaction();
+            } catch (RegistryException re) {
+                // Throwing an error here would mask the original exception
+                log.error("Error while rolling back the transaction for API Revision create for API: "
+                        + apiUUID, re);
+            }
+            throw new APIPersistenceException("Error while performing registry transaction operation", e);
+        } catch (APIManagementException e) {
+            throw new APIPersistenceException("Error while creating API Revision", e);
+        } finally {
+            try {
+                if (tenantFlowStarted) {
+                    RegistryPersistenceUtil.endTenantFlow();
+                }
+                if (!transactionCommitted) {
+                    registry.rollbackTransaction();
+                }
+            } catch (RegistryException ex) {
+                throw new APIPersistenceException(
+                        "Error while rolling back the transaction for API Revision create for API: "
+                                + apiUUID, ex);
+            }
+        }
+        return revisionUUID;
     }
 
     public void migrateProductMappingTable() throws APIMigrationException {
@@ -438,7 +615,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(username);
     }
 
-    public void migrateEndpointCertificates() {
+    public void migrateEndpointCertificates() throws APIMigrationException {
 
         File trustStoreFile = new File(TRUST_STORE);
 
@@ -464,12 +641,11 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
             APIMgtDAO.getInstance().updateEndpointCertificates(certificateMap);
         } catch (NoSuchAlgorithmException | IOException | CertificateException
                 | KeyStoreException | APIMigrationException e) {
-            log.error("Error while Migrating Endpoint Certificates", e);
+            throw new APIMigrationException("Error while Migrating Endpoint Certificates", e);
         }
     }
 
-    public void replaceKMNamebyUUID()
-            throws APIMigrationException {
+    public void replaceKMNamebyUUID() throws APIMigrationException {
         APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
 
         for (Tenant tenant : getTenantsArray()) {
@@ -482,7 +658,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         }
     }
   
-    public void migrateLabelsToVhosts() {
+    public void migrateLabelsToVhosts() throws APIMigrationException {
         try {
             // retrieve labels
             List<LabelDTO> labelDTOS = apiMgtDAO.getLabels();
@@ -514,9 +690,9 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
             apiMgtDAO.addDynamicGatewayEnvironments(environments);
             apiMgtDAO.dropLabelTable();
         } catch (APIMigrationException e) {
-            log.error("Error while Reading Labels", e);
+            throw new APIMigrationException("Error while Reading Labels", e);
         } catch (APIManagementException e) {
-            log.error("Error while Converting Endpoint URLs to VHost", e);
+            throw new APIMigrationException("Error while Converting Endpoint URLs to VHost", e);
         }
     }
 
@@ -548,16 +724,16 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
 
                             API api = APIUtil.getAPI(artifact);
                             if (api != null) {
-
                                 AsyncApiParser asyncApiParser = new AsyncApiParser();
                                 String apiDefinition = asyncApiParser.generateAsyncAPIDefinition(api);
                                 APIProvider apiProviderTenant = APIManagerFactory.getInstance().getAPIProvider(
                                         APIUtil.getTenantAdminUserName(tenant.getDomain()));
                                 apiProviderTenant.saveAsyncApiDefinition(api, apiDefinition);
                             } else {
-                                log.error("Async Api definition is not added for the API " +
-                                        artifact.getAttribute(org.wso2.carbon.apimgt.impl.APIConstants.API_OVERVIEW_NAME)
-                                        + " due to returned API is null");
+                                throw new APIMigrationException(
+                                        "Async Api definition is not added for the API " + artifact.getAttribute(
+                                                org.wso2.carbon.apimgt.impl.APIConstants.API_OVERVIEW_NAME)
+                                                + " due to returned API is null");
                             }
                         }
                     }
@@ -569,7 +745,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
             //  add default url templates
             apiMgtDAO.addDefaultURLTemplatesForWSAPIs(wsAPIs);
         } catch (RegistryException e) {
-            log.error("Error while intitiation the registry", e);
+            log.error("Error while initiation the registry", e);
         } catch (UserStoreException e) {
             log.error("Error while retrieving the tenants", e);
         } catch (APIManagementException e) {

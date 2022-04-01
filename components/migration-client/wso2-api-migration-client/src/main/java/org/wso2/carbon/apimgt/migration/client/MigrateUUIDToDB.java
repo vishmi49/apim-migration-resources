@@ -77,14 +77,14 @@ public class MigrateUUIDToDB extends MigrationClientBase{
                     if (tenantArtifactManager != null) {
                         GenericArtifact[] tenantArtifacts = tenantArtifactManager.getAllGenericArtifacts();
                         for (GenericArtifact artifact : tenantArtifacts) {
-                                APIInfoDTO apiInfoDTO = new APIInfoDTO();
-                                apiInfoDTO.setUuid(artifact.getId());
-                                apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(
-                                        artifact.getAttribute("overview_provider")));
-                                apiInfoDTO.setApiName(artifact.getAttribute("overview_name"));
-                                apiInfoDTO.setApiVersion(artifact.getAttribute("overview_version"));
-                                apiInfoDTO.setStatus(((GenericArtifactImpl) artifact).getLcState());
-                                apiInfoDTOList.add(apiInfoDTO);
+                            APIInfoDTO apiInfoDTO = new APIInfoDTO();
+                            apiInfoDTO.setUuid(artifact.getId());
+                            apiInfoDTO.setApiProvider(
+                                    APIUtil.replaceEmailDomainBack(artifact.getAttribute("overview_provider")));
+                            apiInfoDTO.setApiName(artifact.getAttribute("overview_name"));
+                            apiInfoDTO.setApiVersion(artifact.getAttribute("overview_version"));
+                            apiInfoDTO.setStatus(((GenericArtifactImpl) artifact).getLcState());
+                            apiInfoDTOList.add(apiInfoDTO);
                         }
                     }
                 } finally {

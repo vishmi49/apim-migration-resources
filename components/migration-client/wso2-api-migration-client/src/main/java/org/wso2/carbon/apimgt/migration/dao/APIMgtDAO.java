@@ -22,8 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.model.API;
 import org.wso2.carbon.apimgt.api.model.VHost;
+import org.wso2.carbon.apimgt.impl.dao.constants.SQLConstants;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 import org.wso2.carbon.apimgt.api.model.URITemplate;
 import org.wso2.carbon.apimgt.api.model.Scope;
@@ -974,6 +976,30 @@ public class APIMgtDAO {
         } catch (SQLException ex) {
             throw new APIMigrationException("Failed to get data from AM_LABELS and AM_LABEL_URLS", ex);
         }
+    }
+
+    /**
+     * Get count of the revisions created for a particular API.
+     *
+     * @return revision count
+     * @throws APIManagementException if an error occurs while retrieving revision count
+     */
+    public int getRevisionCountByAPI(String apiUUID) throws APIMigrationException {
+
+        int count = 0;
+        try (Connection connection = APIMgtDBUtil.getConnection();
+                PreparedStatement statement = connection
+                        .prepareStatement(SQLConstants.APIRevisionSqlConstants.GET_REVISION_COUNT_BY_API_UUID)) {
+            statement.setString(1, apiUUID);
+            try (ResultSet rs = statement.executeQuery()) {
+                while (rs.next()) {
+                    count = rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            throw new APIMigrationException("Failed to get revision count by API", e);
+        }
+        return count;
     }
 
     /**
