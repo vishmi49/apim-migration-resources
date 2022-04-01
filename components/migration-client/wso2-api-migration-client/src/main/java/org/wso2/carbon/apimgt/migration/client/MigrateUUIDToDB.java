@@ -77,6 +77,10 @@ public class MigrateUUIDToDB extends MigrationClientBase{
                     if (tenantArtifactManager != null) {
                         GenericArtifact[] tenantArtifacts = tenantArtifactManager.getAllGenericArtifacts();
                         for (GenericArtifact artifact : tenantArtifacts) {
+                            String artifactPath = ((GenericArtifactImpl) artifact).getArtifactPath();
+                            if (artifactPath.contains("/apimgt/applicationdata/apis/")) {
+                                continue;
+                            }
                             APIInfoDTO apiInfoDTO = new APIInfoDTO();
                             apiInfoDTO.setUuid(artifact.getId());
                             apiInfoDTO.setApiProvider(

@@ -326,7 +326,6 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     public void apiRevisionRelatedMigration() throws APIMigrationException {
         try {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
-            this.userRegistry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceUserRegistry();
             for (Tenant tenant : tenants) {
                 List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
                 List<Environment> dynamicEnvironments = ApiMgtDAO.getInstance()
@@ -336,6 +335,8 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 startTenantFlow(tenant.getDomain(), apiTenantId,
                         MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
                 this.registry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
+                this.userRegistry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceUserRegistry(
+                        APIUtil.getTenantAdminUserName(tenant.getDomain()), apiTenantId);
                 GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(this.registry,
                         APIConstants.API_KEY);
                 if (tenantArtifactManager != null) {
