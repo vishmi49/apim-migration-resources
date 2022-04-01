@@ -443,7 +443,8 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         try {
             apiId = APIUtil.getAPIIdentifierFromUUID(apiRevision.getApiUUID());
         } catch (APIManagementException e) {
-            throw new APIMigrationException("Couldn't retrieve APIIdentifier from revision UUID: " + apiRevision.getApiUUID());
+            throw new APIMigrationException(
+                    "Couldn't retrieve API Identifier for from revision UUID: " + apiRevision.getApiUUID());
         }
         if (apiId == null) {
             throw new APIMigrationException(
@@ -454,23 +455,24 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         try {
             revisionUUID = addAPIRevisionToRegistry(apiId.getUUID(), revisionId, artifactManager);
         } catch (APIPersistenceException e) {
-            throw new APIMigrationException(
-                    "Failed to add revision registry artifacts for API: "
-                            + apiId.getUUID() + " revision uuid: " + apiRevision.getApiUUID());
+            throw new APIMigrationException("Failed to add revision registry artifacts for API: " + apiId.getUUID());
         }
         if (StringUtils.isEmpty(revisionUUID)) {
             throw new APIMigrationException(
-                    "Failed to retrieve revision from registry artifacts for API: "
-                            + apiId.getUUID() + " revision uuid: " + apiRevision.getApiUUID());
+                    "Failed to retrieve revision from registry artifacts for API: " + apiId.getUUID());
+        } else {
+            log.info("successfully added revision: " + revisionUUID + " to registry for API: " + apiId.getUUID());
         }
 
         apiRevision.setRevisionUUID(revisionUUID);
+
         try {
             apiMgtDAO1.addAPIRevision(apiRevision);
+            log.info("successfully added revision: " + revisionUUID + " to database for API: " + apiId.getUUID());
         } catch (APIManagementException e) {
             throw new APIMigrationException(
-                    "Failed to  add revision to database artifacts for API: "
-                            + apiId.getUUID() + " revision uuid: " + apiRevision.getApiUUID());
+                    "Failed to add revision to database artifacts for API: " + apiId.getUUID() + " revision uuid: "
+                            + revisionUUID);
         }
 
         try {
@@ -489,15 +491,15 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiId.getApiName(), apiId.getVersion(),
                         apiRevision.getRevisionUUID(), organization, artifact);
             }
+            log.info("successfully added revision artifact of API: " + apiId.getUUID());
         } catch (APIImportExportException | ArtifactSynchronizerException | APIManagementException e) {
-            throw new APIMigrationException("Error while Store the Revision Artifact for API: " +
-                    apiId.getUUID() , e);
+            throw new APIMigrationException("Error while Store the Revision Artifact for API: " + apiId.getUUID(), e);
         }
         return revisionUUID;
     }
 
     private String addAPIProductRevision(APIRevision apiRevision, String organization,
-            GenericArtifactManager artifactManager) throws APIManagementException {
+            GenericArtifactManager artifactManager) throws APIMigrationException {
         int revisionId = 0;
         try {
             revisionId = apiMgtDAO1.getMostRecentRevisionId(apiRevision.getApiUUID()) + 1;
@@ -505,41 +507,64 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
             log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID());
         }
         apiRevision.setId(revisionId);
-        APIProductIdentifier apiProductIdentifier = APIUtil.getAPIProductIdentifierFromUUID(apiRevision.getApiUUID());
+        APIProductIdentifier apiProductIdentifier;
+
+        try {
+            apiProductIdentifier = APIUtil.getAPIProductIdentifierFromUUID(apiRevision.getApiUUID());
+        } catch (APIManagementException e) {
+            throw new APIMigrationException(
+                    "Couldn't retrieve APIProduct identifier for API product: " + apiRevision.getApiUUID());
+        }
+
         if (apiProductIdentifier == null) {
-            throw new APIMgtResourceNotFoundException("Couldn't retrieve existing API Product with ID: "
-                    + apiRevision.getApiUUID(), ExceptionCodes.from(ExceptionCodes.API_NOT_FOUND, apiRevision.getApiUUID()));
+            throw new APIMigrationException(
+                    "Couldn't retrieve existing API Product with ID: " + apiRevision.getApiUUID());
         }
         apiProductIdentifier.setUUID(apiRevision.getApiUUID());
         String revisionUUID;
         try {
             revisionUUID = addAPIRevisionToRegistry(apiProductIdentifier.getUUID(), revisionId, artifactManager);
         } catch (APIPersistenceException e) {
-            String errorMessage = "Failed to add revision registry artifacts";
-            throw new APIManagementException(errorMessage, ExceptionCodes.from(ExceptionCodes.
-                    ERROR_CREATING_API_REVISION, apiRevision.getApiUUID()));
+            throw new APIMigrationException(
+                    "Failed to add revision registry artifacts for API Product: " + apiRevision.getApiUUID());
         }
+
         if (StringUtils.isEmpty(revisionUUID)) {
-            String errorMessage = "Failed to retrieve revision uuid";
-            throw new APIManagementException(errorMessage,ExceptionCodes.from(ExceptionCodes.API_REVISION_UUID_NOT_FOUND));
+            throw new APIMigrationException(
+                    "Failed to retrieve revision registry artifacts for API Product uuid: " + apiRevision.getApiUUID()
+                            + " revision uuid: " + revisionUUID);
+        } else {
+            log.info("successfully added revision: " + revisionUUID + " to registry for API Product: "
+                    + apiProductIdentifier.getUUID());
+            apiRevision.setRevisionUUID(revisionUUID);
         }
-        apiRevision.setRevisionUUID(revisionUUID);
-        apiMgtDAO1.addAPIProductRevision(apiRevision);
+
+        try {
+            apiMgtDAO1.addAPIProductRevision(apiRevision);
+            log.info("successfully added revision: " + revisionUUID + " to database for API Product: "
+                    + apiProductIdentifier.getUUID());
+        } catch (APIManagementException e) {
+            throw new APIMigrationException(
+                    "Failed to add API revision uuid: " + revisionUUID + " " + "for API Product : "
+                            + apiProductIdentifier.getUUID());
+        }
+
         try {
             File artifact = importExportAPI
-                    .exportAPIProduct(apiRevision.getApiUUID(), revisionUUID, true, ExportFormat.JSON,
-                            false, true, organization);
+                    .exportAPIProduct(apiRevision.getApiUUID(), revisionUUID, true, ExportFormat.JSON, false,
+                            true, organization);
             gatewayArtifactsMgtDAO
-                    .addGatewayAPIArtifactAndMetaData(apiRevision.getApiUUID(),apiProductIdentifier.getName(),
+                    .addGatewayAPIArtifactAndMetaData(apiRevision.getApiUUID(), apiProductIdentifier.getName(),
                             apiProductIdentifier.getVersion(), apiRevision.getRevisionUUID(), organization,
                             org.wso2.carbon.apimgt.impl.APIConstants.API_PRODUCT, artifact);
             if (artifactSaver != null) {
                 artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiProductIdentifier.getName(),
                         apiProductIdentifier.getVersion(), apiRevision.getRevisionUUID(), organization, artifact);
             }
-        } catch (APIImportExportException | ArtifactSynchronizerException e) {
-            throw new APIManagementException("Error while Store the Revision Artifact for API product",
-                    ExceptionCodes.from(ExceptionCodes.API_REVISION_UUID_NOT_FOUND));
+            log.info("successfully added revision artifact of API Product: " + apiProductIdentifier.getUUID());
+        } catch (APIImportExportException | ArtifactSynchronizerException | APIManagementException e) {
+            throw new APIMigrationException(
+                    "Error while Store the Revision Artifact for API product: " + apiProductIdentifier.getUUID(), e);
         }
         return revisionUUID;
     }
@@ -560,17 +585,18 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 String revisionTargetPath = RegistryPersistenceUtil.getRevisionPath(apiId.getUUID(),revisionId);
                 if (registry.resourceExists(revisionTargetPath)) {
                     log.warn("API revision already exists with id: " + revisionId);
+                } else {
+                    registry.copy(apiSourcePath, revisionTargetPath);
+                    registry.commitTransaction();
+                    transactionCommitted = true;
+                    if (log.isDebugEnabled()) {
+                        String logMessage =
+                                "Revision for API Name: " + apiId.getApiName() + ", API Version " + apiId.getVersion()
+                                        + " created";
+                        log.debug(logMessage);
+                    }
                 }
-                registry.copy(apiSourcePath, revisionTargetPath);
                 Resource apiRevisionArtifact = registry.get(revisionTargetPath + "api");
-                registry.commitTransaction();
-                transactionCommitted = true;
-                if (log.isDebugEnabled()) {
-                    String logMessage =
-                            "Revision for API Name: " + apiId.getApiName() + ", API Version " + apiId.getVersion()
-                                    + " created";
-                    log.debug(logMessage);
-                }
                 revisionUUID = apiRevisionArtifact.getUUID();
             } else {
                 String msg = "Failed to get API. API artifact corresponding to artifactId " + apiUUID + " does not exist";
