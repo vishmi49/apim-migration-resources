@@ -692,8 +692,8 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         try {
             addAPIProductMetaInformationToArchive(archivePath, apiProductDtoToReturn, exportFormat);
         } catch (APIMigrationException e) {
-            throw new APIMigrationException("Meta information retrieved successfully for API Product: "
-                    + apiProductDtoToReturn.getName());
+            throw new APIMigrationException("Failed to add meta information for API Product: "
+                    + apiProductDtoToReturn.getName() , e);
         }
         addDependentAPIsToArchive(archivePath, apiProductDtoToReturn, exportFormat, apiProvider, username,
                 Boolean.TRUE, preserveDocs, preserveCredentials, organization);
