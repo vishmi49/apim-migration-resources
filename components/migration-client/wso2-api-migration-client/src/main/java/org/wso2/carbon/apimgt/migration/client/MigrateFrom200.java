@@ -44,7 +44,7 @@ public class MigrateFrom200 extends MigrationClientBase implements MigrationClie
     }
 
     @Override
-    public void databaseMigration() throws APIMigrationException, SQLException {
+    public void databaseMigration() throws APIMigrationException {
     }
 
     @Override

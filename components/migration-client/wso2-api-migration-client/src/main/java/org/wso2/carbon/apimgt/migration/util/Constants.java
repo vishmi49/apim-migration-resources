@@ -29,6 +29,7 @@ public class Constants {
     public static final String VERSION_2_0_0 = "2.0.0";
     public static final String VERSION_2_1_0 = "2.1.0";
     public static final String VERSION_4_0_0 = "4.0.0";
+    public static final String VERSION_4_1_0 = "4.1.0";
     public static final String LINE_BREAK = "\\n";
     public static final String CONSTRAINT = "constraint";
     public static final String ALTER = "alter";

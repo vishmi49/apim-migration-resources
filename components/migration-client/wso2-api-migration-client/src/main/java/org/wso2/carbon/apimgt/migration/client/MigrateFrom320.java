@@ -146,7 +146,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     }
 
     @Override
-    public void databaseMigration() throws APIMigrationException, SQLException {
+    public void databaseMigration() throws APIMigrationException {
 
         log.info("Start migrating Labels to Vhosts ..........");
         migrateLabelsToVhosts();

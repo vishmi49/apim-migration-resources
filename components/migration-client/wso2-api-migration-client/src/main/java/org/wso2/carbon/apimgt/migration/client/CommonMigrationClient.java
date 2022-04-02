@@ -43,7 +43,6 @@ import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.dto.APIInfoDTO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
-import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.APIMappingUtil;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.PublisherCommonUtils;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.APIDTO;
@@ -62,7 +61,6 @@ import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -80,17 +78,19 @@ public class CommonMigrationClient extends MigrationClientBase {
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
     SystemConfigurationsDAO systemConfigurationsDAO = SystemConfigurationsDAO.getInstance();
     protected List<String> preValidationServiceList = new ArrayList<>();
+    private String migrateFromVersion;
     String V400 = "4.0.0";
 
     public CommonMigrationClient(String tenantArguments, String blackListTenantArguments, String tenantRange,
-                           TenantManager tenantManager) throws UserStoreException {
+                           TenantManager tenantManager, String migrateFromVersion) throws UserStoreException {
         super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
         this.tenantManager = tenantManager;
+        this.migrateFromVersion = migrateFromVersion;
         preValidationServiceList.add(Constants.preValidationService.API_DEFINITION_VALIDATION);
         preValidationServiceList.add(Constants.preValidationService.API_ENDPOINT_VALIDATION);
     }
 
-    public void executeCommonDatabaseMigration(String migrateFromVersion) throws APIMigrationException {
+    public void commonDataMigration() throws APIMigrationException {
 
         if (!V400.equals(migrateFromVersion)) {
             moveUUIDToDBFromRegistry();
@@ -100,7 +100,7 @@ public class CommonMigrationClient extends MigrationClientBase {
 
     /**
      * Get the List of APIs and pass it to DAO method to update the uuid
-     * @throws APIMigrationException
+     * @throws APIMigrationException APIMigrationException
      */
     protected void moveUUIDToDBFromRegistry() throws APIMigrationException {
 

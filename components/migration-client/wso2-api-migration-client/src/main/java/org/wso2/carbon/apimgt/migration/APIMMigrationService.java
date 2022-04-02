@@ -72,7 +72,7 @@ public class APIMMigrationService implements ServerStartupObserver {
             RegistryServiceImpl registryService = new RegistryServiceImpl();
             TenantManager tenantManager = ServiceHolder.getRealmService().getTenantManager();
             CommonMigrationClient commonMigrationClient = new CommonMigrationClient(tenants, blackListTenants,
-                    tenantRange, tenantManager);
+                    tenantRange, tenantManager, migrateFromVersion);
             IdentityScopeMigration identityScopeMigration = new IdentityScopeMigration();
             MigrationClientBase migrationClient = new MigrationClientBase(tenants, blackListTenants,
                     tenantRange, tenantManager);
@@ -143,22 +143,16 @@ public class APIMMigrationService implements ServerStartupObserver {
                         log.info("Start identity scope migration ..........");
                         identityScopeMigration.migrateScopes();
                         log.info("Successfully migrated the identity scopes. ");
-
                         log.info("Migrated Successfully to 3.2");
-                        log.info("Starting Migration from API Manager 3.2 to 4.0");
                     }
 
-
-                    migrationClient.doMigration(commonMigrationClient, migrationServiceList, migrateFromVersion, continueFromStep);
-                    log.info("Migrated Successfully to 4.1.0");
+                    migrationClient.doMigration(commonMigrationClient, migrationServiceList, continueFromStep);
                 }
             }
         } catch (APIMigrationException e) {
             log.error("API Management  exception occurred while migrating", e);
         } catch (UserStoreException e) {
             log.error("User store  exception occurred while migrating", e);
-        } catch (SQLException e) {
-            log.error("SQL exception occurred while migrating", e);
         } catch (Exception e) {
             log.error("Generic exception occurred while migrating", e);
         } catch (Throwable t) {
