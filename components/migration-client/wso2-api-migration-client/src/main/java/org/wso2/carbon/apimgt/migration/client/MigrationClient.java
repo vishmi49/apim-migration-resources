@@ -38,7 +38,7 @@ public interface MigrationClient {
      *
      * @throws APIMigrationException
      */
-    void databaseMigration() throws APIMigrationException;
+    void databaseMigration() throws APIMigrationException, SQLException;
 
     /**
      * This method is used to migrate all the registry resources

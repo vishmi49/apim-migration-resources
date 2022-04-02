@@ -203,7 +203,7 @@ public class MigrationClientBase {
      */
     public void doMigration(CommonMigrationClient commonMigrationClient,
             TreeMap<String, MigrationClient> migrationServiceList, String continueFromStep)
-            throws APIMigrationException {
+            throws APIMigrationException, SQLException {
 
         if (continueFromStep == null) {
             continueFromStep = DB_MIGRATION;
@@ -254,7 +254,7 @@ public class MigrationClientBase {
         }
     }
 
-    private void databaseMigration(MigrationClient serviceClient) throws APIMigrationException {
+    private void databaseMigration(MigrationClient serviceClient) throws APIMigrationException, SQLException {
         log.info("Start migrating databases  ..........");
         serviceClient.databaseMigration();
         log.info("Successfully migrated databases.");
