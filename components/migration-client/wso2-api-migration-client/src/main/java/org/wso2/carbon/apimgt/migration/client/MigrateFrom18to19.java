@@ -1285,11 +1285,6 @@ public class MigrateFrom18to19 extends MigrationClientBase implements MigrationC
 
     }
 
-    @Override
-    public void preMigrationValidation(String validateStep) throws APIMigrationException {
-
-    }
-
     /**
      * This method will be used to populate SP_APP table
      */

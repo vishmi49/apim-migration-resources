@@ -200,8 +200,11 @@ public class MigrationClientBase {
      * @throws APIMigrationException
      * @throws SQLException
      */
-    public void doMigration(TreeMap<String, MigrationClient> migrationServiceList, String continueFromStep)
+    public void doMigration(CommonMigrationClient commonMigrationClient,
+            TreeMap<String, MigrationClient> migrationServiceList, String migrateFromVersion, String continueFromStep)
             throws APIMigrationException, SQLException {
+
+        commonMigrationClient.executeCommonDatabaseMigration(migrateFromVersion);
 
         if (continueFromStep == null) {
             continueFromStep = All_STEPS;
@@ -240,16 +243,6 @@ public class MigrationClientBase {
         }
     }
 
-    public void doValidation(TreeMap<String, MigrationClient> migrationServiceList, String runPreMigrationStep)
-            throws APIMigrationException {
-        log.info("Executing pre migration step ..........");
-        for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
-            MigrationClient serviceClient = service.getValue();
-            serviceClient.preMigrationValidation(runPreMigrationStep);
-        }
-        log.info("Successfully executed the pre validation step.");
-    }
-
     private void databaseMigration(MigrationClient serviceClient) throws APIMigrationException, SQLException {
         log.info("Start migrating databases  ..........");
         serviceClient.databaseMigration();
@@ -257,9 +250,9 @@ public class MigrationClientBase {
     }
 
     private void registryResourceMigration(MigrationClient serviceClient) throws APIMigrationException {
-        log.info("Start migrating api rxt ..........");
+        log.info("Start migrating registry resources ..........");
         serviceClient.registryResourceMigration();
-        log.info("Successfully migrated api rxt.");
+        log.info("Successfully migrated registry resources.");
     }
 
     private void updateScopeRoleMappings(MigrationClient serviceClient) throws APIMigrationException {

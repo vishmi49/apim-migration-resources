@@ -200,9 +200,4 @@ public class APIMStatMigrationClient extends MigrationClientBase implements Migr
     public void migrateTenantConfToDB() throws APIMigrationException {
 
     }
-
-    @Override
-    public void preMigrationValidation(String validateStep) throws APIMigrationException {
-
-    }
 }

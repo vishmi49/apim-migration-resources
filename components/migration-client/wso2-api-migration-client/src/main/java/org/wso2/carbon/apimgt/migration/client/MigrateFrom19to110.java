@@ -861,8 +861,4 @@ public class MigrateFrom19to110 extends MigrationClientBase implements Migration
 
     }
 
-    @Override
-    public void preMigrationValidation(String validateStep) throws APIMigrationException {
-
-    }
 }

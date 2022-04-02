@@ -122,5 +122,4 @@ public interface MigrationClient {
 
     void migrateTenantConfToDB() throws APIMigrationException;
 
-    void preMigrationValidation(String validateStep) throws APIMigrationException;
 }
