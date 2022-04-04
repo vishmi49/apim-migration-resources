@@ -54,6 +54,7 @@ import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.apimgt.migration.util.TenantUtil;
 import org.wso2.carbon.apimgt.persistence.APIConstants;
+import org.wso2.carbon.apimgt.persistence.RegistryPersistenceImpl;
 import org.wso2.carbon.apimgt.persistence.utils.RegistryPersistenceUtil;
 import org.wso2.carbon.apimgt.persistence.exceptions.APIPersistenceException;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.APIMappingUtil;
@@ -63,6 +64,7 @@ import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
 import org.wso2.carbon.governance.api.util.GovernanceUtils;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.registry.core.exceptions.ResourceNotFoundException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
@@ -87,7 +89,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -125,6 +126,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     private static final String OVERVIEW_VERSION = "overview_version";
     private static final String OVERVIEW_NAME = "overview_name";
     private static final String OVERVIEW_TYPE = "overview_type";
+    RegistryPersistenceImpl apiPersistence;
 
     protected Registry registry;
     protected Registry userRegistry;
@@ -460,7 +462,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         apiId.setUuid(apiRevision.getApiUUID());
         String revisionUUID;
         try {
-            revisionUUID = addAPIRevisionToRegistry(apiId.getUUID(), revisionId, artifactManager);
+            revisionUUID = addAPIRevisionToRegistry(apiId.getUUID(), revisionId, tenant.getDomain(), artifactManager);
         } catch (APIPersistenceException e) {
             throw new APIMigrationException("Failed to add revision registry artifacts for API: " + apiId.getUUID());
         }
@@ -535,7 +537,8 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         apiProductIdentifier.setUUID(apiRevision.getApiUUID());
         String revisionUUID;
         try {
-            revisionUUID = addAPIRevisionToRegistry(apiProductIdentifier.getUUID(), revisionId, artifactManager);
+            revisionUUID = addAPIRevisionToRegistry(apiProductIdentifier.getUUID(), revisionId, tenant.getDomain(),
+                    artifactManager);
         } catch (APIPersistenceException e) {
             throw new APIMigrationException(
                     "Failed to add revision registry artifacts for API Product: " + apiRevision.getApiUUID());
@@ -585,7 +588,8 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         return revisionUUID;
     }
 
-    private String addAPIRevisionToRegistry(String apiUUID, int revisionId, GenericArtifactManager artifactManager)
+    private String addAPIRevisionToRegistry(String apiUUID, int revisionId, String organization,
+            GenericArtifactManager artifactManager)
             throws APIPersistenceException {
         String revisionUUID;
         boolean transactionCommitted = false;
@@ -598,7 +602,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 String apiPath = RegistryPersistenceUtil.getAPIPath(apiId);
                 int prependIndex = apiPath.lastIndexOf("/api");
                 String apiSourcePath = apiPath.substring(0, prependIndex);
-                String revisionTargetPath = RegistryPersistenceUtil.getRevisionPath(apiId.getUUID(),revisionId);
+                String revisionTargetPath = RegistryPersistenceUtil.getRevisionPath(apiId.getUUID(), revisionId);
                 if (registry.resourceExists(revisionTargetPath)) {
                     log.warn("API revision already exists with id: " + revisionId);
                 } else {
@@ -614,6 +618,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 }
                 Resource apiRevisionArtifact = registry.get(revisionTargetPath + "api");
                 revisionUUID = apiRevisionArtifact.getUUID();
+
             } else {
                 String msg = "Failed to get API. API artifact corresponding to artifactId " + apiUUID + " does not exist";
                 throw new APIMgtResourceNotFoundException(msg);
@@ -923,11 +928,19 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 // Fault Handlers that needs to be removed from fault sequences
                 String unnecessaryFaultHandler1 = "org.wso2.carbon.apimgt.usage.publisher.APIMgtFaultHandler";
                 String unnecessaryFaultHandler2 = "org.wso2.carbon.apimgt.gateway.handlers.analytics.APIMgtFaultHandler";
-                org.wso2.carbon.registry.api.Collection seqCollection;
-                seqCollection = (org.wso2.carbon.registry.api.Collection) registry
-                        .get(org.wso2.carbon.apimgt.impl.APIConstants.API_CUSTOM_SEQUENCE_LOCATION
-                                + RegistryConstants.PATH_SEPARATOR
-                                + org.wso2.carbon.apimgt.impl.APIConstants.API_CUSTOM_SEQUENCE_TYPE_FAULT);
+                org.wso2.carbon.registry.api.Collection seqCollection = null;
+                String faultSequencePath = org.wso2.carbon.apimgt.impl.APIConstants.API_CUSTOM_SEQUENCE_LOCATION
+                        + RegistryConstants.PATH_SEPARATOR
+                        + org.wso2.carbon.apimgt.impl.APIConstants.API_CUSTOM_SEQUENCE_TYPE_FAULT;
+
+                try {
+                    seqCollection = (org.wso2.carbon.registry.api.Collection) registry
+                            .get(faultSequencePath);
+                } catch (ResourceNotFoundException e) {
+                    log.warn("Resource does not exist for " + faultSequencePath + " for tenant domain:" + tenant
+                            .getDomain());
+                }
+
                 if (seqCollection != null) {
                     String[] childPaths = seqCollection.getChildren();
                     for (String childPath : childPaths) {
@@ -965,8 +978,6 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 }
                 PrivilegedCarbonContext.endTenantFlow();
             }
-        } catch (RegistryException e) {
-            log.error("Error while initiating the registry", e);
         } catch (UserStoreException e) {
             log.error("Error while retrieving the tenants", e);
         } catch (APIManagementException e) {

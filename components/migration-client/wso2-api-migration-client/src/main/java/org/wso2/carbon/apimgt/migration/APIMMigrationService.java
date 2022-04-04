@@ -157,8 +157,6 @@ public class APIMMigrationService implements ServerStartupObserver {
             log.error("Generic exception occurred while migrating", e);
         } catch (Throwable t) {
             log.error("Throwable error", t);
-        } finally {
-            MigrationClientFactory.clearFactory();
         }
         log.info("WSO2 API Manager migration component successfully activated.");
     }
