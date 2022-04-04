@@ -108,6 +108,6 @@ CREATE TABLE AM_API_ENVIRONMENT_KEYS
     PRIMARY KEY (UUID)
 );
 
---Changes introduced with H2 upgrade--
+-- Changes introduced with H2 upgrade --
 EXEC sp_rename 'AM_BLOCK_CONDITIONS.VALUE', 'BLOCK_CONDITION', 'COLUMN';
 EXEC sp_rename 'AM_APPLICATION_ATTRIBUTES.VALUE', 'APP_ATTRIBUTE', 'COLUMN';
