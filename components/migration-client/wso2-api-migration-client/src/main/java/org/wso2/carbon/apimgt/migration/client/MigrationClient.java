@@ -37,7 +37,6 @@ public interface MigrationClient {
      * according to the new database
      *
      * @throws APIMigrationException
-     * @throws SQLException
      */
     void databaseMigration() throws APIMigrationException, SQLException;
 
@@ -122,5 +121,4 @@ public interface MigrationClient {
 
     void migrateTenantConfToDB() throws APIMigrationException;
 
-    void preMigrationValidation(String validateStep) throws APIMigrationException;
 }

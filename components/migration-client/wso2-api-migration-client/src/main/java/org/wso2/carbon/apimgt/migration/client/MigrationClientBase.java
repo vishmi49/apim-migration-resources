@@ -194,22 +194,32 @@ public class MigrationClientBase {
     }
 
     /**
+     * This method is used to migrate data from specific version
      *
-     * @param migrationServiceList
-     * @param continueFromStep
-     * @throws APIMigrationException
-     * @throws SQLException
+     * @param commonMigrationClient commonMigrationClient
+     * @param migrationServiceList migrationServiceList
+     * @param continueFromStep continueFromStep
+     * @throws APIMigrationException APIMigrationException
      */
-    public void doMigration(TreeMap<String, MigrationClient> migrationServiceList, String continueFromStep)
+    public void doMigration(CommonMigrationClient commonMigrationClient,
+            TreeMap<String, MigrationClient> migrationServiceList, String continueFromStep)
             throws APIMigrationException, SQLException {
 
         if (continueFromStep == null) {
-            continueFromStep = All_STEPS;
+            continueFromStep = DB_MIGRATION;
+            commonMigrationClient.commonDataMigration();
         }
 
         for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
+            log.info("Starting Migration from API Manager " + service.getKey());
             MigrationClient serviceClient = service.getValue();
             switch (continueFromStep) {
+            case DB_MIGRATION:
+                databaseMigration(serviceClient);
+                registryResourceMigration(serviceClient);
+                updateScopeRoleMappings(serviceClient);
+                migrateTenantConfToDB(serviceClient);
+                registryDataPopulation(serviceClient);
             case REGISTRY_RESOURCE_MIGRATION:
                 registryResourceMigration(serviceClient);
                 updateScopeRoleMappings(serviceClient);
@@ -228,26 +238,20 @@ public class MigrationClientBase {
             case REGISTRY_DATA_POPULATION:
                 registryDataPopulation(serviceClient);
                 break;
-            case All_STEPS:
-                databaseMigration(serviceClient);
-                registryResourceMigration(serviceClient);
-                updateScopeRoleMappings(serviceClient);
-                migrateTenantConfToDB(serviceClient);
-                registryDataPopulation(serviceClient);
             default:
                 log.info("The step: " + continueFromStep + " is not defined");
             }
+
+            printMigrationStepStatus(service.getKey());
         }
     }
 
-    public void doValidation(TreeMap<String, MigrationClient> migrationServiceList, String runPreMigrationStep)
-            throws APIMigrationException {
-        log.info("Executing pre migration step ..........");
-        for (Map.Entry<String, MigrationClient> service : migrationServiceList.entrySet()) {
-            MigrationClient serviceClient = service.getValue();
-            serviceClient.preMigrationValidation(runPreMigrationStep);
+    private void printMigrationStepStatus(String migrationFromVersion) {
+        if (V320.equals(migrationFromVersion)) {
+            log.info("Migrated Successfully to " + VERSION_4_0_0);
+        } else if (V400.equals(migrationFromVersion)) {
+            log.info("Migrated Successfully to " + VERSION_4_1_0);
         }
-        log.info("Successfully executed the pre validation step.");
     }
 
     private void databaseMigration(MigrationClient serviceClient) throws APIMigrationException, SQLException {
@@ -257,9 +261,9 @@ public class MigrationClientBase {
     }
 
     private void registryResourceMigration(MigrationClient serviceClient) throws APIMigrationException {
-        log.info("Start migrating api rxt ..........");
+        log.info("Start migrating registry resources ..........");
         serviceClient.registryResourceMigration();
-        log.info("Successfully migrated api rxt.");
+        log.info("Successfully migrated registry resources.");
     }
 
     private void updateScopeRoleMappings(MigrationClient serviceClient) throws APIMigrationException {

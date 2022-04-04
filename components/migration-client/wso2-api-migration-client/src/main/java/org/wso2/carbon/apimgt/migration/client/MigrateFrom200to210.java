@@ -45,7 +45,7 @@ public class MigrateFrom200to210 extends MigrationClientBase implements Migratio
     }
 
     @Override
-    public void databaseMigration() throws APIMigrationException, SQLException {
+    public void databaseMigration() throws APIMigrationException {
     }
 
     @Override
@@ -100,11 +100,6 @@ public class MigrateFrom200to210 extends MigrationClientBase implements Migratio
 
     @Override
     public void migrateTenantConfToDB() throws APIMigrationException {
-
-    }
-
-    @Override
-    public void preMigrationValidation(String validateStep) throws APIMigrationException {
 
     }
 

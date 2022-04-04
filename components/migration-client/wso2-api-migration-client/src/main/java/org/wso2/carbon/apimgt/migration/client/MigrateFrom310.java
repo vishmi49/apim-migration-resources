@@ -62,7 +62,7 @@ public class MigrateFrom310 extends MigrationClientBase implements MigrationClie
     }
 
     @Override
-    public void databaseMigration() throws APIMigrationException, SQLException {
+    public void databaseMigration() throws APIMigrationException {
 
     }
 
@@ -120,11 +120,6 @@ public class MigrateFrom310 extends MigrationClientBase implements MigrationClie
 
     @Override
     public void migrateTenantConfToDB() throws APIMigrationException {
-
-    }
-
-    @Override
-    public void preMigrationValidation(String validateStep) throws APIMigrationException {
 
     }
 

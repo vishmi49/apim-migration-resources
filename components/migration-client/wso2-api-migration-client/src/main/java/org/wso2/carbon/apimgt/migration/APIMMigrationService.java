@@ -71,8 +71,8 @@ public class APIMMigrationService implements ServerStartupObserver {
         try {
             RegistryServiceImpl registryService = new RegistryServiceImpl();
             TenantManager tenantManager = ServiceHolder.getRealmService().getTenantManager();
-            MigrateUUIDToDB commonMigrationClient = new MigrateUUIDToDB(tenants, blackListTenants, tenantRange,
-                    tenantManager);
+            CommonMigrationClient commonMigrationClient = new CommonMigrationClient(tenants, blackListTenants,
+                    tenantRange, tenantManager, migrateFromVersion);
             IdentityScopeMigration identityScopeMigration = new IdentityScopeMigration();
             MigrationClientBase migrationClient = new MigrationClientBase(tenants, blackListTenants,
                     tenantRange, tenantManager);
@@ -82,7 +82,7 @@ public class APIMMigrationService implements ServerStartupObserver {
                     .getMigrationServiceList(registryService, migrateFromVersion);
 
             if (preMigrationStep != null)
-                migrationClient.doValidation(migrationServiceList, preMigrationStep);
+                commonMigrationClient.preMigrationValidation(preMigrationStep);
             else {
                 if (isSPMigration) {
                     log.info("----------------Migrating to WSO2 API Manager analytics 3.2.0");
@@ -125,52 +125,10 @@ public class APIMMigrationService implements ServerStartupObserver {
                         migrateFrom310.spMigration();
                         log.info("Successfully migrated the SPs from APIM " + migrateFromVersion);
 
-                        log.info("Migrated Successfully to APIM 3.2.0 ");
-
-                        log.info("Starting Migration from API Manager 3.2.0 to 4.0.0 .................");
-                        log.info("Start moving UUIDs to DB from registry ..........");
-                        commonMigrationClient.moveUUIDToDBFromRegistry();
-                        log.info("Successfully moved the UUIDs to DB from registry ..........");
-
                         log.info("Start identity scope migration ..........");
                         identityScopeMigration.migrateScopes();
                         log.info("Successfully migrated the identity scopes. ");
-
-                        MigrateFrom320 migrateFrom320 = new MigrateFrom320(tenants, blackListTenants, tenantRange,
-                                registryService, tenantManager);
-
-                        log.info("Start migrating WebSocket APIs ..........");
-                        migrateFrom320.migrateWebSocketAPI();
-                        log.info("Successfully migrated WebSocket APIs ..........");
-
-                        log.info("Migrating lables to vhosts in APIM " + migrateFromVersion);
-                        migrateFrom320.migrateLabelsToVhosts();
-                        log.info("Successfully Migrated lables to vhosts in APIM " + migrateFromVersion);
-                        log.info("Start migrating API Product Mappings  ..........");
-                        migrateFrom320.migrateProductMappingTable();
-                        log.info("Successfully migrated API Product Mappings ..........");
-
-                        log.info("Start migrating registry paths of Icon and WSDLs  ..........");
-                        migrateFrom320.updateRegistryPathsOfIconAndWSDL();
-                        log.info("Successfully migrated API registry paths of Icon and WSDLs.");
-
-                        log.info("Start removing unnecessary fault handlers from fault sequences ..........");
-                        migrateFrom320.removeUnnecessaryFaultHandlers();
-                        log.info("Successfully removed the unnecessary fault handlers from fault sequences.");
-
-                        log.info("Start API Revision related migration ..........");
-                        migrateFrom320.apiRevisionRelatedMigration();
-                        log.info("API Revision related migration is successful.");
-
-                        log.info("Start migrating Endpoint Certificates  ..........");
-                        migrateFrom320.migrateEndpointCertificates();
-                        log.info("Successfully migrated Endpoint Certificates.");
-
-                        log.info("Start replacing KM name by UUID  ..........");
-                        migrateFrom320.replaceKMNamebyUUID();
-                        log.info("Successfully replaced KM name by UUID.");
-
-                        log.info("Migrated Successfully to 4.0.0");
+                        log.info("Migrated Successfully to API-M 3.2.0 ");
                     } else if (isScopeRoleMappingPopulation) {
                         MigrationClient scopeRoleMappingPopulation = new ScopeRoleMappingPopulationClient(tenants,
                                 blackListTenants, tenantRange, registryService, tenantManager);
@@ -182,68 +140,23 @@ public class APIMMigrationService implements ServerStartupObserver {
                         migrateFrom310.registryResourceMigration();
                         migrateFrom310.scopeMigration();
                         migrateFrom310.spMigration();
-                        log.info("Migrated Successfully to 3.2");
-                        log.info("Starting Migration from API Manager 3.2 to 4.0");
-
-                        log.info("Start moving UUIDs to DB from registry ..........");
-                        commonMigrationClient.moveUUIDToDBFromRegistry();
-                        log.info("Successfully moved the UUIDs to DB from registry ..........");
-
                         log.info("Start identity scope migration ..........");
                         identityScopeMigration.migrateScopes();
                         log.info("Successfully migrated the identity scopes. ");
-
-                        MigrateFrom320 migrateFrom320 = new MigrateFrom320(tenants, blackListTenants, tenantRange,
-                                registryService, tenantManager);
-                        log.info("Start migrating WebSocket APIs ..........");
-                        migrateFrom320.migrateWebSocketAPI();
-                        log.info("Successfully migrated WebSocket APIs ..........");
-
-                        migrateFrom320.migrateLabelsToVhosts();
-                        log.info("Start migrating API Product Mappings  ..........");
-                        migrateFrom320.migrateProductMappingTable();
-                        log.info("Successfully migrated API Product Mappings ..........");
-
-                        log.info("Start migrating registry paths of Icon and WSDLs  ..........");
-                        migrateFrom320.updateRegistryPathsOfIconAndWSDL();
-                        log.info("Successfully migrated API registry paths of Icon and WSDLs.");
-
-                        log.info("Start removing unnecessary fault handlers from fault sequences ..........");
-                        migrateFrom320.removeUnnecessaryFaultHandlers();
-                        log.info("Successfully removed the unnecessary fault handlers from fault sequences.");
-
-                        log.info("Start API Revision related migration ..........");
-                        migrateFrom320.apiRevisionRelatedMigration();
-                        log.info("Successfully done the API Revision related migration.");
-
-                        log.info("Start migrating Endpoint Certificates  ..........");
-                        migrateFrom320.migrateEndpointCertificates();
-                        log.info("Successfully migrated Endpoint Certificates.");
-
-                        log.info("Start replacing KM name by UUID  ..........");
-                        migrateFrom320.replaceKMNamebyUUID();
-                        log.info("Successfully replaced KM name by UUID.");
-                        log.info("Migrated Successfully to 4.0.0");
+                        log.info("Migrated Successfully to 3.2");
                     }
-                    else if (V320.equals(migrateFromVersion)) {
-                        commonMigrationClient.moveUUIDToDBFromRegistry();
-                    }
-                    migrationClient.doMigration(migrationServiceList, continueFromStep);
-                    log.info("Migrated Successfully to 4.1.0");
+
+                    migrationClient.doMigration(commonMigrationClient, migrationServiceList, continueFromStep);
                 }
             }
         } catch (APIMigrationException e) {
             log.error("API Management  exception occurred while migrating", e);
         } catch (UserStoreException e) {
             log.error("User store  exception occurred while migrating", e);
-        } catch (SQLException e) {
-            log.error("SQL exception occurred while migrating", e);
         } catch (Exception e) {
             log.error("Generic exception occurred while migrating", e);
         } catch (Throwable t) {
             log.error("Throwable error", t);
-        } finally {
-            MigrationClientFactory.clearFactory();
         }
         log.info("WSO2 API Manager migration component successfully activated.");
     }
