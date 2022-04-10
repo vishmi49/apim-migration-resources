@@ -195,7 +195,7 @@ public class APIMgtDAO {
 
     private static String GET_API_ID_OF_WS_APIS = "SELECT API_ID FROM AM_API WHERE API_TYPE = 'WS'";
     private static final String ADD_KEY_MANAGER =
-            " INSERT INTO AM_KEY_MANAGER (UUID,NAME,DESCRIPTION,TYPE,CONFIGURATION,TENANT_DOMAIN,ENABLED," +
+            " INSERT INTO AM_KEY_MANAGER (UUID,NAME,DESCRIPTION,TYPE,CONFIGURATION,ORGANIZATION,ENABLED," +
                     "DISPLAY_NAME) VALUES (?,?,?,?,?,?,?,?)";
 
     private static String UPDATE_API_CATEGORY_ORGANIZATION =
@@ -1431,7 +1431,7 @@ public class APIMgtDAO {
             String name)
             throws SQLException, IOException {
 
-        final String query = "SELECT * FROM AM_KEY_MANAGER WHERE NAME = ? AND TENANT_DOMAIN = ?";
+        final String query = "SELECT * FROM AM_KEY_MANAGER WHERE NAME = ? AND ORGANIZATION = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, tenantDomain);
