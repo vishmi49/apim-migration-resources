@@ -46,9 +46,9 @@ else
               else
                  if [ "$1" = $version260 ]; then
                    mssqlFileList="$sourcePath/migration-2.6.0_to_3.0.0/mssql.sql $sourcePath/migration-3.0.0_to_3.1.0/mssql.sql $sourcePath/migration-3.1.0_to_3.2.0/mssql.sql $sourcePath/migration-3.2.0_to_4.0.0/mssql.sql  $sourcePath/migration-4.0.0_to_4.1.0/mssql.sql"
-                   mysqlFileList="$sourcePath/migration-2.6.0_to_3.0.0/mysql.sql $sourcePath/migration-3.0.0_to_3.1.0/mysql.sql $sourcePath/migration-3.1.0_to_3.2.0/mssql.sql $sourcePath/migration-3.2.0_to_4.0.0/mysql.sql  $sourcePath/migration-4.0.0_to_4.1.0/mysql.sql"
+                   mysqlFileList="$sourcePath/migration-2.6.0_to_3.0.0/mysql.sql $sourcePath/migration-3.0.0_to_3.1.0/mysql.sql $sourcePath/migration-3.1.0_to_3.2.0/mysql.sql $sourcePath/migration-3.2.0_to_4.0.0/mysql.sql  $sourcePath/migration-4.0.0_to_4.1.0/mysql.sql"
                    postgresqlFileList="$sourcePath/migration-2.6.0_to_3.0.0/postgresql.sql $sourcePath/migration-3.0.0_to_3.1.0/postgresql.sql $sourcePath/migration-3.1.0_to_3.2.0/postgresql.sql $sourcePath/migration-3.2.0_to_4.0.0/postgresql.sql $sourcePath/migration-4.0.0_to_4.1.0/postgresql.sql"
-                   oracleFileList="$sourcePath/migration-2.6.0_to_3.0.0/mysql.sql $sourcePath/migration-3.0.0_to_3.1.0/mysql.sql $sourcePath/migration-3.1.0_to_3.2.0/mssql.sql $sourcePath/migration-3.2.0_to_4.0.0/mysql.sql  $sourcePath/migration-4.0.0_to_4.1.0/mysql.sql"
+                   oracleFileList="$sourcePath/migration-2.6.0_to_3.0.0/oracle.sql $sourcePath/migration-3.0.0_to_3.1.0/oracle.sql $sourcePath/migration-3.1.0_to_3.2.0/oracle.sql $sourcePath/migration-3.2.0_to_4.0.0/oracle.sql  $sourcePath/migration-4.0.0_to_4.1.0/oracle.sql"
                  else
                    mssqlFileList="$sourcePath/post-migration-script/am_db/mssql.sql"
                    mysqlFileList="$sourcePath/post-migration-script/am_db/mysql.sql"
