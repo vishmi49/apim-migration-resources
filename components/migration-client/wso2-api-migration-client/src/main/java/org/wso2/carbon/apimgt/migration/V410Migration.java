@@ -49,8 +49,6 @@ public class V410Migration extends VersionMigration {
             e.printStackTrace();
         } catch (APIMigrationException e) {
             e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } 
     }
 }
