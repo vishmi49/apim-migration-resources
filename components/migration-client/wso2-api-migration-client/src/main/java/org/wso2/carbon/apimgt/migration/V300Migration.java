@@ -2,7 +2,6 @@ package org.wso2.carbon.apimgt.migration;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.apimgt.migration.client.MigrateFrom210;
 import org.wso2.carbon.apimgt.migration.client.MigrateFrom260;
 import org.wso2.carbon.apimgt.migration.client.MigrationClient;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
@@ -11,11 +10,14 @@ import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-public class V300Migration extends VersionMigration {
+public class V300Migration extends Migrator {
     private static final Log log = LogFactory.getLog(V300Migration.class);
-    String tenants = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
-    String tenantRange = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
-    String blackListTenants = System.getProperty(Constants.ARG_MIGRATE_BLACKLIST_TENANTS);
+    MigrationClient migrateFrom260;
+
+    public V300Migration(String tenantArguments, String blackListTenantArguments, String tenantRange,
+                         TenantManager tenantManager) throws UserStoreException {
+        super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
+    }
 
     @Override
     public String getPreviousVersion() {
@@ -34,13 +36,9 @@ public class V300Migration extends VersionMigration {
         TenantManager tenantManager = ServiceHolder.getRealmService().getTenantManager();
 
         try {
-            MigrationClient migrateFrom260 = new MigrateFrom260(tenants, blackListTenants, tenantRange,
-                    registryService, tenantManager);
             log.info("Migrating WSO2 API Manager registry resources ..........");
             migrateFrom260.registryResourceMigration();
             log.info("Successfully migrated registry resources .");
-        } catch (UserStoreException e) {
-            e.printStackTrace();
         } catch (APIMigrationException e) {
             e.printStackTrace();
         }

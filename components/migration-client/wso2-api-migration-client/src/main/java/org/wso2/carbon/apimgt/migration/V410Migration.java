@@ -9,15 +9,19 @@ import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-import java.sql.SQLException;
-
-public class V410Migration extends VersionMigration {
+public class V410Migration extends Migrator {
     private static final Log log = LogFactory.getLog(V410Migration.class);
     String preMigrationStep = System.getProperty(Constants.PRE_MIGRATION_STEP);
     String tenants = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
     String tenantRange = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
     String blackListTenants = System.getProperty(Constants.ARG_MIGRATE_BLACKLIST_TENANTS);
     MigrateFrom400 migrateFrom400 = null;
+
+    public V410Migration(String tenantArguments, String blackListTenantArguments, String tenantRange,
+                         TenantManager tenantManager) throws UserStoreException {
+        super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
+    }
+
     @Override
     public String getPreviousVersion() {
         return "4.0.0";
@@ -49,6 +53,6 @@ public class V410Migration extends VersionMigration {
             e.printStackTrace();
         } catch (APIMigrationException e) {
             e.printStackTrace();
-        } 
+        }
     }
 }
