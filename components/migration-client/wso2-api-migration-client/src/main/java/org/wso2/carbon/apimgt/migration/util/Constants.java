@@ -385,6 +385,8 @@ public class Constants {
 
     public static final String DEFAULT_RES_TIER_FILE_NAME = "default-res-tiers.xml";
 
+    public static final String ARG_MIGRATED_VERSION = "migratedVersion";
+
     public static final String DEFAULT_GATEWAY_VENDOR = "wso2";
 
     public static class preValidationService {
