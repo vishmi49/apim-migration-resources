@@ -6,14 +6,21 @@ import org.wso2.carbon.apimgt.migration.client.MigrationClientBase;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
+import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 
+import java.io.File;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public abstract class Migrator {
     private static final Log log = LogFactory.getLog(MigrationClientBase.class);
+    protected final String PRE_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
+            + "migration-resources" + File.separator + "pre-migration-scripts" + File.separator;
+    protected final String POST_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
+            + "migration-resources" + File.separator + "post-migration-scripts" + File.separator;
     private List<Tenant> tenantsArray;
     private String tenantArguments;
     private String blackListTenantArguments;
@@ -92,7 +99,17 @@ public abstract class Migrator {
 
     public abstract String getCurrentVersion();
 
+    public abstract void runPreMigrationScripts() throws SQLException;
+
     public abstract void migrate();
+
+    public abstract void runPostMigrationScripts() throws SQLException;
+
+    public void doMigration() throws SQLException {
+        runPreMigrationScripts();
+        migrate();
+        runPostMigrationScripts();
+    }
 
     private void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
             throws UserStoreException {
@@ -153,5 +170,4 @@ public abstract class Migrator {
             }
         }
     }
-
 }
