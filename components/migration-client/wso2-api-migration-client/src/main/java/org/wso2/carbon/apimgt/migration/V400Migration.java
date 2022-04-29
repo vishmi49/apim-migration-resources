@@ -15,9 +15,8 @@ public class V400Migration extends VersionMigrator {
     String tenantRange = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
     String blackListTenants = System.getProperty(Constants.ARG_MIGRATE_BLACKLIST_TENANTS);
 
-    public V400Migration(String tenantArguments, String blackListTenantArguments, String tenantRange,
-                         TenantManager tenantManager) throws UserStoreException {
-        super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
+    public V400Migration() throws UserStoreException {
+      //  super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
     }
 
     @Override
@@ -80,13 +79,4 @@ public class V400Migration extends VersionMigrator {
         }
     }
 
-    @Override
-    public void scopeMigration() throws APIMigrationException {
-
-    }
-
-    @Override
-    public void dbMigration() throws APIMigrationException {
-
-    }
 }

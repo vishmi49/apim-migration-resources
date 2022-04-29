@@ -7,13 +7,15 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONObject;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.internal.APIManagerComponent;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
-import org.wso2.carbon.apimgt.migration.client.MigrateFrom200to210;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.dto.UserRoleFromPermissionDTO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
@@ -42,6 +44,9 @@ import static org.wso2.carbon.apimgt.impl.utils.APIUtil.getTenantDomainFromTenan
 public class Utility {
     private static final Log log = LogFactory.getLog(Utility.class);
     private static List<Tenant> tenantsArray;
+    private static final String MIGRATION = "Migration";
+    private static final String VERSION_3 = "3.0.0";
+    private static final String META = "Meta";
 
     public static void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
             throws UserStoreException {
@@ -100,7 +105,7 @@ public class Utility {
      * @return JSON content of the local tenant-conf.json
      * @throws IOException error while reading local tenant-conf.json
      */
-    protected static byte[] getTenantConfFromFile() throws IOException {
+    public static byte[] getTenantConfFromFile() throws IOException {
         JSONObject tenantConfJson = null;
         String tenantConfLocation = CarbonUtils.getCarbonHome() + File.separator +
                 APIConstants.RESOURCE_FOLDER_LOCATION + File.separator +
@@ -198,7 +203,7 @@ public class Utility {
      * @return Optional byte content
      * @throws APIManagementException when error occurred while updating the updating the tenant-conf with scopes.
      */
-    private static Optional<Byte[]> migrateTenantConfScopes(int tenantId) throws APIMigrationException {
+    public static Optional<Byte[]> migrateTenantConfScopes(int tenantId) throws APIMigrationException {
 
         JSONObject tenantConf = getTenantConfigFromRegistry(tenantId);
         JSONObject scopesConfigTenant = getRESTAPIScopesFromTenantConfig(tenantConf);
@@ -273,6 +278,8 @@ public class Utility {
                     return Optional.of(ArrayUtils.toObject(formattedTenantConf.getBytes()));
                 } catch (JsonProcessingException e) {
                     throw new APIMigrationException("Error while formatting tenant-conf.json of tenant " + tenantId);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             } else {
                 log.debug("Scopes in tenant-conf.json in tenant " + tenantId + " are already migrated.");
@@ -282,6 +289,7 @@ public class Utility {
             log.debug("Scopes in tenant-conf.json in tenant " + tenantId + " are already migrated.");
             return Optional.empty();
         }
+        return Optional.empty();
     }
 
     private static void populateTenants(TenantManager tenantManager, List<Tenant> tenantList, String argument)
@@ -321,7 +329,7 @@ public class Utility {
     /**
      * This method is used to retrieve a string where the domain name is added in front of the user role name
      */
-    private String addDomainToName(String userRoleName, String domainName) {
+    private static String addDomainToName(String userRoleName, String domainName) {
         if (StringUtils.equals(domainName.toLowerCase(), Constants.USER_DOMAIN_INTERNAL.toLowerCase())) {
             // This check should be done for domain names with "Internal". Otherwise addDomainToName function will
             // convert this to uppercase (INTERNAL).
@@ -454,7 +462,7 @@ public class Utility {
     /**
      * This method is used to retrieve user roles as a comma separated string
      */
-    private String getUserRoleArrayAsString(List<UserRoleFromPermissionDTO> userRoleFromPermissionDTOs) {
+    private static String getUserRoleArrayAsString(List<UserRoleFromPermissionDTO> userRoleFromPermissionDTOs) {
         List<String> updatedUserRoles = new ArrayList<>();
         for (UserRoleFromPermissionDTO userRoleFromPermissionDTO : userRoleFromPermissionDTOs) {
             String userRoleName = userRoleFromPermissionDTO.getUserRoleName();
@@ -467,7 +475,7 @@ public class Utility {
     /**
      * This method is used to retrieve merged existing role mappings and new user roles
      */
-    private String getMergedUserRolesAndRoleMappings(List<UserRoleFromPermissionDTO> userRoles, String roleMappings) {
+    private static String getMergedUserRolesAndRoleMappings(List<UserRoleFromPermissionDTO> userRoles, String roleMappings) {
         // Splitting
         ArrayList<String> roleMappingsArray = new ArrayList<String>(Arrays.asList(StringUtils.
                 split(roleMappings, ",")));
@@ -489,6 +497,11 @@ public class Utility {
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
         PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(username);
+    }
+
+    public static void startTenantFlow(String tenantDomain) {
+        PrivilegedCarbonContext.startTenantFlow();
+        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
     }
 
     public static String toString(Document newDoc) throws Exception {

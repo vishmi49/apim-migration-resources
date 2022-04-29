@@ -12,11 +12,12 @@ import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.Migrator;
+import org.wso2.carbon.apimgt.migration.Utility;
+import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.dto.*;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
-import org.wso2.carbon.apimgt.migration.v320.SPMigrator;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
@@ -25,6 +26,7 @@ import org.wso2.carbon.registry.core.Registry;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
+import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +43,7 @@ public class DBDataMigrator extends Migrator {
 
     private RegistryService registryService;
     List<Tenant> tenants;
+    TenantManager tenantManager;
 
     public DBDataMigrator() throws UserStoreException {
         tenants = loadTenants();
@@ -133,7 +136,7 @@ public class DBDataMigrator extends Migrator {
                 for (String alias : aliases) {
                     Certificate certificate = trustStore.getCertificate(alias);
                     if (certificate != null) {
-                        byte[] encoded = org.apache.commons.codec.binary.Base64.encodeBase64(certificate.getEncoded());
+                        byte[] encoded = Base64.encodeBase64(certificate.getEncoded());
                         String base64EncodedString = BEGIN_CERTIFICATE_STRING.concat(new String(encoded)).concat("\n")
                                 .concat(END_CERTIFICATE_STRING);
                         base64EncodedString = Base64.encodeBase64URLSafeString(base64EncodedString.getBytes());
@@ -190,15 +193,17 @@ public class DBDataMigrator extends Migrator {
     protected void moveUUIDToDBFromRegistry() throws APIMigrationException {
 
         List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
+        tenantManager = ServiceHolder.getRealmService().getTenantManager();
         try {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {
                 try {
                     int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
                     APIUtil.loadTenantRegistry(apiTenantId);
-                    startTenantFlow(tenant.getDomain());
+                    Utility.startTenantFlow(tenant.getDomain());
                     Registry registry =
-                            ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
+                            ServiceReferenceHolder.getInstance().getRegistryService().
+                                    getGovernanceSystemRegistry(apiTenantId);
                     GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(registry,
                             APIConstants.API_KEY);
                     if (tenantArtifactManager != null) {

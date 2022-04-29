@@ -17,9 +17,7 @@ public class V410Migration extends VersionMigrator {
     String blackListTenants = System.getProperty(Constants.ARG_MIGRATE_BLACKLIST_TENANTS);
     MigrateFrom400 migrateFrom400 = null;
 
-    public V410Migration(String tenantArguments, String blackListTenantArguments, String tenantRange,
-                         TenantManager tenantManager) throws UserStoreException {
-        super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
+    public V410Migration() throws UserStoreException {
     }
 
     @Override
