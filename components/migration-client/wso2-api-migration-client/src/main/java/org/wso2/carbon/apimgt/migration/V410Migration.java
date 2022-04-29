@@ -9,7 +9,7 @@ import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-public class V410Migration extends Migrator {
+public class V410Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V410Migration.class);
     String preMigrationStep = System.getProperty(Constants.PRE_MIGRATION_STEP);
     String tenants = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
@@ -55,4 +55,5 @@ public class V410Migration extends Migrator {
             e.printStackTrace();
         }
     }
+
 }

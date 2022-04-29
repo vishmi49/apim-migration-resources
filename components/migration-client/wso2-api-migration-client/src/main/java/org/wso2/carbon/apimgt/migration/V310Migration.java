@@ -10,17 +10,8 @@ import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-public class V310Migration extends Migrator {
+public class V310Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V310Migration .class);
-
-    String tenants = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
-    String tenantRange = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
-    String blackListTenants = System.getProperty(Constants.ARG_MIGRATE_BLACKLIST_TENANTS);
-
-    public V310Migration(String tenantArguments, String blackListTenantArguments, String tenantRange,
-                         TenantManager tenantManager) throws UserStoreException {
-        super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
-    }
 
     @Override
     public String getPreviousVersion() {
@@ -35,19 +26,6 @@ public class V310Migration extends Migrator {
     @Override
     public void migrate() {
 
-        RegistryServiceImpl registryService = new RegistryServiceImpl();
-        TenantManager tenantManager = ServiceHolder.getRealmService().getTenantManager();
-        MigrationClient migrateFrom310 = null;
-        try {
-            migrateFrom310 = new MigrateFrom310(tenants, blackListTenants, tenantRange,
-                    registryService, tenantManager);
-            migrateFrom310.registryResourceMigration();
-            migrateFrom310.scopeMigration();
-            migrateFrom310.spMigration();
-        } catch (UserStoreException e) {
-            e.printStackTrace();
-        } catch (APIMigrationException e) {
-            e.printStackTrace();
-        }
     }
+
 }

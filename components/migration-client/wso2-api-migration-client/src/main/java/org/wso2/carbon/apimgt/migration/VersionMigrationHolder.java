@@ -11,9 +11,6 @@ import java.util.List;
 
 public class VersionMigrationHolder {
     private static VersionMigrationHolder versionMigrationHolder;
-    String tenants = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
-    String tenantRange = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
-    String blackListTenants = System.getProperty(Constants.ARG_MIGRATE_BLACKLIST_TENANTS);
 
     static {
         try {
@@ -23,16 +20,16 @@ public class VersionMigrationHolder {
         }
     }
 
-    private List<Migrator> versionMigrationList = new ArrayList<>();
+    private List<VersionMigrator> versionMigrationList = new ArrayList<>();
 
     private VersionMigrationHolder() throws UserStoreException {
         TenantManager tenantManager = ServiceHolder.getRealmService().getTenantManager();
 
-        versionMigrationList.add(new V300Migration(tenants, blackListTenants, tenantRange, tenantManager));
-        versionMigrationList.add(new V310Migration(tenants, blackListTenants, tenantRange, tenantManager));
-        versionMigrationList.add(new V320Migration(tenants, blackListTenants, tenantRange, tenantManager));
-        versionMigrationList.add(new V400Migration(tenants, blackListTenants, tenantRange, tenantManager));
-        versionMigrationList.add(new V410Migration(tenants, blackListTenants, tenantRange, tenantManager));
+        versionMigrationList.add(new V300Migration());
+        versionMigrationList.add(new V310Migration());
+        versionMigrationList.add(new V320Migration());
+        versionMigrationList.add(new V400Migration());
+        versionMigrationList.add(new V410Migration());
     }
 
     public static VersionMigrationHolder getInstance() {
@@ -40,7 +37,7 @@ public class VersionMigrationHolder {
         return VersionMigrationHolder.versionMigrationHolder;
     }
 
-    public List<Migrator> getVersionMigrationList() {
+    public List<VersionMigrator> getVersionMigrationList() {
 
         return versionMigrationList;
     }

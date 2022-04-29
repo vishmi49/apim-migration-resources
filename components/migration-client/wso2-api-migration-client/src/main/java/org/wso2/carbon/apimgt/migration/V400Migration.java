@@ -9,7 +9,7 @@ import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
-public class V400Migration extends Migrator {
+public class V400Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V400Migration.class);
     String tenants = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
     String tenantRange = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
@@ -78,5 +78,15 @@ public class V400Migration extends Migrator {
         } catch (APIMigrationException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void scopeMigration() throws APIMigrationException {
+
+    }
+
+    @Override
+    public void dbMigration() throws APIMigrationException {
+
     }
 }
