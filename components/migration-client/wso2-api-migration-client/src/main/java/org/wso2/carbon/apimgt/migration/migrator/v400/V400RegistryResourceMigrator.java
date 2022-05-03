@@ -1,28 +1,9 @@
-/*
- *  Copyright (c) 2021, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
- *
- *  WSO2 Inc. licenses this file to you under the Apache License,
- *  Version 2.0 (the "License"); you may not use this file except
- *  in compliance with the License.
- *  You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-package org.wso2.carbon.apimgt.migration.client;
+package org.wso2.carbon.apimgt.migration.migrator.v400;
 
 import com.google.gson.Gson;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -32,8 +13,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.APIMgtResourceNotFoundException;
-import org.wso2.carbon.apimgt.api.model.*;
 import org.wso2.carbon.apimgt.api.APIProvider;
+import org.wso2.carbon.apimgt.api.model.*;
+import org.wso2.carbon.apimgt.impl.APIConstants;
+import org.wso2.carbon.apimgt.impl.APIManagerFactory;
 import org.wso2.carbon.apimgt.impl.dao.ApiMgtDAO;
 import org.wso2.carbon.apimgt.impl.dao.GatewayArtifactsMgtDAO;
 import org.wso2.carbon.apimgt.impl.definitions.AsyncApiParser;
@@ -45,133 +28,78 @@ import org.wso2.carbon.apimgt.impl.importexport.ImportExportAPI;
 import org.wso2.carbon.apimgt.impl.importexport.ImportExportConstants;
 import org.wso2.carbon.apimgt.impl.importexport.utils.CommonUtil;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
-import org.wso2.carbon.apimgt.impl.APIManagerFactory;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
-import org.wso2.carbon.apimgt.migration.client.sp_migration.APIMStatMigrationException;
+import org.wso2.carbon.apimgt.migration.migrator.Migrator;
+import org.wso2.carbon.apimgt.migration.migrator.Utility;
+import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
-import org.wso2.carbon.apimgt.migration.dto.*;
+import org.wso2.carbon.apimgt.migration.dto.APIInfoDTO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
-import org.wso2.carbon.apimgt.migration.util.TenantUtil;
-import org.wso2.carbon.apimgt.persistence.APIConstants;
+import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.apimgt.persistence.RegistryPersistenceImpl;
-import org.wso2.carbon.apimgt.persistence.utils.RegistryPersistenceUtil;
 import org.wso2.carbon.apimgt.persistence.exceptions.APIPersistenceException;
+import org.wso2.carbon.apimgt.persistence.utils.RegistryPersistenceUtil;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.APIMappingUtil;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.APIProductDTO;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifactImpl;
 import org.wso2.carbon.governance.api.util.GovernanceUtils;
-import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
+import org.wso2.carbon.registry.core.Registry;
+import org.wso2.carbon.registry.core.RegistryConstants;
+import org.wso2.carbon.registry.core.Resource;
+import org.wso2.carbon.registry.core.config.RegistryContext;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.exceptions.ResourceNotFoundException;
+import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
-import org.wso2.carbon.registry.core.Resource;
-import org.wso2.carbon.registry.core.RegistryConstants;
-import org.wso2.carbon.registry.core.Registry;
-import org.wso2.carbon.registry.core.utils.RegistryUtils;
-import org.wso2.carbon.registry.core.config.RegistryContext;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import com.google.gson.Gson;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.util.*;
 
 import static org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.ExportUtils.*;
 
-public class MigrateFrom320 extends MigrationClientBase implements MigrationClient {
-
-    private static final Log log = LogFactory.getLog(MigrateFrom320.class);
-    private static final String SEPERATOR = "/";
-    private static final String SPLITTER = ":";
-    private static final String TENANT_IDENTIFIER = "t";
-    private static char[] TRUST_STORE_PASSWORD = System.getProperty("javax.net.ssl.trustStorePassword").toCharArray();
-    private static String TRUST_STORE = System.getProperty("javax.net.ssl.trustStore");
-    private static String CERTIFICATE_TYPE = "X.509";
-    public static final String BEGIN_CERTIFICATE_STRING = "-----BEGIN CERTIFICATE-----\n";
-    public static final String END_CERTIFICATE_STRING = "-----END CERTIFICATE-----";
-    private static final String KEY_STORE_TYPE = "JKS";
-    private static final String APPLICATION_ROLE_PREFIX = "Application/";
+public class V400RegistryResourceMigrator extends Migrator {
+    private static final Log log = LogFactory.getLog(V400RegistryResourceMigrator.class);
     private RegistryService registryService;
+    List<Tenant> tenants;
+    protected Registry registry;
+    private TenantManager tenantManager;
+    RegistryPersistenceImpl apiPersistence;
+    protected ArtifactSaver artifactSaver;
     private static final String OVERVIEW_PROVIDER = "overview_provider";
     private static final String OVERVIEW_VERSION = "overview_version";
     private static final String OVERVIEW_NAME = "overview_name";
     private static final String OVERVIEW_TYPE = "overview_type";
-    RegistryPersistenceImpl apiPersistence;
-
-    protected Registry registry;
-    protected Registry userRegistry;
-    private TenantManager tenantManager;
-    APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
-    private ApiMgtDAO apiMgtDAO1 = ApiMgtDAO.getInstance();
-    protected ArtifactSaver artifactSaver;
-    protected ImportExportAPI importExportAPI;
     protected GatewayArtifactsMgtDAO gatewayArtifactsMgtDAO;
+    protected ImportExportAPI importExportAPI;
+    protected Registry userRegistry;
 
-    public MigrateFrom320(String tenantArguments, String blackListTenantArguments, String tenantRange,
-                          RegistryService registryService, TenantManager tenantManager) throws UserStoreException {
-        super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
-        this.registryService = registryService;
-        this.tenantManager = tenantManager;
+
+    public V400RegistryResourceMigrator() throws UserStoreException {
+        tenants = loadTenants();
+        registryService = new RegistryServiceImpl();
         this.artifactSaver = ServiceReferenceHolder.getInstance().getArtifactSaver();
         this.importExportAPI = ServiceReferenceHolder.getInstance().getImportExportService();
         this.gatewayArtifactsMgtDAO = GatewayArtifactsMgtDAO.getInstance();
+
     }
-
+    APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
+    private ApiMgtDAO apiMgtDAO1 = ApiMgtDAO.getInstance();
     @Override
-    public void databaseMigration() throws APIMigrationException {
-
-        log.info("Start migrating Labels to Vhosts ..........");
-        migrateLabelsToVhosts();
-        log.info("Successfully migrated Labels to Vhosts ..........");
-
-        log.info("Start migrating API Product Mappings  ..........");
-        migrateProductMappingTable();
-        log.info("Successfully migrated API Product Mappings ..........");
-
-        log.info("Start migrating Endpoint Certificates  ..........");
-        migrateEndpointCertificates();
-        log.info("Successfully migrated Endpoint Certificates.");
-
-        log.info("Start replacing KM name by UUID  ..........");
-        replaceKMNamebyUUID();
-        log.info("Successfully replaced KM name by UUID.");
-    }
-
-    @Override
-    public void  registryResourceMigration() throws APIMigrationException {
-
+    public void migrate() throws APIMigrationException {
         log.info("Start migrating WebSocket APIs ..........");
         migrateWebSocketAPI();
         log.info("Successfully migrated WebSocket APIs ..........");
@@ -189,52 +117,64 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         log.info("Successfully done the API Revision related migration.");
     }
 
-    @Override
-    public void fileSystemMigration() throws APIMigrationException {
-    }
+    public void migrateWebSocketAPI() {
+        tenantManager = ServiceHolder.getRealmService().getTenantManager();
+        try {
+            // migrate registry artifacts
+            List<Integer> wsAPIs = new ArrayList<>();
+            List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
+            Map<String, String> wsUriMapping = new HashMap<>();
+            for (Tenant tenant : tenants) {
+                int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
+                APIUtil.loadTenantRegistry(apiTenantId);
+                Utility.startTenantFlow(tenant.getDomain(), apiTenantId,
+                        MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
+                this.registry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
+                GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(this.registry,
+                        APIConstants.API_KEY);
+                if (tenantArtifactManager != null) {
+                    GenericArtifact[] tenantArtifacts = tenantArtifactManager.getAllGenericArtifacts();
+                    for (GenericArtifact artifact : tenantArtifacts) {
+                        if (StringUtils.equalsIgnoreCase(artifact.getAttribute(APIConstants.API_OVERVIEW_TYPE),
+                                APIConstants.APITransportType.WS.toString())) {
+                            int id = Integer.parseInt(APIMgtDAO.getInstance().getAPIID(
+                                    artifact.getAttribute(Constants.API_OVERVIEW_CONTEXT)));
+                            wsAPIs.add(id);
+                            artifact.setAttribute(APIConstants.API_OVERVIEW_WS_URI_MAPPING,
+                                    new Gson().toJson(wsUriMapping));
+                            tenantArtifactManager.updateGenericArtifact(artifact);
 
-    @Override
-    public void cleanOldResources() throws APIMigrationException {
-    }
-
-    @Override
-    public void statsMigration() throws APIMigrationException, APIMStatMigrationException {
-    }
-
-    @Override
-    public void tierMigration(List<String> options) throws APIMigrationException {
-    }
-
-    @Override
-    public void updateArtifacts() throws APIMigrationException {
-    }
-
-    @Override
-    public void populateSPAPPs() throws APIMigrationException {
-    }
-
-    @Override
-    public void populateScopeRoleMapping() throws APIMigrationException {
-    }
-
-    @Override
-    public void updateScopeRoleMappings() throws APIMigrationException {
-    }
-
-    @Override public void registryDataPopulation() throws APIMigrationException {
-
-    }
-
-    @Override public void migrateTenantConfToDB() throws APIMigrationException {
-
-    }
-
-    @Override
-    public void scopeMigration() throws APIMigrationException {
-    }
-
-    @Override
-    public void spMigration() throws APIMigrationException {
+                            API api = APIUtil.getAPI(artifact);
+                            if (api != null) {
+                                AsyncApiParser asyncApiParser = new AsyncApiParser();
+                                String apiDefinition = asyncApiParser.generateAsyncAPIDefinition(api);
+                                APIProvider apiProviderTenant = APIManagerFactory.getInstance().getAPIProvider(
+                                        APIUtil.getTenantAdminUserName(tenant.getDomain()));
+                                apiProviderTenant.saveAsyncApiDefinition(api, apiDefinition);
+                            } else {
+                                throw new APIMigrationException(
+                                        "Async Api definition is not added for the API " + artifact.getAttribute(
+                                                org.wso2.carbon.apimgt.impl.APIConstants.API_OVERVIEW_NAME)
+                                                + " due to returned API is null");
+                            }
+                        }
+                    }
+                }
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+            // Remove previous entries(In 3.x we are setting default REST methods with /*)
+            apiMgtDAO.removePreviousURLTemplatesForWSAPIs(wsAPIs);
+            //  add default url templates
+            apiMgtDAO.addDefaultURLTemplatesForWSAPIs(wsAPIs);
+        } catch (RegistryException e) {
+            log.error("Error while initiation the registry", e);
+        } catch (UserStoreException e) {
+            log.error("Error while retrieving the tenants", e);
+        } catch (APIManagementException e) {
+            log.error("Error while Retrieving API artifact from the registry", e);
+        } catch (APIMigrationException e) {
+            log.error("Error while migrating WebSocket APIs", e);
+        }
     }
 
     public void updateRegistryPathsOfIconAndWSDL() throws APIMigrationException {
@@ -244,7 +184,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
                 int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
                 APIUtil.loadTenantRegistry(apiTenantId);
-                startTenantFlow(tenant.getDomain(), apiTenantId,
+                Utility.startTenantFlow(tenant.getDomain(), apiTenantId,
                         MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
                 this.registry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
                 GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(this.registry,
@@ -279,7 +219,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                             apiArtifact.setAttribute(APIConstants.API_OVERVIEW_THUMBNAIL_URL, thumbPath);
                             tenantArtifactManager.updateGenericArtifact(apiArtifact);
                         }
-                        startTenantFlow(tenant.getDomain(), apiTenantId,
+                        Utility.startTenantFlow(tenant.getDomain(), apiTenantId,
                                 MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
                         String wsdlResourcePathOld = APIConstants.API_WSDL_RESOURCE_LOCATION
                                 + RegistryPersistenceUtil.createWsdlFileName(apiInfoDTO.getApiProvider(),
@@ -331,7 +271,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                         .getAllEnvironments(tenant.getDomain());
                 int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
                 APIUtil.loadTenantRegistry(apiTenantId);
-                startTenantFlow(tenant.getDomain(), apiTenantId,
+                Utility.startTenantFlow(tenant.getDomain(), apiTenantId,
                         MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
                 this.registry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
                 this.userRegistry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceUserRegistry(
@@ -351,15 +291,15 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                                 org.wso2.carbon.apimgt.impl.APIConstants.CREATED) &&
                                 !StringUtils.equalsIgnoreCase(artifact.getAttribute(APIConstants.API_OVERVIEW_STATUS),
                                         org.wso2.carbon.apimgt.impl.APIConstants.RETIRED)) {
-                                    APIInfoDTO apiInfoDTO = new APIInfoDTO();
-                                    apiInfoDTO.setUuid(artifact.getId());
-                                    apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(
-                                            artifact.getAttribute(OVERVIEW_PROVIDER)));
-                                    apiInfoDTO.setApiName(artifact.getAttribute(OVERVIEW_NAME));
-                                    apiInfoDTO.setApiVersion(artifact.getAttribute(OVERVIEW_VERSION));
-                                    apiInfoDTO.setType(artifact.getAttribute(OVERVIEW_TYPE));
-                                    //apiInfoDTO.setOrganization(api.getOrganization());
-                                    apiInfoDTOList.add(apiInfoDTO);
+                            APIInfoDTO apiInfoDTO = new APIInfoDTO();
+                            apiInfoDTO.setUuid(artifact.getId());
+                            apiInfoDTO.setApiProvider(APIUtil.replaceEmailDomainBack(
+                                    artifact.getAttribute(OVERVIEW_PROVIDER)));
+                            apiInfoDTO.setApiName(artifact.getAttribute(OVERVIEW_NAME));
+                            apiInfoDTO.setApiVersion(artifact.getAttribute(OVERVIEW_VERSION));
+                            apiInfoDTO.setType(artifact.getAttribute(OVERVIEW_TYPE));
+                            //apiInfoDTO.setOrganization(api.getOrganization());
+                            apiInfoDTOList.add(apiInfoDTO);
                         }
                     }
                     for (APIInfoDTO apiInfoDTO : apiInfoDTOList) {
@@ -440,7 +380,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     }
 
     private String addAPIRevision(APIRevision apiRevision, Tenant tenant, APIProvider apiProviderTenant,
-            GenericArtifactManager artifactManager) throws APIMigrationException {
+                                  GenericArtifactManager artifactManager) throws APIMigrationException {
 
         int revisionId = 0;
         String organization = tenant.getDomain();
@@ -512,7 +452,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     }
 
     private String addAPIProductRevision(APIRevision apiRevision, Tenant tenant, APIProvider apiProviderTenant,
-            GenericArtifactManager artifactManager) throws APIMigrationException {
+                                         GenericArtifactManager artifactManager) throws APIMigrationException {
 
         int revisionId = 0;
         String organization = tenant.getDomain();
@@ -590,8 +530,82 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         return revisionUUID;
     }
 
+    public void removeUnnecessaryFaultHandlers() {
+        try {
+            List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
+            for (Tenant tenant : tenants) {
+                int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
+                APIUtil.loadTenantRegistry(apiTenantId);
+                Utility.startTenantFlow(tenant.getDomain(), apiTenantId,
+                        MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
+                this.registry = ServiceReferenceHolder.getInstance().getRegistryService()
+                        .getGovernanceSystemRegistry(apiTenantId);
+                // Fault Handlers that needs to be removed from fault sequences
+                String unnecessaryFaultHandler1 = "org.wso2.carbon.apimgt.usage.publisher.APIMgtFaultHandler";
+                String unnecessaryFaultHandler2 = "org.wso2.carbon.apimgt.gateway.handlers.analytics.APIMgtFaultHandler";
+                org.wso2.carbon.registry.api.Collection seqCollection = null;
+                String faultSequencePath = org.wso2.carbon.apimgt.impl.APIConstants.API_CUSTOM_SEQUENCE_LOCATION
+                        + RegistryConstants.PATH_SEPARATOR
+                        + org.wso2.carbon.apimgt.impl.APIConstants.API_CUSTOM_SEQUENCE_TYPE_FAULT;
+
+                try {
+                    seqCollection = (org.wso2.carbon.registry.api.Collection) registry
+                            .get(faultSequencePath);
+                } catch (ResourceNotFoundException e) {
+                    log.warn("Resource does not exist for " + faultSequencePath + " for tenant domain:" + tenant
+                            .getDomain());
+                }
+
+                if (seqCollection != null) {
+                    String[] childPaths = seqCollection.getChildren();
+                    for (String childPath : childPaths) {
+                        // Retrieve fault sequence from registry
+                        Resource sequence = registry.get(childPath);
+                        DocumentBuilderFactory factory = APIUtil.getSecuredDocumentBuilder();
+                        DocumentBuilder builder = factory.newDocumentBuilder();
+                        String content = new String((byte[]) sequence.getContent(), Charset.defaultCharset());
+                        Document doc = builder.parse(new InputSource(new StringReader(content)));
+                        // Retrieve elements with the tag name of "class" since the fault handlers that needs to
+                        // be removed are located within "class" tags
+                        NodeList list = doc.getElementsByTagName("class");
+                        for (int i = 0; i < list.getLength(); i++) {
+                            Node node = (Node) list.item(i);
+                            // Retrieve the element with "name" attribute to identify the fault handlers to be removed
+                            NamedNodeMap attr = node.getAttributes();
+                            Node namedItem = null;
+                            if (null != attr) {
+                                namedItem = attr.getNamedItem("name");
+                            }
+                            // Remove the relevant fault handlers
+                            if (unnecessaryFaultHandler1.equals(namedItem.getNodeValue()) || unnecessaryFaultHandler2
+                                    .equals(namedItem.getNodeValue())) {
+                                Node parentNode = node.getParentNode();
+                                parentNode.removeChild(node);
+                                parentNode.normalize();
+                            }
+                        }
+                        // Convert the content to String
+                        String newContent = Utility.toString(doc);
+                        // Update the registry with the new content
+                        sequence.setContent(newContent);
+                        registry.put(childPath, sequence);
+                    }
+                }
+                PrivilegedCarbonContext.endTenantFlow();
+            }
+        } catch (UserStoreException e) {
+            log.error("Error while retrieving the tenants", e);
+        } catch (APIManagementException e) {
+            log.error("Error while retrieving tenant admin's username", e);
+        } catch (org.wso2.carbon.registry.api.RegistryException e) {
+            log.error("Error while retrieving fault sequences", e);
+        } catch (Exception e) {
+            log.error("Error while removing unnecessary fault handlers from fault sequences", e);
+        }
+    }
+
     private String addAPIRevisionToRegistry(String apiUUID, int revisionId, String organization,
-            GenericArtifactManager artifactManager)
+                                            GenericArtifactManager artifactManager)
             throws APIPersistenceException {
         String revisionUUID;
         boolean transactionCommitted = false;
@@ -654,7 +668,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     }
 
     private File exportAPIProduct(String apiId, String revisionUUID, boolean preserveStatus, ExportFormat format,
-            boolean preserveDocs, boolean preserveCredentials, Tenant tenant, APIProvider apiProvider)
+                                  boolean preserveDocs, boolean preserveCredentials, Tenant tenant, APIProvider apiProvider)
             throws APIManagementException, APIImportExportException, APIMigrationException {
 
         String organization = tenant.getDomain();
@@ -666,8 +680,8 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     }
 
     private File exportApiProduct(APIProvider apiProvider, APIProductIdentifier apiProductIdentifier,
-            APIProductDTO apiProductDtoToReturn, Tenant tenant, ExportFormat exportFormat, Boolean preserveStatus,
-            boolean preserveDocs, boolean preserveCredentials, String organization)
+                                  APIProductDTO apiProductDtoToReturn, Tenant tenant, ExportFormat exportFormat, Boolean preserveStatus,
+                                  boolean preserveDocs, boolean preserveCredentials, String organization)
             throws APIManagementException, APIImportExportException, APIMigrationException {
 
         // Create temp location for storing API Product data
@@ -713,7 +727,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
     }
 
     private void addAPIProductMetaInformationToArchive(String archivePath, APIProductDTO apiProductDtoToReturn,
-            ExportFormat exportFormat) throws APIImportExportException, APIMigrationException {
+                                                       ExportFormat exportFormat) throws APIImportExportException, APIMigrationException {
 
         CommonUtil.createDirectory(archivePath + File.separator + ImportExportConstants.DEFINITIONS_DIRECTORY);
 
@@ -766,260 +780,4 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         return apiDocContent;
     }
 
-    public void migrateProductMappingTable() throws APIMigrationException {
-        apiMgtDAO.updateProductMappings();
-    }
-
-    protected void startTenantFlow(String tenantDomain, int tenantId, String username) {
-        PrivilegedCarbonContext.startTenantFlow();
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-        PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(username);
-    }
-
-    public void migrateEndpointCertificates() throws APIMigrationException {
-
-        File trustStoreFile = new File(TRUST_STORE);
-
-        try {
-            KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            try (InputStream localTrustStoreStream = new FileInputStream(trustStoreFile)) {
-                trustStore.load(localTrustStoreStream, TRUST_STORE_PASSWORD);
-            }
-            Set<String> aliases = APIMgtDAO.getInstance().retrieveListOfEndpointCertificateAliases();
-            Map<String, String> certificateMap = new HashMap<>();
-            if (aliases != null) {
-                for (String alias : aliases) {
-                    Certificate certificate = trustStore.getCertificate(alias);
-                    if (certificate != null) {
-                        byte[] encoded = Base64.encodeBase64(certificate.getEncoded());
-                        String base64EncodedString = BEGIN_CERTIFICATE_STRING.concat(new String(encoded)).concat("\n")
-                                .concat(END_CERTIFICATE_STRING);
-                        base64EncodedString = Base64.encodeBase64URLSafeString(base64EncodedString.getBytes());
-                        certificateMap.put(alias, base64EncodedString);
-                    }
-                }
-            }
-            APIMgtDAO.getInstance().updateEndpointCertificates(certificateMap);
-        } catch (NoSuchAlgorithmException | IOException | CertificateException
-                | KeyStoreException | APIMigrationException e) {
-            throw new APIMigrationException("Error while Migrating Endpoint Certificates", e);
-        }
-    }
-
-    public void replaceKMNamebyUUID() throws APIMigrationException {
-        APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
-
-        for (Tenant tenant : getTenantsArray()) {
-            //Add tenant specific resident key manager with uuids to the AM_KEY_MANAGER table
-            addDefaultKM(apiMgtDAO, tenant.getDomain());
-            apiMgtDAO.replaceKeyMappingKMNamebyUUID(tenant);
-            apiMgtDAO.replaceRegistrationKMNamebyUUID(tenant);
-        }
-    }
-
-    private void addDefaultKM(APIMgtDAO apiMgtDAO, String tenantDomain) throws APIMigrationException {
-        if (apiMgtDAO.getKeyManagerConfigurationByName(tenantDomain,
-                org.wso2.carbon.apimgt.impl.APIConstants.KeyManager.DEFAULT_KEY_MANAGER) == null) {
-
-            KeyManagerConfigurationDTO keyManagerConfigurationDTO = new KeyManagerConfigurationDTO();
-            keyManagerConfigurationDTO.setName(org.wso2.carbon.apimgt.impl.APIConstants.KeyManager.DEFAULT_KEY_MANAGER);
-            keyManagerConfigurationDTO.setEnabled(true);
-            keyManagerConfigurationDTO.setUuid(UUID.randomUUID().toString());
-            keyManagerConfigurationDTO.setTenantDomain(tenantDomain);
-            keyManagerConfigurationDTO.setDescription(
-                    org.wso2.carbon.apimgt.impl.APIConstants.KeyManager.DEFAULT_KEY_MANAGER_DESCRIPTION);
-            keyManagerConfigurationDTO
-                    .setType(org.wso2.carbon.apimgt.impl.APIConstants.KeyManager.DEFAULT_KEY_MANAGER_TYPE);
-            TokenHandlingDTO tokenHandlingDto = new TokenHandlingDTO();
-            tokenHandlingDto.setEnable(true);
-            tokenHandlingDto.setType(TokenHandlingDTO.TypeEnum.REFERENCE);
-            tokenHandlingDto.setValue(org.wso2.carbon.apimgt.impl.APIConstants.KeyManager.UUID_REGEX);
-            keyManagerConfigurationDTO
-                    .addProperty(org.wso2.carbon.apimgt.impl.APIConstants.KeyManager.TOKEN_FORMAT_STRING,
-                            new Gson().toJson(Arrays.asList(tokenHandlingDto)));
-            apiMgtDAO.addKeyManagerConfiguration(keyManagerConfigurationDTO);
-        }
-    }
-  
-    public void migrateLabelsToVhosts() throws APIMigrationException {
-        try {
-            // retrieve labels
-            List<LabelDTO> labelDTOS = apiMgtDAO.getLabels();
-            List<GatewayEnvironmentDTO> environments = new ArrayList<>(labelDTOS.size());
-
-            // converts to dynamic environments
-            for (LabelDTO labelDTO : labelDTOS) {
-                GatewayEnvironmentDTO environment = new GatewayEnvironmentDTO();
-                environment.setUuid(labelDTO.getLabelId());
-                // skip checking an environment exists with the same name in deployment toml
-                // eg: label 'Default' and environment 'Default' in toml.
-                environment.setName(labelDTO.getName());
-                environment.setDisplayName(labelDTO.getName());
-                environment.setDescription(labelDTO.getDescription());
-                environment.setTenantDomain(labelDTO.getTenantDomain());
-
-                List<VHost> vhosts = new ArrayList<>(labelDTO.getAccessUrls().size());
-                for (String accessUrl : labelDTO.getAccessUrls()) {
-                    if (!StringUtils.contains(accessUrl, VHost.PROTOCOL_SEPARATOR)) {
-                        accessUrl = VHost.HTTPS_PROTOCOL + VHost.PROTOCOL_SEPARATOR + accessUrl;
-                    }
-                    VHost vhost = VHost.fromEndpointUrls(new String[]{accessUrl});
-                    vhosts.add(vhost);
-                }
-                environment.setVhosts(vhosts);
-                environments.add(environment);
-            }
-            // insert dynamic environments
-            apiMgtDAO.addDynamicGatewayEnvironments(environments);
-            apiMgtDAO.dropLabelTable();
-        } catch (APIMigrationException e) {
-            throw new APIMigrationException("Error while Reading Labels", e);
-        } catch (APIManagementException e) {
-            throw new APIMigrationException("Error while Converting Endpoint URLs to VHost", e);
-        }
-    }
-
-    public void migrateWebSocketAPI() {
-        try {
-            // migrate registry artifacts
-            List<Integer> wsAPIs = new ArrayList<>();
-            List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
-            Map<String, String> wsUriMapping = new HashMap<>();
-            for (Tenant tenant : tenants) {
-                int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
-                APIUtil.loadTenantRegistry(apiTenantId);
-                startTenantFlow(tenant.getDomain(), apiTenantId,
-                        MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
-                this.registry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
-                GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(this.registry,
-                        APIConstants.API_KEY);
-                if (tenantArtifactManager != null) {
-                    GenericArtifact[] tenantArtifacts = tenantArtifactManager.getAllGenericArtifacts();
-                    for (GenericArtifact artifact : tenantArtifacts) {
-                        if (StringUtils.equalsIgnoreCase(artifact.getAttribute(APIConstants.API_OVERVIEW_TYPE),
-                                APIConstants.APITransportType.WS.toString())) {
-                            int id = Integer.parseInt(APIMgtDAO.getInstance().getAPIID(
-                                    artifact.getAttribute(Constants.API_OVERVIEW_CONTEXT)));
-                            wsAPIs.add(id);
-                            artifact.setAttribute(APIConstants.API_OVERVIEW_WS_URI_MAPPING,
-                                    new Gson().toJson(wsUriMapping));
-                            tenantArtifactManager.updateGenericArtifact(artifact);
-
-                            API api = APIUtil.getAPI(artifact);
-                            if (api != null) {
-                                AsyncApiParser asyncApiParser = new AsyncApiParser();
-                                String apiDefinition = asyncApiParser.generateAsyncAPIDefinition(api);
-                                APIProvider apiProviderTenant = APIManagerFactory.getInstance().getAPIProvider(
-                                        APIUtil.getTenantAdminUserName(tenant.getDomain()));
-                                apiProviderTenant.saveAsyncApiDefinition(api, apiDefinition);
-                            } else {
-                                throw new APIMigrationException(
-                                        "Async Api definition is not added for the API " + artifact.getAttribute(
-                                                org.wso2.carbon.apimgt.impl.APIConstants.API_OVERVIEW_NAME)
-                                                + " due to returned API is null");
-                            }
-                        }
-                    }
-                }
-                PrivilegedCarbonContext.endTenantFlow();
-            }
-            // Remove previous entries(In 3.x we are setting default REST methods with /*)
-            apiMgtDAO.removePreviousURLTemplatesForWSAPIs(wsAPIs);
-            //  add default url templates
-            apiMgtDAO.addDefaultURLTemplatesForWSAPIs(wsAPIs);
-        } catch (RegistryException e) {
-            log.error("Error while initiation the registry", e);
-        } catch (UserStoreException e) {
-            log.error("Error while retrieving the tenants", e);
-        } catch (APIManagementException e) {
-            log.error("Error while Retrieving API artifact from the registry", e);
-        } catch (APIMigrationException e) {
-            log.error("Error while migrating WebSocket APIs", e);
-        }
-    }
-
-    public void removeUnnecessaryFaultHandlers() {
-        try {
-            List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
-            for (Tenant tenant : tenants) {
-                int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
-                APIUtil.loadTenantRegistry(apiTenantId);
-                startTenantFlow(tenant.getDomain(), apiTenantId,
-                        MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
-                this.registry = ServiceReferenceHolder.getInstance().getRegistryService()
-                        .getGovernanceSystemRegistry(apiTenantId);
-                // Fault Handlers that needs to be removed from fault sequences
-                String unnecessaryFaultHandler1 = "org.wso2.carbon.apimgt.usage.publisher.APIMgtFaultHandler";
-                String unnecessaryFaultHandler2 = "org.wso2.carbon.apimgt.gateway.handlers.analytics.APIMgtFaultHandler";
-                org.wso2.carbon.registry.api.Collection seqCollection = null;
-                String faultSequencePath = org.wso2.carbon.apimgt.impl.APIConstants.API_CUSTOM_SEQUENCE_LOCATION
-                        + RegistryConstants.PATH_SEPARATOR
-                        + org.wso2.carbon.apimgt.impl.APIConstants.API_CUSTOM_SEQUENCE_TYPE_FAULT;
-
-                try {
-                    seqCollection = (org.wso2.carbon.registry.api.Collection) registry
-                            .get(faultSequencePath);
-                } catch (ResourceNotFoundException e) {
-                    log.warn("Resource does not exist for " + faultSequencePath + " for tenant domain:" + tenant
-                            .getDomain());
-                }
-
-                if (seqCollection != null) {
-                    String[] childPaths = seqCollection.getChildren();
-                    for (String childPath : childPaths) {
-                        // Retrieve fault sequence from registry
-                        Resource sequence = registry.get(childPath);
-                        DocumentBuilderFactory factory = APIUtil.getSecuredDocumentBuilder();
-                        DocumentBuilder builder = factory.newDocumentBuilder();
-                        String content = new String((byte[]) sequence.getContent(), Charset.defaultCharset());
-                        Document doc = builder.parse(new InputSource(new StringReader(content)));
-                        // Retrieve elements with the tag name of "class" since the fault handlers that needs to
-                        // be removed are located within "class" tags
-                        NodeList list = doc.getElementsByTagName("class");
-                        for (int i = 0; i < list.getLength(); i++) {
-                            Node node = (Node) list.item(i);
-                            // Retrieve the element with "name" attribute to identify the fault handlers to be removed
-                            NamedNodeMap attr = node.getAttributes();
-                            Node namedItem = null;
-                            if (null != attr) {
-                                namedItem = attr.getNamedItem("name");
-                            }
-                            // Remove the relevant fault handlers
-                            if (unnecessaryFaultHandler1.equals(namedItem.getNodeValue()) || unnecessaryFaultHandler2
-                                    .equals(namedItem.getNodeValue())) {
-                                Node parentNode = node.getParentNode();
-                                parentNode.removeChild(node);
-                                parentNode.normalize();
-                            }
-                        }
-                        // Convert the content to String
-                        String newContent = toString(doc);
-                        // Update the registry with the new content
-                        sequence.setContent(newContent);
-                        registry.put(childPath, sequence);
-                    }
-                }
-                PrivilegedCarbonContext.endTenantFlow();
-            }
-        } catch (UserStoreException e) {
-            log.error("Error while retrieving the tenants", e);
-        } catch (APIManagementException e) {
-            log.error("Error while retrieving tenant admin's username", e);
-        } catch (org.wso2.carbon.registry.api.RegistryException e) {
-            log.error("Error while retrieving fault sequences", e);
-        } catch (Exception e) {
-            log.error("Error while removing unnecessary fault handlers from fault sequences", e);
-        }
-    }
-
-    private static String toString(Document newDoc) throws Exception {
-        DOMSource domSource = new DOMSource(newDoc);
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        StringWriter sw = new StringWriter();
-        StreamResult sr = new StreamResult(sw);
-        transformer.transform(domSource, sr);
-        String output = sw.toString();
-        return output.substring(output.indexOf("?>") + 2);
-    }
 }

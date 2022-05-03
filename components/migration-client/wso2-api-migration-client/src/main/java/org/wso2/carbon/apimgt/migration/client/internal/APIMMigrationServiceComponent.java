@@ -20,7 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.apimgt.impl.APIManagerConfigurationService;
-import org.wso2.carbon.apimgt.migration.APIMMigrationService;
+import org.wso2.carbon.apimgt.migration.APIMMigrationClient;
 import org.wso2.carbon.core.ServerStartupObserver;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -62,7 +62,7 @@ public class APIMMigrationServiceComponent {
      */
     protected void activate(ComponentContext context) {
         context.getBundleContext().registerService(ServerStartupObserver.class.getName(), new
-                APIMMigrationService(), null);
+                APIMMigrationClient(), null);
     }
 
     /**
