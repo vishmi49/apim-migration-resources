@@ -3,13 +3,12 @@ package org.wso2.carbon.apimgt.migration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
-import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
+import org.wso2.carbon.apimgt.migration.migrator.VersionMigrationHolder;
+import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.SharedDBUtil;
 import org.wso2.carbon.core.ServerStartupObserver;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.user.core.tenant.TenantManager;
-
 import java.util.List;
 
 public class APIMMigrationClient implements ServerStartupObserver {
@@ -48,7 +47,6 @@ public class APIMMigrationClient implements ServerStartupObserver {
                 if (versionMigration.getCurrentVersion().equals(migratedVersion)) {
                     break;
                 }
-                continue;
             }
             if (isMigrationStarted) {
                 try {
