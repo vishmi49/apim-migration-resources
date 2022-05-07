@@ -15,7 +15,6 @@ import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.PublisherCom
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.GraphQLValidationResponseDTO;
 import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.util.GovernanceUtils;
-import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 
@@ -54,7 +53,7 @@ public class V410Validator extends Validator {
         APIDefinitionValidationResponse validationResponse = null;
         log.info("Validating open API definition of  " + apiName + " version: " + apiVersion + " type: " + apiType);
         try {
-            String apiDefinition = utils.getAPIDefinition(registry, apiName, apiVersion, provider);
+            String apiDefinition = utils.getAPIDefinition(registry, apiName, apiVersion, provider, apiId);
             validationResponse = OASParserUtil.validateAPIDefinition(apiDefinition, Boolean.TRUE);
         } catch (APIManagementException e) {
             log.error("Error while validating open API definition for " + apiName + " version: " + apiVersion
@@ -76,7 +75,7 @@ public class V410Validator extends Validator {
         log.info("Validating graphQL schema definition of " + apiName + " version: " + apiVersion + " type: "
                 + apiType);
         try {
-            String graphqlSchema = utils.getGraphqlSchemaDefinition(registry, apiName, apiVersion, provider);
+            String graphqlSchema = utils.getGraphqlSchemaDefinition(registry, apiName, apiVersion, provider, apiId);
             graphQLValidationResponseDTO = PublisherCommonUtils
                     .validateGraphQLSchema("schema.graphql", graphqlSchema);
         } catch (APIManagementException e) {
