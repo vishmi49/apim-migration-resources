@@ -5,6 +5,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.xerces.util.SecurityManager;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
@@ -28,7 +29,7 @@ import org.wso2.carbon.apimgt.impl.importexport.ImportExportAPI;
 import org.wso2.carbon.apimgt.impl.importexport.ImportExportConstants;
 import org.wso2.carbon.apimgt.impl.importexport.utils.CommonUtil;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
-import org.wso2.carbon.apimgt.impl.utils.APIUtil;
+import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
@@ -54,6 +55,7 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.config.RegistryContext;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.exceptions.ResourceNotFoundException;
+import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -63,6 +65,7 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -176,6 +179,37 @@ public class V400RegistryResourceMigrator extends Migrator {
             log.error("Error while migrating WebSocket APIs", e);
         }
     }
+
+    /**
+     * this method used to initialized the ArtifactManager
+     *
+     * @param registry Registry
+     * @param key      , key name of the key
+     * @return GenericArtifactManager
+     * @throws APIManagementException if failed to initialized GenericArtifactManager
+     */
+    public static GenericArtifactManager getArtifactManager(Registry registry, String key) throws APIManagementException {
+
+        GenericArtifactManager artifactManager = null;
+
+        try {
+            GovernanceUtils.loadGovernanceArtifacts((UserRegistry) registry);
+            if (GovernanceUtils.findGovernanceArtifactConfiguration(key, registry) != null) {
+                artifactManager = new GenericArtifactManager(registry, key);
+            } else {
+                log.warn("Couldn't find GovernanceArtifactConfiguration of RXT: " + key +
+                        ". Tenant id set in registry : " + ((UserRegistry) registry).getTenantId() +
+                        ", Tenant domain set in PrivilegedCarbonContext: " +
+                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
+            }
+        } catch (RegistryException e) {
+            String msg = "Failed to initialize GenericArtifactManager";
+            log.error(msg, e);
+            throw new APIManagementException(msg, e);
+        }
+        return artifactManager;
+    }
+
 
     public void updateRegistryPathsOfIconAndWSDL() throws APIMigrationException {
         try {

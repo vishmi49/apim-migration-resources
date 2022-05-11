@@ -129,7 +129,7 @@ public class APIMgtDAO {
             "AM_LABELS.TENANT_DOMAIN, AM_LABEL_URLS.ACCESS_URL " +
             "FROM AM_LABELS LEFT JOIN AM_LABEL_URLS ON AM_LABELS.LABEL_ID=AM_LABEL_URLS.LABEL_ID";
     private static String INSERT_GATEWAY_ENVIRONMENT = "INSERT INTO AM_GATEWAY_ENVIRONMENT " +
-            "(UUID, NAME, ORGANIZATION, DISPLAY_NAME, DESCRIPTION) VALUES (?,?,?,?,?)";
+            "(UUID, NAME, TENANT_DOMAIN, DISPLAY_NAME, DESCRIPTION) VALUES (?,?,?,?,?)";
     private static String INSERT_VHOST = "INSERT INTO AM_GW_VHOST " +
             "(GATEWAY_ENV_ID, HOST, HTTP_CONTEXT, HTTP_PORT, HTTPS_PORT, WS_PORT, WSS_PORT) VALUES (?,?,?,?,?,?,?)";
     private static String DROP_AM_LABELS_TABLE = "DROP TABLE AM_LABELS";
@@ -167,7 +167,7 @@ public class APIMgtDAO {
                     "INNER JOIN AM_KEY_MANAGER ON AM_KEY_MANAGER.NAME=AM_APPLICATION_KEY_MAPPING.KEY_MANAGER " +
                     "WHERE " +
                     "AM_SUBSCRIBER.TENANT_ID = ? AND " +
-                    "AM_KEY_MANAGER.ORGANIZATION = ?";
+                    "AM_KEY_MANAGER.TENANT_DOMAIN = ?";
 
     private static String GET_APP_REG =
             "SELECT AM_APPLICATION_REGISTRATION.REG_ID AS REG_ID, AM_KEY_MANAGER.UUID AS" +
@@ -179,7 +179,7 @@ public class APIMgtDAO {
                     "INNER JOIN AM_KEY_MANAGER ON AM_KEY_MANAGER.NAME=AM_APPLICATION_REGISTRATION.KEY_MANAGER " +
                     "WHERE " +
                     "AM_SUBSCRIBER.TENANT_ID = ? AND " +
-                    "AM_KEY_MANAGER.ORGANIZATION = ?";
+                    "AM_KEY_MANAGER.TENANT_DOMAIN = ?";
 
     private static String UPDATE_KEY_MAPPINGS =
             "UPDATE AM_APPLICATION_KEY_MAPPING " +
@@ -195,7 +195,7 @@ public class APIMgtDAO {
 
     private static String GET_API_ID_OF_WS_APIS = "SELECT API_ID FROM AM_API WHERE API_TYPE = 'WS'";
     private static final String ADD_KEY_MANAGER =
-            " INSERT INTO AM_KEY_MANAGER (UUID,NAME,DESCRIPTION,TYPE,CONFIGURATION,ORGANIZATION,ENABLED," +
+            " INSERT INTO AM_KEY_MANAGER (UUID,NAME,DESCRIPTION,TYPE,TENANT_DOMAIN,ORGANIZATION,ENABLED," +
                     "DISPLAY_NAME) VALUES (?,?,?,?,?,?,?,?)";
 
     private static String UPDATE_API_CATEGORY_ORGANIZATION =
@@ -1431,7 +1431,7 @@ public class APIMgtDAO {
             String name)
             throws SQLException, IOException {
 
-        final String query = "SELECT * FROM AM_KEY_MANAGER WHERE NAME = ? AND ORGANIZATION = ?";
+        final String query = "SELECT * FROM AM_KEY_MANAGER WHERE NAME = ? AND TENANT_DOMAIN = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, name);
             preparedStatement.setString(2, tenantDomain);

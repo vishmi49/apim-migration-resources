@@ -2,6 +2,7 @@ package org.wso2.carbon.apimgt.migration.migrator.v410;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,9 +21,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.tenant.TenantManager;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class V410DBDataMigrator extends Migrator {
@@ -49,7 +48,6 @@ public class V410DBDataMigrator extends Migrator {
     private void updateAPIOrganizations() throws APIMigrationException {
         apiMgtDAO.updateApiOrganizations();
     }
-
     private void populateApiCategoryOrganizations() throws APIMigrationException {
 
         try {
