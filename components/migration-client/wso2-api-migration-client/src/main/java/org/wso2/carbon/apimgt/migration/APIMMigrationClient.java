@@ -57,6 +57,7 @@ public class APIMMigrationClient implements ServerStartupObserver {
                     if (versionMigration.getCurrentVersion().equals(migratedVersion)) {
                         break;
                     }
+                    continue;
                 }
                 if (isMigrationStarted) {
                     try {
