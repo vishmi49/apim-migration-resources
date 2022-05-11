@@ -179,38 +179,7 @@ public class V400RegistryResourceMigrator extends Migrator {
             log.error("Error while migrating WebSocket APIs", e);
         }
     }
-
-    /**
-     * this method used to initialized the ArtifactManager
-     *
-     * @param registry Registry
-     * @param key      , key name of the key
-     * @return GenericArtifactManager
-     * @throws APIManagementException if failed to initialized GenericArtifactManager
-     */
-    public static GenericArtifactManager getArtifactManager(Registry registry, String key) throws APIManagementException {
-
-        GenericArtifactManager artifactManager = null;
-
-        try {
-            GovernanceUtils.loadGovernanceArtifacts((UserRegistry) registry);
-            if (GovernanceUtils.findGovernanceArtifactConfiguration(key, registry) != null) {
-                artifactManager = new GenericArtifactManager(registry, key);
-            } else {
-                log.warn("Couldn't find GovernanceArtifactConfiguration of RXT: " + key +
-                        ". Tenant id set in registry : " + ((UserRegistry) registry).getTenantId() +
-                        ", Tenant domain set in PrivilegedCarbonContext: " +
-                        PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantId());
-            }
-        } catch (RegistryException e) {
-            String msg = "Failed to initialize GenericArtifactManager";
-            log.error(msg, e);
-            throw new APIManagementException(msg, e);
-        }
-        return artifactManager;
-    }
-
-
+    
     public void updateRegistryPathsOfIconAndWSDL() throws APIMigrationException {
         try {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
