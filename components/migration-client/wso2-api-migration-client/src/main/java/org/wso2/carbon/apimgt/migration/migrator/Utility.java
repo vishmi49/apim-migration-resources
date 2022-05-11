@@ -49,9 +49,11 @@ public class Utility {
     private static final String VERSION_3 = "3.0.0";
     private static final String META = "Meta";
     public static String PRE_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
-            + "migration-resources" + File.separator + "pre-migration-scripts" + File.separator;
+            + "migration-resources" + File.separator + "migration-scripts" +  File.separator + "pre-migration-scripts"
+            + File.separator;
     public static String POST_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
-            + "migration-resources" + File.separator + "post-migration-scripts" + File.separator;
+            + "migration-resources" + File.separator + "migration-scripts" +  File.separator + "post-migration-scripts"
+            + File.separator;
 
     public static void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
             throws UserStoreException {
