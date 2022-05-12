@@ -393,4 +393,21 @@ public class Constants {
         public static final String API_DEFINITION_VALIDATION = "apiDefinitionValidation";
         public static final String API_ENDPOINT_VALIDATION = "apiEndpointValidation";
     }
+
+    /** Environment related constants **/
+
+    public static final String GET_ENVIRONMENT_BY_TENANT_SQL =
+            "SELECT ID, UUID, NAME, TENANT_DOMAIN, DISPLAY_NAME, DESCRIPTION " +
+                    "FROM AM_GATEWAY_ENVIRONMENT " +
+                    "WHERE TENANT_DOMAIN = ?";
+
+    public static final String GET_ENVIRONMENT_BY_TENANT_AND_UUID_SQL =
+            "SELECT ID, UUID, NAME, TENANT_DOMAIN, DISPLAY_NAME, DESCRIPTION " +
+                    "FROM AM_GATEWAY_ENVIRONMENT " +
+                    "WHERE TENANT_DOMAIN = ? AND UUID = ?";
+
+    public static final String INSERT_ENVIRONMENT_SQL = "INSERT INTO " +
+            "AM_GATEWAY_ENVIRONMENT (UUID, NAME, TENANT_DOMAIN, DISPLAY_NAME, DESCRIPTION) " +
+            "VALUES (?,?,?,?,?)";
+
 }

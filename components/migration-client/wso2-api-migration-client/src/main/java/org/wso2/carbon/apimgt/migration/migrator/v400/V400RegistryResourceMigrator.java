@@ -5,7 +5,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.util.SecurityManager;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
@@ -29,13 +28,13 @@ import org.wso2.carbon.apimgt.impl.importexport.ImportExportAPI;
 import org.wso2.carbon.apimgt.impl.importexport.ImportExportConstants;
 import org.wso2.carbon.apimgt.impl.importexport.utils.CommonUtil;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
-import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
-import org.wso2.carbon.apimgt.migration.migrator.Migrator;
-import org.wso2.carbon.apimgt.migration.migrator.Utility;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.dto.APIInfoDTO;
+import org.wso2.carbon.apimgt.migration.migrator.Migrator;
+import org.wso2.carbon.apimgt.migration.migrator.Utility;
+import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
@@ -55,7 +54,6 @@ import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.config.RegistryContext;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.exceptions.ResourceNotFoundException;
-import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.registry.core.utils.RegistryUtils;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -65,7 +63,6 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -270,8 +267,8 @@ public class V400RegistryResourceMigrator extends Migrator {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {
                 List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
-                List<Environment> dynamicEnvironments = ApiMgtDAO.getInstance()
-                        .getAllEnvironments(tenant.getDomain());
+                List<Environment> dynamicEnvironments = org.wso2.carbon.apimgt.migration.
+                        migrator.v400.dao.ApiMgtDAO.getInstance().getAllEnvironments(tenant.getDomain());
                 int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
                 APIUtil.loadTenantRegistry(apiTenantId);
                 Utility.startTenantFlow(tenant.getDomain(), apiTenantId,
