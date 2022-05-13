@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jetbrains.annotations.NotNull;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.dto.ClientCertificateDTO;
 import org.wso2.carbon.apimgt.api.model.*;
@@ -14,8 +15,10 @@ import org.wso2.carbon.apimgt.impl.dao.constants.SQLConstants;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
+import org.wso2.carbon.apimgt.impl.utils.RemoteUserManagerClient;
+import org.wso2.carbon.apimgt.impl.utils.RemoteUserManagerClient$AjcClosure3;
 import org.wso2.carbon.apimgt.migration.util.Constants;
-import org.wso2.carbon.utils.DBUtils;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -97,6 +100,7 @@ public class ApiMgtDAO {
         }
         return envList;
     }
+
 
     /**
      * Adds an API Product revision record to the database
@@ -433,4 +437,509 @@ public class ApiMgtDAO {
         log.error(msg, t);
         throw new APIManagementException(msg, t);
     }
+
+    /**
+     * Get API UUID by the API Identifier.
+     *
+     * @param identifier API Identifier
+     * @return String UUID
+     * @throws APIManagementException if an error occurs
+     */
+    public String getUUIDFromIdentifier(APIIdentifier identifier) throws APIManagementException {
+
+        String uuid = null;
+        String sql = Constants.GET_UUID_BY_IDENTIFIER_SQL;
+        try (Connection connection = APIMgtDBUtil.getConnection()) {
+            PreparedStatement prepStmt = connection.prepareStatement(sql);
+            prepStmt.setString(1, APIUtil.replaceEmailDomainBack(identifier.getProviderName()));
+            prepStmt.setString(2, identifier.getApiName());
+            prepStmt.setString(3, identifier.getVersion());
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                while (resultSet.next()) {
+                    uuid = resultSet.getString(1);
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to get the UUID for API : " + identifier.getApiName() + '-'
+                    + identifier.getVersion(), e);
+        }
+        return uuid;
+    }
+
+    /**
+     * Get API UUID by passed parameters.
+     *
+     * @param provider Provider of the API
+     * @param apiName  Name of the API
+     * @param version  Version of the API
+     * @return String UUID
+     * @throws APIManagementException if an error occurs
+     */
+    public String getUUIDFromIdentifier(String provider, String apiName, String version) throws APIManagementException {
+
+        String uuid = null;
+        String sql = SQLConstants.GET_UUID_BY_IDENTIFIER_SQL;
+        try (Connection connection = APIMgtDBUtil.getConnection()) {
+            PreparedStatement prepStmt = connection.prepareStatement(sql);
+            prepStmt.setString(1, APIUtil.replaceEmailDomainBack(provider));
+            prepStmt.setString(2, apiName);
+            prepStmt.setString(3, version);
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                while (resultSet.next()) {
+                    uuid = resultSet.getString(1);
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to get the UUID for API : ", e);
+        }
+        return uuid;
+    }
+
+    public int addApplication(Application application, String userId) throws APIManagementException {
+
+        Connection conn = null;
+        int applicationId = 0;
+        String loginUserName = getLoginUserName(userId);
+        try {
+            conn = APIMgtDBUtil.getConnection();
+            conn.setAutoCommit(false);
+            applicationId = addApplication(application, loginUserName, conn);
+            Subscriber subscriber = getSubscriber(userId);
+            String tenantDomain = MultitenantUtils.getTenantDomain(subscriber.getName());
+
+            if (multiGroupAppSharingEnabled) {
+                updateGroupIDMappings(conn, applicationId, application.getGroupId(), tenantDomain);
+            }
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException e1) {
+                    log.error("Failed to rollback the add Application ", e1);
+                }
+            }
+            handleException("Failed to add Application", e);
+        } finally {
+            APIMgtDBUtil.closeAllConnections(null, conn, null);
+        }
+        return applicationId;
+    }
+
+    /**
+     * Adds a new record in AM_APPLICATION_GROUP_MAPPING for each group
+     *
+     * @param conn
+     * @param applicationId
+     * @param groupIdString group id values separated by commas
+     * @return
+     * @throws APIManagementException
+     */
+    private boolean updateGroupIDMappings(Connection conn, int applicationId, String groupIdString, String tenant)
+            throws APIManagementException {
+
+        boolean updateSuccessful = false;
+
+        PreparedStatement removeMigratedGroupIdsStatement = null;
+        PreparedStatement deleteStatement = null;
+        PreparedStatement insertStatement = null;
+        String deleteQuery = SQLConstants.REMOVE_GROUP_ID_MAPPING_SQL;
+        String insertQuery = SQLConstants.ADD_GROUP_ID_MAPPING_SQL;
+
+        try {
+            // Remove migrated Group ID information so that it can be replaced by updated Group ID's that are now
+            // being saved. This is done to ensure that there is no conflicting migrated Group ID data remaining
+            removeMigratedGroupIdsStatement = conn.prepareStatement(SQLConstants.REMOVE_MIGRATED_GROUP_ID_SQL);
+            removeMigratedGroupIdsStatement.setInt(1, applicationId);
+            removeMigratedGroupIdsStatement.executeUpdate();
+
+            deleteStatement = conn.prepareStatement(deleteQuery);
+            deleteStatement.setInt(1, applicationId);
+            deleteStatement.executeUpdate();
+
+            if (!StringUtils.isEmpty(groupIdString)) {
+
+                String[] groupIdArray = groupIdString.split(",");
+
+                insertStatement = conn.prepareStatement(insertQuery);
+                for (String group : groupIdArray) {
+                    insertStatement.setInt(1, applicationId);
+                    insertStatement.setString(2, group);
+                    insertStatement.setString(3, tenant);
+                    insertStatement.addBatch();
+                }
+                insertStatement.executeBatch();
+            }
+            updateSuccessful = true;
+        } catch (SQLException e) {
+            updateSuccessful = false;
+            handleException("Failed to update GroupId mappings ", e);
+        } finally {
+            APIMgtDBUtil.closeAllConnections(removeMigratedGroupIdsStatement, null, null);
+            APIMgtDBUtil.closeAllConnections(deleteStatement, null, null);
+            APIMgtDBUtil.closeAllConnections(insertStatement, null, null);
+        }
+        return updateSuccessful;
+    }
+
+    /**
+     * This method used tot get Subscriber from subscriberId.
+     *
+     * @param subscriberName id
+     * @return Subscriber
+     * @throws APIManagementException if failed to get Subscriber from subscriber id
+     */
+    public Subscriber getSubscriber(String subscriberName) throws APIManagementException {
+
+        Connection conn = null;
+        Subscriber subscriber = null;
+        PreparedStatement ps = null;
+        ResultSet result = null;
+
+        int tenantId = APIUtil.getTenantId(subscriberName);
+
+        String sqlQuery = SQLConstants.GET_TENANT_SUBSCRIBER_SQL;
+        if (forceCaseInsensitiveComparisons) {
+            sqlQuery = SQLConstants.GET_TENANT_SUBSCRIBER_CASE_INSENSITIVE_SQL;
+        }
+
+        try {
+            conn = APIMgtDBUtil.getConnection();
+
+            ps = conn.prepareStatement(sqlQuery);
+            ps.setString(1, subscriberName);
+            ps.setInt(2, tenantId);
+            result = ps.executeQuery();
+
+            if (result.next()) {
+                subscriber = new Subscriber(result.getString(APIConstants.SUBSCRIBER_FIELD_EMAIL_ADDRESS));
+                subscriber.setEmail(result.getString("EMAIL_ADDRESS"));
+                subscriber.setId(result.getInt("SUBSCRIBER_ID"));
+                subscriber.setName(subscriberName);
+                subscriber.setSubscribedDate(result.getDate(APIConstants.SUBSCRIBER_FIELD_DATE_SUBSCRIBED));
+                subscriber.setTenantId(result.getInt("TENANT_ID"));
+            }
+        } catch (SQLException e) {
+            handleException("Failed to get Subscriber for :" + subscriberName, e);
+        } finally {
+            APIMgtDBUtil.closeAllConnections(ps, conn, result);
+        }
+        return subscriber;
+    }
+
+    /**
+     * returns a subscriber record for given username,tenant Id
+     *
+     * @param username   UserName
+     * @param tenantId   Tenant Id
+     * @param connection
+     * @return Subscriber
+     * @throws APIManagementException if failed to get subscriber
+     */
+    private Subscriber getSubscriber(String username, int tenantId, Connection connection)
+            throws APIManagementException {
+
+        PreparedStatement prepStmt = null;
+        ResultSet rs = null;
+        Subscriber subscriber = null;
+        String sqlQuery;
+
+        if (forceCaseInsensitiveComparisons) {
+            sqlQuery = SQLConstants.GET_SUBSCRIBER_CASE_INSENSITIVE_SQL;
+        } else {
+            sqlQuery = SQLConstants.GET_SUBSCRIBER_DETAILS_SQL;
+        }
+
+        try {
+            prepStmt = connection.prepareStatement(sqlQuery);
+            prepStmt.setString(1, username);
+            prepStmt.setInt(2, tenantId);
+            rs = prepStmt.executeQuery();
+
+            if (rs.next()) {
+                subscriber = new Subscriber(rs.getString("USER_ID"));
+                subscriber.setEmail(rs.getString("EMAIL_ADDRESS"));
+                subscriber.setId(rs.getInt("SUBSCRIBER_ID"));
+                subscriber.setSubscribedDate(rs.getDate("DATE_SUBSCRIBED"));
+                subscriber.setTenantId(rs.getInt("TENANT_ID"));
+                return subscriber;
+            }
+        } catch (SQLException e) {
+            handleException("Error when reading the application information from" + " the persistence store.", e);
+        } finally {
+            APIMgtDBUtil.closeAllConnections(prepStmt, null, rs);
+        }
+        return subscriber;
+    }
+
+    /**
+     * @param application Application
+     * @param userId      User Id
+     * @throws APIManagementException if failed to add Application
+     */
+    public int addApplication(Application application, String userId, Connection conn)
+            throws APIManagementException, SQLException {
+
+        PreparedStatement ps = null;
+        conn.setAutoCommit(false);
+        ResultSet rs = null;
+
+        int applicationId = 0;
+        try {
+            int tenantId = APIUtil.getTenantId(userId);
+
+            //Get subscriber Id
+            Subscriber subscriber = getSubscriber(userId, tenantId, conn);
+            if (subscriber == null) {
+                String msg = "Could not load Subscriber records for: " + userId;
+                log.error(msg);
+                throw new APIManagementException(msg);
+            }
+            //This query to update the AM_APPLICATION table
+            String sqlQuery = SQLConstants.APP_APPLICATION_SQL;
+            // Adding data to the AM_APPLICATION  table
+            //ps = conn.prepareStatement(sqlQuery);
+            ps = conn.prepareStatement(sqlQuery, new String[]{"APPLICATION_ID"});
+            if (conn.getMetaData().getDriverName().contains("PostgreSQL")) {
+                ps = conn.prepareStatement(sqlQuery, new String[]{"application_id"});
+            }
+
+            ps.setString(1, application.getName());
+            ps.setInt(2, subscriber.getId());
+            ps.setString(3, application.getTier());
+            ps.setString(4, application.getCallbackUrl());
+            ps.setString(5, application.getDescription());
+
+            if (APIConstants.DEFAULT_APPLICATION_NAME.equals(application.getName())) {
+                ps.setString(6, APIConstants.ApplicationStatus.APPLICATION_APPROVED);
+            } else {
+                ps.setString(6, APIConstants.ApplicationStatus.APPLICATION_CREATED);
+            }
+
+            String groupId = application.getGroupId();
+            if (multiGroupAppSharingEnabled) {
+                // setting an empty groupId since groupid's should be saved in groupId mapping table
+                groupId = "";
+            }
+            ps.setString(7, groupId);
+            ps.setString(8, subscriber.getName());
+
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            ps.setTimestamp(9, timestamp);
+            ps.setTimestamp(10, timestamp);
+            ps.setString(11, application.getUUID());
+            ps.setString(12, String.valueOf(application.getTokenType()));
+            ps.executeUpdate();
+
+            rs = ps.getGeneratedKeys();
+            while (rs.next()) {
+                applicationId = Integer.parseInt(rs.getString(1));
+            }
+
+            //Adding data to AM_APPLICATION_ATTRIBUTES table
+            if (application.getApplicationAttributes() != null) {
+                addApplicationAttributes(conn, application.getApplicationAttributes(), applicationId, tenantId);
+            }
+        } catch (SQLException e) {
+            handleException("Failed to add Application", e);
+        } finally {
+            APIMgtDBUtil.closeAllConnections(ps, null, rs);
+        }
+        return applicationId;
+    }
+
+    private void addApplicationAttributes(Connection conn, Map<String, String> attributes, int applicationId,
+                                          int tenantId)
+            throws APIManagementException {
+
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            if (attributes != null) {
+                ps = conn.prepareStatement(SQLConstants.ADD_APPLICATION_ATTRIBUTES_SQL);
+                for (Map.Entry<String, String> attribute : attributes.entrySet()) {
+                    if (StringUtils.isNotEmpty(attribute.getKey()) && StringUtils.isNotEmpty(attribute.getValue())) {
+                        ps.setInt(1, applicationId);
+                        ps.setString(2, attribute.getKey());
+                        ps.setString(3, attribute.getValue());
+                        ps.setInt(4, tenantId);
+                        ps.addBatch();
+                    }
+                }
+                int[] update = ps.executeBatch();
+            }
+        } catch (SQLException e) {
+            handleException("Error in adding attributes of application with id: " + applicationId, e);
+        } finally {
+            APIMgtDBUtil.closeAllConnections(ps, null, rs);
+        }
+    }
+
+    /**
+     * identify the login username is primary or secondary
+     *
+     * @param userID
+     * @return
+     * @throws APIManagementException
+     */
+    private String getLoginUserName(String userID) throws APIManagementException {
+
+        String primaryLogin = userID;
+        if (isSecondaryLogin(userID)) {
+            primaryLogin = getPrimaryLoginFromSecondary(userID);
+        }
+        return primaryLogin;
+    }
+
+    /**
+     * Get the primaryLogin name using secondary login name. Primary secondary
+     * Configuration is provided in the identitiy.xml. In the userstore, it is
+     * users responsibility TO MAINTAIN THE SECONDARY LOGIN NAME AS UNIQUE for
+     * each and every users. If it is not unique, we will pick the very first
+     * entry from the userlist.
+     *
+     * @param login
+     * @return
+     * @throws APIManagementException
+     */
+    public String getPrimaryLoginFromSecondary(String login) throws APIManagementException {
+
+        Map<String, Map<String, String>> loginConfiguration = ServiceReferenceHolder.getInstance()
+                .getAPIManagerConfigurationService().getAPIManagerConfiguration().getLoginConfiguration();
+        String claimURI, username = null;
+        if (isUserLoggedInEmail(login)) {
+            Map<String, String> emailConf = loginConfiguration.get(APIConstants.EMAIL_LOGIN);
+            claimURI = emailConf.get(APIConstants.CLAIM_URI);
+        } else {
+            Map<String, String> userIdConf = loginConfiguration.get(APIConstants.USERID_LOGIN);
+            claimURI = userIdConf.get(APIConstants.CLAIM_URI);
+        }
+
+        try {
+            RemoteUserManagerClient rmUserClient = new RemoteUserManagerClient$AjcClosure3(login);
+            String[] user = rmUserClient.getUserList(claimURI, login);
+            if (user.length > 0) {
+                username = user[0];
+            }
+        } catch (Exception e) {
+
+            handleException("Error while retrieving the primaryLogin name using secondary loginName : " + login, e);
+        }
+        return username;
+    }
+
+    /**
+     * Identify whether the loggedin user used his Primary Login name or Secondary login name
+     *
+     * @param userId
+     * @return
+     */
+    private boolean isSecondaryLogin(String userId) {
+
+        Map<String, Map<String, String>> loginConfiguration = ServiceReferenceHolder.getInstance()
+                .getAPIManagerConfigurationService().getAPIManagerConfiguration().getLoginConfiguration();
+        if (loginConfiguration.get(APIConstants.EMAIL_LOGIN) != null) {
+            Map<String, String> emailConf = loginConfiguration.get(APIConstants.EMAIL_LOGIN);
+            if ("true".equalsIgnoreCase(emailConf.get(APIConstants.PRIMARY_LOGIN))) {
+                return !isUserLoggedInEmail(userId);
+            }
+            if ("false".equalsIgnoreCase(emailConf.get(APIConstants.PRIMARY_LOGIN))) {
+                return isUserLoggedInEmail(userId);
+            }
+        }
+        if (loginConfiguration.get(APIConstants.USERID_LOGIN) != null) {
+            Map<String, String> userIdConf = loginConfiguration.get(APIConstants.USERID_LOGIN);
+            if ("true".equalsIgnoreCase(userIdConf.get(APIConstants.PRIMARY_LOGIN))) {
+                return isUserLoggedInEmail(userId);
+            }
+            if ("false".equalsIgnoreCase(userIdConf.get(APIConstants.PRIMARY_LOGIN))) {
+                return !isUserLoggedInEmail(userId);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Identify whether the loggedin user used his ordinal username or email
+     *
+     * @param userId
+     * @return
+     */
+    private boolean isUserLoggedInEmail(String userId) {
+
+        return userId.contains("@");
+    }
+
+    /**
+     * Get API Product UUID by the API Product Identifier.
+     *
+     * @param identifier API Product Identifier
+     * @return String UUID
+     * @throws APIManagementException if an error occurs
+     */
+    public String getUUIDFromIdentifier(APIProductIdentifier identifier) throws APIManagementException {
+
+        String uuid = null;
+        String sql = SQLConstants.GET_UUID_BY_IDENTIFIER_SQL;
+        try (Connection connection = APIMgtDBUtil.getConnection()) {
+            PreparedStatement prepStmt = connection.prepareStatement(sql);
+            prepStmt.setString(1, APIUtil.replaceEmailDomainBack(identifier.getProviderName()));
+            prepStmt.setString(2, identifier.getName());
+            prepStmt.setString(3, identifier.getVersion());
+            try (ResultSet resultSet = prepStmt.executeQuery()) {
+                while (resultSet.next()) {
+                    uuid = resultSet.getString(1);
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to retrieve the UUID for the API Product : " + identifier.getName() + '-'
+                    + identifier.getVersion(), e);
+        }
+        return uuid;
+    }
+
+    /**
+     * Returns all the scopes assigned for given apis
+     *
+     * @param apiIdsString list of api ids separated by commas
+     * @return Map<String, Set < String>> set of scope keys for each apiId
+     * @throws APIManagementException
+     */
+    public Map<String, Set<String>> getScopesForAPIS(String apiIdsString) throws APIManagementException {
+
+        Map<String, Set<String>> apiScopeSet = new HashMap();
+
+        try (Connection conn = APIMgtDBUtil.getConnection()) {
+
+            String sqlQuery = Constants.GET_SCOPES_FOR_API_LIST;
+
+            if (conn.getMetaData().getDriverName().contains("Oracle")) {
+                sqlQuery = Constants.GET_SCOPES_FOR_API_LIST_ORACLE;
+            }
+
+            // apids are retrieved from the db so no need to protect for sql injection
+            sqlQuery = sqlQuery.replace("$paramList", apiIdsString);
+
+            try (PreparedStatement ps = conn.prepareStatement(sqlQuery);
+                 ResultSet resultSet = ps.executeQuery()) {
+                while (resultSet.next()) {
+                    String scopeKey = resultSet.getString(1);
+                    String apiId = resultSet.getString(2);
+                    Set<String> scopeList = apiScopeSet.get(apiId);
+                    if (scopeList == null) {
+                        scopeList = new LinkedHashSet<>();
+                        scopeList.add(scopeKey);
+                        apiScopeSet.put(apiId, scopeList);
+                    } else {
+                        scopeList.add(scopeKey);
+                        apiScopeSet.put(apiId, scopeList);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to retrieve api scopes ", e);
+        }
+        return apiScopeSet;
+    }
+
 }

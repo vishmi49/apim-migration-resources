@@ -497,7 +497,8 @@ public class V400RegistryResourceMigrator extends Migrator {
         }
 
         try {
-            apiMgtDAO1.addAPIProductRevision(apiRevision);
+            org.wso2.carbon.apimgt.migration.
+                    migrator.v400.dao.ApiMgtDAO.getInstance().addAPIProductRevision(apiRevision);
             log.info("successfully added revision: " + revisionUUID + " to database for API Product: "
                     + apiProductIdentifier.getUUID());
         } catch (APIManagementException e) {
