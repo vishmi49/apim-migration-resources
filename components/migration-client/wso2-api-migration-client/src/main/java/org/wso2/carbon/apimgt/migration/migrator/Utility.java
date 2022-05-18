@@ -22,6 +22,8 @@ import org.wso2.carbon.apimgt.migration.dto.UserRoleFromPermissionDTO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.governance.api.util.GovernanceConstants;
+import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.session.UserRegistry;
@@ -54,6 +56,11 @@ public class Utility {
     public static String POST_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
             + "migration-resources" + File.separator + "migration-scripts"+ File.separator
             + "post-migration-scripts" + File.separator;
+    public static String RXT_DIR = CarbonUtils.getCarbonHome() + File.separator + "migration-resources" + File.separator
+            + "rxts" + File.separator;
+    public static String API_RXT_FILE = "api.rxt";
+    public static String REGISTRY_API_RXT_PATH = GovernanceConstants.RXT_CONFIGS_PATH + RegistryConstants.PATH_SEPARATOR
+            + API_RXT_FILE;
 
     public static void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
             throws UserStoreException {

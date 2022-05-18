@@ -6,6 +6,7 @@ import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
+import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.APIRXTMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PostDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
@@ -22,6 +23,7 @@ public class V320Migration extends VersionMigrator {
             + File.separator;
     private final String POST_MIGRATION_SCRIPT_REGDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR +
             "reg_db" + File.separator + "reg-index.sql";
+    private final String RXT_PATH = Utility.RXT_DIR + "3.2.0" + File.separator + Utility.API_RXT_FILE;
     Migrator migrator;
 
     @Override
@@ -38,6 +40,8 @@ public class V320Migration extends VersionMigrator {
     public void migrate() throws APIMigrationException, UserStoreException {
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
+        APIRXTMigrator apirxtMigrator = new APIRXTMigrator(RXT_PATH);
+        apirxtMigrator.migrate();
         RegistryResourceMigrator registryResourceMigrator= new V320RegistryResourceMigrator();
         registryResourceMigrator.migrate();
         ScopeMigrator scopeMigrator = new ScopeMigrator();
