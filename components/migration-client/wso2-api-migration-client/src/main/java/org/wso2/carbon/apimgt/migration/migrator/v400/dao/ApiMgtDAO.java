@@ -16,7 +16,6 @@ import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.impl.utils.RemoteUserManagerClient;
-import org.wso2.carbon.apimgt.impl.utils.RemoteUserManagerClient$AjcClosure3;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -816,8 +815,7 @@ public class ApiMgtDAO {
         }
 
         try {
-            RemoteUserManagerClient rmUserClient = new RemoteUserManagerClient$AjcClosure3(login);
-            String[] user = rmUserClient.getUserList(claimURI, login);
+            String[] user = RemoteUserManagerClient.getInstance().getUserList(claimURI,login);
             if (user.length > 0) {
                 username = user[0];
             }
@@ -826,6 +824,323 @@ public class ApiMgtDAO {
             handleException("Error while retrieving the primaryLogin name using secondary loginName : " + login, e);
         }
         return username;
+    }
+
+    /**
+     * Return the existing versions for the given api name for the provider
+     *
+     * @param apiName     api name
+     * @param apiProvider provider
+     * @return set version
+     * @throws APIManagementException
+     */
+    public Set<String> getAPIVersions(String apiName, String apiProvider) throws APIManagementException {
+
+        Set<String> versions = new HashSet<String>();
+
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQLConstants.GET_API_VERSIONS)) {
+            statement.setString(1, APIUtil.replaceEmailDomainBack(apiProvider));
+            statement.setString(2, apiName);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                versions.add(resultSet.getString("API_VERSION"));
+            }
+        } catch (SQLException e) {
+            handleException("Error while retrieving versions for api " + apiName + " for the provider " + apiProvider,
+                    e);
+        }
+        return versions;
+    }
+
+    /**
+     * Check whether the given scope key is already assigned locally to another API which are different from the given
+     * API or its versioned APIs under given tenant.
+     *
+     * @param apiIdentifier API Identifier
+     * @param scopeKey      candidate scope key
+     * @param tenantId      tenant id
+     * @return true if the scope key is already available
+     * @throws APIManagementException if failed to check the context availability
+     */
+    public boolean isScopeKeyAssignedLocally(APIIdentifier apiIdentifier, String scopeKey, int tenantId)
+            throws APIManagementException {
+
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQLConstants.IS_SCOPE_ATTACHED_LOCALLY)) {
+            statement.setString(1, scopeKey);
+            statement.setInt(2, tenantId);
+            statement.setInt(3, tenantId);
+            try (ResultSet rs = statement.executeQuery()) {
+                if (rs.next()) {
+                    String provider = rs.getString("API_PROVIDER");
+                    String apiName = rs.getString("API_NAME");
+                    // Check if the provider name and api name is same.
+                    // Return false if we're attaching the scope to another version of the API.
+                    return !(provider.equals(APIUtil.replaceEmailDomainBack(apiIdentifier.getProviderName()))
+                            && apiName.equals(apiIdentifier.getApiName()));
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to check scope key availability for: " + scopeKey, e);
+        }
+        return false;
+    }
+
+    /**
+     * This method returns the set of APIs for given subscriber
+     *
+     * @param subscriber subscriber
+     * @return Set<API>
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException if failed to get SubscribedAPIs
+     */
+    public Set<SubscribedAPI> getSubscribedAPIs(Subscriber subscriber, String groupingId)
+            throws APIManagementException {
+
+        Set<SubscribedAPI> subscribedAPIs = new LinkedHashSet<>();
+
+        //identify subscribeduser used email/ordinalusername
+        String subscribedUserName = getLoginUserName(subscriber.getName());
+        subscriber.setName(subscribedUserName);
+
+        String sqlQuery =
+                appendSubscriptionQueryWhereClause(groupingId,
+                        SQLConstants.GET_SUBSCRIBED_APIS_OF_SUBSCRIBER_SQL);
+
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sqlQuery);
+             ResultSet result = getSubscriptionResultSet(groupingId, subscriber, ps)) {
+            while (result.next()) {
+                String apiType = result.getString("TYPE");
+
+                if (APIConstants.API_PRODUCT.toString().equals(apiType)) {
+                    APIProductIdentifier identifier =
+                            new APIProductIdentifier(APIUtil.replaceEmailDomain(result.getString("API_PROVIDER")),
+                                    result.getString("API_NAME"), result.getString("API_VERSION"));
+
+                    SubscribedAPI subscribedAPI = new SubscribedAPI(subscriber, identifier);
+
+                    initSubscribedAPIDetailed(connection, subscribedAPI, subscriber, result);
+                    subscribedAPIs.add(subscribedAPI);
+                } else {
+                    APIIdentifier identifier = new APIIdentifier(APIUtil.replaceEmailDomain(result.getString
+                            ("API_PROVIDER")), result.getString("API_NAME"),
+                            result.getString("API_VERSION"));
+                    SubscribedAPI subscribedAPI = new SubscribedAPI(subscriber, identifier);
+
+                    initSubscribedAPIDetailed(connection,subscribedAPI, subscriber, result);
+                    subscribedAPIs.add(subscribedAPI);
+                }
+            }
+        } catch (SQLException e) {
+            handleException("Failed to get SubscribedAPI of :" + subscriber.getName(), e);
+        }
+
+        return subscribedAPIs;
+    }
+
+    private void initSubscribedAPIDetailed(Connection connection, SubscribedAPI subscribedAPI, Subscriber subscriber, ResultSet result)
+            throws SQLException, APIManagementException {
+
+        subscribedAPI.setSubscriptionId(result.getInt("SUBS_ID"));
+        subscribedAPI.setSubStatus(result.getString("SUB_STATUS"));
+        subscribedAPI.setSubCreatedStatus(result.getString("SUBS_CREATE_STATE"));
+        String tierName = result.getString(APIConstants.SUBSCRIPTION_FIELD_TIER_ID);
+        String requestedTierName = result.getString(APIConstants.SUBSCRIPTION_FIELD_TIER_ID_PENDING);
+        subscribedAPI.setTier(new Tier(tierName));
+        subscribedAPI.setRequestedTier(new Tier(requestedTierName));
+        subscribedAPI.setUUID(result.getString("SUB_UUID"));
+        //setting NULL for subscriber. If needed, Subscriber object should be constructed &
+        // passed in
+        int applicationId = result.getInt("APP_ID");
+
+        Application application = new Application(result.getString("APP_NAME"), subscriber);
+        application.setId(result.getInt("APP_ID"));
+        application.setTokenType(result.getString("APP_TOKEN_TYPE"));
+        application.setCallbackUrl(result.getString("CALLBACK_URL"));
+        application.setUUID(result.getString("APP_UUID"));
+
+        if (multiGroupAppSharingEnabled) {
+            application.setGroupId(getGroupId(connection, application.getId()));
+            application.setOwner(result.getString("OWNER"));
+        }
+
+        subscribedAPI.setApplication(application);
+    }
+
+    /**
+     * Fetches all the groups for a given application and creates a single string separated by comma
+     *
+     * @param applicationId
+     * @return comma separated group Id String
+     * @throws APIManagementException
+     */
+    private String getGroupId(Connection connection, int applicationId) throws SQLException {
+
+        ArrayList<String> grpIdList = new ArrayList<String>();
+        String sqlQuery = SQLConstants.GET_GROUP_ID_SQL;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery)) {
+            preparedStatement.setInt(1, applicationId);
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                while (resultSet.next()) {
+                    grpIdList.add(resultSet.getString("GROUP_ID"));
+                }
+            }
+        }
+        return String.join(",", grpIdList);
+    }
+
+
+
+    private ResultSet getSubscriptionResultSet(String groupingId, Subscriber subscriber,
+                                               PreparedStatement statement) throws SQLException {
+
+        int tenantId = APIUtil.getTenantId(subscriber.getName());
+        int paramIndex = 0;
+
+        if (groupingId != null && !"null".equals(groupingId) && !groupingId.isEmpty()) {
+            if (multiGroupAppSharingEnabled) {
+                String tenantDomain = MultitenantUtils.getTenantDomain(subscriber.getName());
+                String[] groupIDArray = groupingId.split(",");
+
+                statement.setInt(++paramIndex, tenantId);
+                for (String groupId : groupIDArray) {
+                    statement.setString(++paramIndex, groupId);
+                }
+                statement.setString(++paramIndex, tenantDomain);
+                statement.setString(++paramIndex, subscriber.getName());
+
+            } else {
+                statement.setInt(++paramIndex, tenantId);
+                statement.setString(++paramIndex, groupingId);
+                statement.setString(++paramIndex, subscriber.getName());
+            }
+        } else {
+            statement.setInt(++paramIndex, tenantId);
+            statement.setString(++paramIndex, subscriber.getName());
+        }
+
+        return statement.executeQuery();
+    }
+
+
+    private ResultSet getSubscriptionResultSet(String groupingId, Subscriber subscriber, String applicationName,
+                                               PreparedStatement statement) throws SQLException {
+
+        int tenantId = APIUtil.getTenantId(subscriber.getName());
+        int paramIndex = 0;
+
+        if (groupingId != null && !"null".equals(groupingId) && !groupingId.isEmpty()) {
+            if (multiGroupAppSharingEnabled) {
+                String tenantDomain = MultitenantUtils.getTenantDomain(subscriber.getName());
+
+                String[] groupIDArray = groupingId.split(",");
+
+                statement.setInt(++paramIndex, tenantId);
+                statement.setString(++paramIndex, applicationName);
+                for (String groupId : groupIDArray) {
+                    statement.setString(++paramIndex, groupId);
+                }
+                statement.setString(++paramIndex, tenantDomain);
+                statement.setString(++paramIndex, subscriber.getName());
+            } else {
+                statement.setInt(++paramIndex, tenantId);
+                statement.setString(++paramIndex, applicationName);
+                statement.setString(++paramIndex, groupingId);
+                statement.setString(++paramIndex, subscriber.getName());
+            }
+        } else {
+            statement.setInt(++paramIndex, tenantId);
+            statement.setString(++paramIndex, applicationName);
+            statement.setString(++paramIndex, subscriber.getName());
+        }
+
+        return statement.executeQuery();
+    }
+
+    private String appendSubscriptionQueryWhereClause(final String groupingId, String sqlQuery) {
+
+        if (groupingId != null && !"null".equals(groupingId) && !groupingId.isEmpty()) {
+            if (multiGroupAppSharingEnabled) {
+                String[] groupIDArray = groupingId.split(",");
+                List<String> questionMarks = new ArrayList<>(Collections.nCopies(groupIDArray.length, "?"));
+                final String paramString = String.join(",", questionMarks);
+
+                if (forceCaseInsensitiveComparisons) {
+                    sqlQuery += " AND  ( (APP.APPLICATION_ID IN  (SELECT APPLICATION_ID " +
+                            " FROM AM_APPLICATION_GROUP_MAPPING  " +
+                            " WHERE GROUP_ID IN (" + paramString + ") AND TENANT = ?))" +
+                            "  OR  ( LOWER(SUB.USER_ID) = LOWER(?) ))";
+                } else {
+                    sqlQuery += " AND  ( (APP.APPLICATION_ID IN (SELECT APPLICATION_ID FROM " +
+                            "AM_APPLICATION_GROUP_MAPPING WHERE GROUP_ID IN (" + paramString + ") AND TENANT = ?))  " +
+                            "OR  ( SUB.USER_ID = ? ))";
+                }
+            } else {
+                if (forceCaseInsensitiveComparisons) {
+                    sqlQuery += " AND (APP.GROUP_ID = ? OR ((APP.GROUP_ID='' OR APP.GROUP_ID IS NULL)" +
+                            " AND LOWER(SUB.USER_ID) = LOWER(?)))";
+                } else {
+                    sqlQuery += " AND (APP.GROUP_ID = ? OR ((APP.GROUP_ID='' OR APP.GROUP_ID IS NULL)" +
+                            " AND SUB.USER_ID = ?))";
+                }
+            }
+        } else {
+            if (forceCaseInsensitiveComparisons) {
+                sqlQuery += " AND LOWER(SUB.USER_ID) = LOWER(?)  ";
+            } else {
+                sqlQuery += " AND  SUB.USER_ID = ? ";
+            }
+        }
+
+        return sqlQuery;
+    }
+
+
+    /**
+     * Return ids of the versions for the given name for the given provider
+     *
+     * @param apiName     api name
+     * @param apiProvider provider
+     * @return set ids
+     * @throws APIManagementException
+     */
+    public List<API> getAllAPIVersions(String apiName, String apiProvider) throws APIManagementException {
+
+        List<API> apiVersions = new ArrayList<API>();
+
+        try (Connection connection = APIMgtDBUtil.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQLConstants.GET_API_VERSIONS_UUID)) {
+            statement.setString(1, APIUtil.replaceEmailDomainBack(apiProvider));
+            statement.setString(2, apiName);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                String version = resultSet.getString("API_VERSION");
+                String status = resultSet.getString("STATUS");
+                String versionTimestamp = resultSet.getString("VERSION_COMPARABLE");
+                String context = resultSet.getString("CONTEXT");
+                String contextTemplate = resultSet.getString("CONTEXT_TEMPLATE");
+
+                String uuid = resultSet.getString("API_UUID");
+                if (APIConstants.API_PRODUCT.equals(resultSet.getString("API_TYPE"))) {
+                    // skip api products
+                    continue;
+                }
+                API api = new API(new APIIdentifier(apiProvider, apiName,
+                        version, uuid));
+                api.setUuid(uuid);
+                api.setStatus(status);
+                api.setVersionTimestamp(versionTimestamp);
+                api.setContext(context);
+                api.setContextTemplate(contextTemplate);
+                apiVersions.add(api);
+            }
+        } catch (SQLException e) {
+            handleException("Error while retrieving versions for api " + apiName + " for the provider " + apiProvider,
+                    e);
+        }
+        return apiVersions;
     }
 
     /**

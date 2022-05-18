@@ -563,6 +563,18 @@ public final  class APIUtil {
     }
 
     /**
+     * Get UUID by the API Identifier.
+     *
+     * @param identifier
+     * @return String uuid string
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException
+     */
+    public static String getUUIDFromIdentifier(APIProductIdentifier identifier) throws APIManagementException{
+        return org.wso2.carbon.apimgt.migration.
+                migrator.v400.dao.ApiMgtDAO.getInstance().getUUIDFromIdentifier(identifier);
+    }
+
+    /**
      * Adds the sequences defined in repository/resources/customsequences folder to tenant registry
      *
      * @param tenantID tenant Id
