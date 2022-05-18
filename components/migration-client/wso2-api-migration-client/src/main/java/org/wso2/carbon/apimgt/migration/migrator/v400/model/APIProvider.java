@@ -513,19 +513,6 @@ public interface APIProvider extends APIManager {
             throws APIManagementException;
 
     /**
-     * Add a file to a document of source type FILE
-     *
-     * @param apiId API identifier the document belongs to
-     * @param documentation document
-     * @param filename name of the file
-     * @param content content of the file as an Input Stream
-     * @param contentType content type of the file
-     * @throws APIManagementException if failed to add the file
-     */
-    void addFileToDocumentation(APIIdentifier apiId, Documentation documentation, String filename, InputStream content,
-                                String contentType) throws APIManagementException;
-
-    /**
      * Checks if a given API exists in the registry
      * @param apiId
      * @return boolean result
@@ -571,6 +558,18 @@ public interface APIProvider extends APIManager {
      * @throws APIManagementException if failed to copy docs
      */
     List<LifeCycleEvent> getLifeCycleEvents(APIIdentifier apiId) throws APIManagementException;
+
+    /**
+     * Method to search the client certificates for the provided tenant id, alias and api identifier.
+     *
+     * @param tenantId      : ID of the tenant.
+     * @param alias         : Alias of the certificate.
+     * @param apiIdentifier : Identifier of the API.
+     * @return list of client certificates that match search criteria.
+     * @throws APIManagementException API Management Exception.
+     */
+    List<ClientCertificateDTO> searchClientCertificates(int tenantId, String alias, APIIdentifier apiIdentifier)
+            throws APIManagementException;
 
     /**
      * Search API
@@ -1268,17 +1267,6 @@ public interface APIProvider extends APIManager {
     List<CertificateMetadataDTO> searchCertificates(int tenantId, String alias, String endpoint) throws
             APIManagementException;
 
-    /**
-     * Method to search the client certificates for the provided tenant id, alias and api identifier.
-     *
-     * @param tenantId      : ID of the tenant.
-     * @param alias         : Alias of the certificate.
-     * @param apiIdentifier : Identifier of the API.
-     * @return list of client certificates that match search criteria.
-     * @throws APIManagementException API Management Exception.
-     */
-    List<ClientCertificateDTO> searchClientCertificates(int tenantId, String alias, APIIdentifier apiIdentifier)
-            throws APIManagementException;
 
     /**
      * Method to search the client certificates for the provided tenant id, alias and api product identifier.
