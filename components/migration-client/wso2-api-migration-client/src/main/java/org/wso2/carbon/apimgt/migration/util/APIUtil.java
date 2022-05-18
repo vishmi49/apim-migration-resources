@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,17 +48,16 @@ import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.Tag;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
+import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -272,6 +272,43 @@ public final  class APIUtil {
             throw new APIManagementException(msg, e);
         }
         return api;
+    }
+
+    /**
+     * This method is used to get the categories in a given tenant space
+     *
+     * @param tenantDomain tenant domain name
+     * @return categories in a given tenant space
+     * @throws APIManagementException if failed to fetch categories
+     */
+    public static List<APICategory> getAllAPICategoriesOfTenant(String tenantDomain) throws APIManagementException {
+
+        ApiMgtDAO apiMgtDAO = ApiMgtDAO.getInstance();
+        int tenantId = getTenantIdFromTenantDomain(tenantDomain);
+        return apiMgtDAO.getAllCategories(String.valueOf(tenantId));
+    }
+
+    /**
+     * Helper method to get tenantId from tenantDomain
+     *
+     * @param tenantDomain tenant Domain
+     * @return tenantId
+     */
+    public static int getTenantIdFromTenantDomain(String tenantDomain) {
+
+        RealmService realmService = ServiceReferenceHolder.getInstance().getRealmService();
+
+        if (realmService == null || tenantDomain == null) {
+            return MultitenantConstants.SUPER_TENANT_ID;
+        }
+
+        try {
+            return realmService.getTenantManager().getTenantId(tenantDomain);
+        } catch (UserStoreException e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return -1;
     }
 
     /**
@@ -497,6 +534,175 @@ public final  class APIUtil {
             }
         }
         return environmentList;
+    }
+
+    public static void loadTenantAPIPolicy(String tenant, int tenantID) throws APIManagementException {
+
+        String tierBasePath = CarbonUtils.getCarbonHome() + File.separator + "repository" + File.separator + "resources"
+                + File.separator + "default-tiers" + File.separator;
+
+        String apiTierFilePath = tierBasePath + Constants.DEFAULT_API_TIER_FILE_NAME;
+        String appTierFilePath = tierBasePath + Constants.DEFAULT_APP_TIER_FILE_NAME;
+        String resTierFilePath = tierBasePath + Constants.DEFAULT_RES_TIER_FILE_NAME;
+
+        loadTenantAPIPolicy(tenantID, Constants.API_TIER_LOCATION, apiTierFilePath);
+        loadTenantAPIPolicy(tenantID, Constants.APP_TIER_LOCATION, appTierFilePath);
+        loadTenantAPIPolicy(tenantID, Constants.RES_TIER_LOCATION, resTierFilePath);
+    }
+
+    /**
+     * Get UUID by the API Identifier.
+     *
+     * @param identifier
+     * @return String uuid string
+     * @throws org.wso2.carbon.apimgt.api.APIManagementException
+     */
+    public static String getUUIDFromIdentifier(APIIdentifier identifier) throws APIManagementException{
+        return org.wso2.carbon.apimgt.migration.
+                migrator.v400.dao.ApiMgtDAO.getInstance().getUUIDFromIdentifier(identifier);
+    }
+
+    /**
+     * Adds the sequences defined in repository/resources/customsequences folder to tenant registry
+     *
+     * @param tenantID tenant Id
+     * @throws APIManagementException
+     */
+    public static void writeDefinedSequencesToTenantRegistry(int tenantID)
+            throws APIManagementException {
+
+        try {
+
+            RegistryService registryService = ServiceReferenceHolder.getInstance().getRegistryService();
+            UserRegistry govRegistry = registryService.getGovernanceSystemRegistry(tenantID);
+
+            //Add all custom in,out and fault sequences to tenant registry
+            APIUtil.addDefinedAllSequencesToRegistry(govRegistry, APIConstants.API_CUSTOM_SEQUENCE_TYPE_IN);
+            APIUtil.addDefinedAllSequencesToRegistry(govRegistry, APIConstants.API_CUSTOM_SEQUENCE_TYPE_OUT);
+            APIUtil.addDefinedAllSequencesToRegistry(govRegistry, APIConstants.API_CUSTOM_SEQUENCE_TYPE_FAULT);
+
+        } catch (RegistryException e) {
+            throw new APIManagementException(
+                    "Error while saving defined sequences to the registry of tenant with id " + tenantID, e);
+        }
+    }
+
+    /**
+     * Add all the custom sequences of given type to registry
+     *
+     * @param registry           Registry instance
+     * @param customSequenceType Custom sequence type which is in/out or fault
+     * @throws APIManagementException
+     */
+    public static void addDefinedAllSequencesToRegistry(UserRegistry registry,
+                                                        String customSequenceType)
+            throws APIManagementException {
+
+        InputStream inSeqStream = null;
+        String seqFolderLocation =
+                CarbonUtils.getCarbonHome() + File.separator + APIConstants.API_CUSTOM_SEQUENCES_FOLDER_LOCATION
+                        + File.separator + customSequenceType;
+
+        try {
+            File inSequenceDir = new File(seqFolderLocation);
+            File[] sequences;
+            sequences = inSequenceDir.listFiles();
+
+            if (sequences != null) {
+                for (File sequenceFile : sequences) {
+                    String sequenceFileName = sequenceFile.getName();
+                    String regResourcePath =
+                            APIConstants.API_CUSTOM_SEQUENCE_LOCATION + '/' +
+                                    customSequenceType + '/' + sequenceFileName;
+                    if (registry.resourceExists(regResourcePath)) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("The sequence file with the name " + sequenceFileName
+                                    + " already exists in the registry path " + regResourcePath);
+                        }
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug(
+                                    "Adding sequence file with the name " + sequenceFileName + " to the registry path "
+                                            + regResourcePath);
+                        }
+
+                        inSeqStream = new FileInputStream(sequenceFile);
+                        byte[] inSeqData = IOUtils.toByteArray(inSeqStream);
+                        Resource inSeqResource = registry.newResource();
+                        inSeqResource.setContent(inSeqData);
+
+                        registry.put(regResourcePath, inSeqResource);
+                    }
+                }
+            } else {
+                log.error(
+                        "Custom sequence template location unavailable for custom sequence type " +
+                                customSequenceType + " : " + seqFolderLocation
+                );
+            }
+
+        } catch (RegistryException e) {
+            throw new APIManagementException(
+                    "Error while saving defined sequences to the registry ", e);
+        } catch (IOException e) {
+            throw new APIManagementException("Error while reading defined sequence ", e);
+        } finally {
+            IOUtils.closeQuietly(inSeqStream);
+        }
+
+    }
+
+    /**
+     * Load the throttling policy  to the registry for tenants
+     *
+     * @param tenantID
+     * @param location
+     * @param fileName
+     * @throws APIManagementException
+     */
+    private static void loadTenantAPIPolicy(int tenantID, String location, String fileName)
+            throws APIManagementException {
+
+        InputStream inputStream = null;
+
+        try {
+            RegistryService registryService = ServiceReferenceHolder.getInstance().getRegistryService();
+
+            UserRegistry govRegistry = registryService.getGovernanceSystemRegistry(tenantID);
+
+            if (govRegistry.resourceExists(location)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Tier policies already uploaded to the tenant's registry space");
+                }
+                return;
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("Adding API tier policies to the tenant's registry");
+            }
+            File defaultTiers = new File(fileName);
+            if (!defaultTiers.exists()) {
+                log.info("Default tier policies not found in : " + fileName);
+                return;
+            }
+            inputStream = FileUtils.openInputStream(defaultTiers);
+            byte[] data = IOUtils.toByteArray(inputStream);
+            Resource resource = govRegistry.newResource();
+            resource.setContent(data);
+            govRegistry.put(location, resource);
+
+        } catch (RegistryException e) {
+            throw new APIManagementException("Error while saving policy information to the registry", e);
+        } catch (IOException e) {
+            throw new APIManagementException("Error while reading policy file content", e);
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    log.error("Error when closing input stream", e);
+                }
+            }
+        }
     }
 
     /**

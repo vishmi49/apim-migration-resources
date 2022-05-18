@@ -393,4 +393,41 @@ public class Constants {
         public static final String API_DEFINITION_VALIDATION = "apiDefinitionValidation";
         public static final String API_ENDPOINT_VALIDATION = "apiEndpointValidation";
     }
+
+    /** Environment related constants **/
+
+    public static final String GET_ENVIRONMENT_BY_TENANT_SQL =
+            "SELECT ID, UUID, NAME, TENANT_DOMAIN, DISPLAY_NAME, DESCRIPTION " +
+                    "FROM AM_GATEWAY_ENVIRONMENT " +
+                    "WHERE TENANT_DOMAIN = ?";
+
+    public static final String GET_ENVIRONMENT_BY_TENANT_AND_UUID_SQL =
+            "SELECT ID, UUID, NAME, TENANT_DOMAIN, DISPLAY_NAME, DESCRIPTION " +
+                    "FROM AM_GATEWAY_ENVIRONMENT " +
+                    "WHERE TENANT_DOMAIN = ? AND UUID = ?";
+
+    public static final String INSERT_ENVIRONMENT_SQL = "INSERT INTO " +
+            "AM_GATEWAY_ENVIRONMENT (UUID, NAME, TENANT_DOMAIN, DISPLAY_NAME, DESCRIPTION) " +
+            "VALUES (?,?,?,?,?)";
+
+    /**
+     * Revision related
+     */
+    public static final String GET_UUID_BY_IDENTIFIER_SQL =
+            "SELECT API_UUID FROM AM_API WHERE API_PROVIDER = ? AND API_NAME = ? AND API_VERSION = ?";
+
+    public static final String GET_SCOPES_FOR_API_LIST = "SELECT "
+            + "ARSM.SCOPE_NAME, AUM.API_ID "
+            + "FROM AM_API_RESOURCE_SCOPE_MAPPING ARSM "
+            + "INNER JOIN AM_API_URL_MAPPING AUM "
+            + "ON ARSM.URL_MAPPING_ID = AUM.URL_MAPPING_ID "
+            + "WHERE AUM.API_ID IN ( $paramList ) AND AUM.REVISION_UUID IS NULL";
+
+    public static final String GET_SCOPES_FOR_API_LIST_ORACLE = "SELECT "
+            + "ARSM.SCOPE_NAME, AUM.API_ID "
+            + "FROM AM_API_RESOURCE_SCOPE_MAPPING ARSM "
+            + "INNER JOIN AM_API_URL_MAPPING AUM "
+            + "ON ARSM.URL_MAPPING_ID = AUM.URL_MAPPING_ID "
+            + "WHERE AUM.API_ID IN ( $paramList ) AND AUM.REVISION_UUID IS NULL";
+
 }
