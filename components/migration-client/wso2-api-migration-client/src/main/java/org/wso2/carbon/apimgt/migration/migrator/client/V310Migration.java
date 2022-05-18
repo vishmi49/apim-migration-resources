@@ -17,8 +17,6 @@ public class V310Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V310Migration .class);
     private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-3.0.0_to_3.1.0"
             + File.separator;
-    private final String POST_MIGRATION_SCRIPT_REGDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR + "reg_db" + File.separator
-            + "reg-index.sql";
     private final String RXT_PATH = Utility.RXT_DIR + "3.1.0" + File.separator + Utility.API_RXT_FILE;
 
     @Override
@@ -43,8 +41,6 @@ public class V310Migration extends VersionMigrator {
             apirxtMigrator.migrate();
             registryResourceMigrator = new RegistryResourceMigrator();
             registryResourceMigrator.migrate();
-            PostDBScriptMigrator postDBScriptMigrator = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_REGDB_PATH);
-            postDBScriptMigrator.run();
         } catch (APIMigrationException e) {
             e.printStackTrace();
         } catch (UserStoreException e) {

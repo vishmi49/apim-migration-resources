@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrationHolder;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
+import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.ArtifactReIndexingMigrator;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.SharedDBUtil;
 import org.wso2.carbon.apimgt.migration.validator.ValidationHandler;
@@ -71,6 +72,12 @@ public class APIMMigrationClient implements ServerStartupObserver {
                         break;
                     }
                 }
+            }
+            ArtifactReIndexingMigrator artifactReIndexingMigrator = new ArtifactReIndexingMigrator();
+            try {
+                artifactReIndexingMigrator.migrate();
+            } catch (APIMigrationException e) {
+                log.error("Error running the artifact re-indexing script", e);
             }
         }
     }

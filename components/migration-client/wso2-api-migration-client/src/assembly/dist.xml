@@ -132,15 +132,15 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/post-migration-scripts/am_db</directory>
-            <outputDirectory>wso2am-migration-${project.version}/migration-resources/migration-scripts/post-migration-scripts/am_db</outputDirectory>
+            <directory>${project.basedir}/src/main/resources/post-migration-scripts/migration-4.0.0_to_4.1.0/am_db</directory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-resources/migration-scripts/post-migration-scripts/migration-4.0.0_to_4.1.0/am_db</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/src/main/resources/post-migration-scripts/reg_db</directory>
-            <outputDirectory>wso2am-migration-${project.version}/migration-resources/migration-scripts/post-migration-scripts/reg_db</outputDirectory>
+            <directory>${project.basedir}/src/main/resources/post-migration-scripts/common/reg_db</directory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-resources/migration-scripts/post-migration-scripts/common/reg_db</outputDirectory>
             <includes>
                 <include>*.sql</include>
             </includes>

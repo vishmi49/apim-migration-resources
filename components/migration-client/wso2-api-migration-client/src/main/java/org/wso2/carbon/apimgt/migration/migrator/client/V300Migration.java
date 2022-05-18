@@ -37,8 +37,6 @@ public class V300Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V300Migration.class);
     private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-2.6.0_to_3.0.0"
             + File.separator;
-    private final String POST_MIGRATION_SCRIPT_REGDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR+ "reg_db" + File.separator
-            + "reg-index.sql";
     private final String RXT_PATH = Utility.RXT_DIR + "3.0.0" + File.separator + Utility.API_RXT_FILE;
 
     @Override
@@ -61,7 +59,5 @@ public class V300Migration extends VersionMigrator {
         registryResourceMigrator.migrate();
         PopulateScopeRoleMappingMigrator populateScopeRoleMappingMigrator = new PopulateScopeRoleMappingMigrator();
         populateScopeRoleMappingMigrator.migrate();
-        PostDBScriptMigrator v300postMigrator = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_REGDB_PATH);
-        v300postMigrator.run();
     }
 }

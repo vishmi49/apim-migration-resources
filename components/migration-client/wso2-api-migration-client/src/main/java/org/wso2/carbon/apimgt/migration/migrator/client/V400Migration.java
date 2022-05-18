@@ -18,8 +18,6 @@ public class V400Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V400Migration.class);
     private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-3.2.0_to_4.0.0"
             + File.separator;
-    private final String POST_MIGRATION_SCRIPT_REGDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR + "reg_db" + File.separator
-            + "reg-index.sql";
     private final String RXT_PATH = Utility.RXT_DIR + "4.0.0" + File.separator + Utility.API_RXT_FILE;
 
     public V400Migration() throws UserStoreException {
@@ -45,8 +43,5 @@ public class V400Migration extends VersionMigrator {
         v400DBDataMigrator.migrate();
         V400RegistryResourceMigrator v400RegistryResourceMigrator = new V400RegistryResourceMigrator();
         v400RegistryResourceMigrator.migrate();
-        PostDBScriptMigrator postDBScriptMigrator = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_REGDB_PATH);
-        postDBScriptMigrator.run();
-
     }
 }

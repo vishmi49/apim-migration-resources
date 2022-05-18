@@ -18,9 +18,8 @@ public class V410Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V410Migration.class);
     private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-4.0.0_to_4.1.0"
             + File.separator;
-    private final String POST_MIGRATION_SCRIPT_REGDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR + "reg_db" + File.separator
-            + "reg-index.sql";
-    private final String POST_MIGRATION_SCRIPT_AMDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR + "am_db" + File.separator;
+    private final String POST_MIGRATION_SCRIPT_AMDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR
+            + "migration-4.0.0_to_4.1.0" + File.separator + "am_db" + File.separator;
     private final String RXT_PATH = Utility.RXT_DIR + "4.1.0" + File.separator + Utility.API_RXT_FILE;
 
     @Override
@@ -42,8 +41,6 @@ public class V410Migration extends VersionMigrator {
         v410DBDataMigrator.migrate();
         V410RegistryResourceMigrator v410RegistryResourceMigrator = new V410RegistryResourceMigrator();
         v410RegistryResourceMigrator.migrate();
-        PostDBScriptMigrator postDBScriptMigratorForRegDB = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_REGDB_PATH);
-        postDBScriptMigratorForRegDB.run();
         PostDBScriptMigrator postDBScriptMigratorForAmDb = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_AMDB_PATH);
         postDBScriptMigratorForAmDb.run();
     }

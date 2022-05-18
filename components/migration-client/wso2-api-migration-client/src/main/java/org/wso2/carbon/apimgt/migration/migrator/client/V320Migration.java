@@ -21,8 +21,6 @@ public class V320Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V410Migration.class);
     private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-3.1.0_to_3.2.0"
             + File.separator;
-    private final String POST_MIGRATION_SCRIPT_REGDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR +
-            "reg_db" + File.separator + "reg-index.sql";
     private final String RXT_PATH = Utility.RXT_DIR + "3.2.0" + File.separator + Utility.API_RXT_FILE;
     Migrator migrator;
 
@@ -48,8 +46,6 @@ public class V320Migration extends VersionMigrator {
         scopeMigrator.migrate();
         SPMigrator spMigrator = new SPMigrator();
         spMigrator.migrate();
-        PostDBScriptMigrator postDBScriptMigrator = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_REGDB_PATH);
-        postDBScriptMigrator.run();
         log.info("Migrated Successfully to 3.2");
     }
 
