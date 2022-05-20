@@ -54,7 +54,6 @@ public class V300RegistryResourceMigrator extends RegistryResourceMigrator {
                         }
                         registryService.updateGenericAPIArtifactsForAccessControl(path, artifact);
                         registryService.updateGenericAPIArtifact(path, artifact);
-                        registryService.updateEnableStoreInRxt(path, artifact);
                     }
                 }
                 log.info("Completed Updating API artifacts tenant ---- " + tenant.getId() + '(' + tenant.getDomain() + ')');
