@@ -6,8 +6,6 @@ import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
-import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.APIRXTMigrator;
-import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PostDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v320.SPMigrator;
@@ -21,7 +19,7 @@ public class V320Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V410Migration.class);
     private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-3.1.0_to_3.2.0"
             + File.separator;
-    private final String RXT_PATH = Utility.RXT_DIR + "3.2.0" + File.separator + Utility.API_RXT_FILE;
+    private final String V320_RXT_PATH = Utility.RXT_DIR + "3.2.0" + File.separator;
     Migrator migrator;
 
     @Override
@@ -38,9 +36,7 @@ public class V320Migration extends VersionMigrator {
     public void migrate() throws APIMigrationException, UserStoreException {
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
-        APIRXTMigrator apirxtMigrator = new APIRXTMigrator(RXT_PATH);
-        apirxtMigrator.migrate();
-        RegistryResourceMigrator registryResourceMigrator= new V320RegistryResourceMigrator();
+        RegistryResourceMigrator registryResourceMigrator= new V320RegistryResourceMigrator(V320_RXT_PATH);
         registryResourceMigrator.migrate();
         ScopeMigrator scopeMigrator = new ScopeMigrator();
         scopeMigrator.migrate();

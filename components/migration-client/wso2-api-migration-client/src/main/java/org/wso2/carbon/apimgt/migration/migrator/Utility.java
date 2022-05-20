@@ -59,8 +59,6 @@ public class Utility {
     public static String RXT_DIR = CarbonUtils.getCarbonHome() + File.separator + "migration-resources" + File.separator
             + "rxts" + File.separator;
     public static String API_RXT_FILE = "api.rxt";
-    public static String REGISTRY_API_RXT_PATH = GovernanceConstants.RXT_CONFIGS_PATH + RegistryConstants.PATH_SEPARATOR
-            + API_RXT_FILE;
 
     public static void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
             throws UserStoreException {

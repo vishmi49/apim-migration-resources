@@ -36,7 +36,8 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
     List<Tenant> tenants;
 
-    public V410RegistryResourceMigrator() throws UserStoreException {
+    public V410RegistryResourceMigrator(String rxtDir) throws UserStoreException {
+        super(rxtDir);
         registryService = new RegistryServiceImpl();
         tenants = loadTenants();
     }

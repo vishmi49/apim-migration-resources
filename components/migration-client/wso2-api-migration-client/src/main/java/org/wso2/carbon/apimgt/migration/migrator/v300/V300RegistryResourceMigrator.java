@@ -19,9 +19,10 @@ public class V300RegistryResourceMigrator extends RegistryResourceMigrator {
     private RegistryService registryService;
     List<Tenant> tenants;
 
-    public V300RegistryResourceMigrator() throws UserStoreException {
-       tenants = loadTenants();
-       registryService = new RegistryServiceImpl();
+    public V300RegistryResourceMigrator(String rxtDir) throws UserStoreException {
+        super(rxtDir);
+        tenants = loadTenants();
+        registryService = new RegistryServiceImpl();
     }
 
     @Override

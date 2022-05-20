@@ -23,8 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
-import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.APIRXTMigrator;
-import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PostDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v300.PopulateScopeRoleMappingMigrator;
@@ -37,7 +35,7 @@ public class V300Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V300Migration.class);
     private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-2.6.0_to_3.0.0"
             + File.separator;
-    private final String RXT_PATH = Utility.RXT_DIR + "3.0.0" + File.separator + Utility.API_RXT_FILE;
+    private final String V300_RXT_DIR = Utility.RXT_DIR + "3.0.0" + File.separator;
 
     @Override
     public String getPreviousVersion() {
@@ -53,9 +51,7 @@ public class V300Migration extends VersionMigrator {
     public void migrate() throws APIMigrationException, UserStoreException {
         PreDBScriptMigrator v300preMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
         v300preMigrator.run();
-        APIRXTMigrator apirxtMigrator = new APIRXTMigrator(RXT_PATH);
-        apirxtMigrator.migrate();
-        RegistryResourceMigrator registryResourceMigrator = new V300RegistryResourceMigrator();
+        RegistryResourceMigrator registryResourceMigrator = new V300RegistryResourceMigrator(V300_RXT_DIR);
         registryResourceMigrator.migrate();
         PopulateScopeRoleMappingMigrator populateScopeRoleMappingMigrator = new PopulateScopeRoleMappingMigrator();
         populateScopeRoleMappingMigrator.migrate();

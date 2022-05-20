@@ -5,7 +5,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
-import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.APIRXTMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PostDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v410.V410DBDataMigrator;
@@ -20,7 +19,7 @@ public class V410Migration extends VersionMigrator {
             + File.separator;
     private final String POST_MIGRATION_SCRIPT_AMDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR
             + "migration-4.0.0_to_4.1.0" + File.separator + "am_db" + File.separator;
-    private final String RXT_PATH = Utility.RXT_DIR + "4.1.0" + File.separator + Utility.API_RXT_FILE;
+    private final String V410_RXT_PATH = Utility.RXT_DIR + "4.1.0" + File.separator;
 
     @Override
     public String getPreviousVersion() {
@@ -35,11 +34,9 @@ public class V410Migration extends VersionMigrator {
     public void migrate() throws UserStoreException, APIMigrationException {
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
-        APIRXTMigrator apirxtMigrator = new APIRXTMigrator(RXT_PATH);
-        apirxtMigrator.migrate();
         V410DBDataMigrator v410DBDataMigrator = new V410DBDataMigrator();
         v410DBDataMigrator.migrate();
-        V410RegistryResourceMigrator v410RegistryResourceMigrator = new V410RegistryResourceMigrator();
+        V410RegistryResourceMigrator v410RegistryResourceMigrator = new V410RegistryResourceMigrator(V410_RXT_PATH);
         v410RegistryResourceMigrator.migrate();
         PostDBScriptMigrator postDBScriptMigratorForAmDb = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_AMDB_PATH);
         postDBScriptMigratorForAmDb.run();

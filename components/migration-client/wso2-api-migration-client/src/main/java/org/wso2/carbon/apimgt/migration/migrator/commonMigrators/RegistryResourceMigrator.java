@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
+import org.wso2.carbon.apimgt.migration.migrator.Utility;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -20,10 +21,12 @@ public class RegistryResourceMigrator extends Migrator {
     private static final Log log = LogFactory.getLog(RegistryResourceMigrator.class);
     private RegistryService registryService;
     List<Tenant> tenants;
+    private String rxtDir;
 
-    public RegistryResourceMigrator() throws UserStoreException {
+    public RegistryResourceMigrator(String rxtDir) throws UserStoreException {
        tenants = loadTenants();
        registryService = new RegistryServiceImpl();
+       this.rxtDir = rxtDir;
     }
 
     @Override
@@ -34,9 +37,7 @@ public class RegistryResourceMigrator extends Migrator {
     private void rxtMigration(RegistryService regService) {
         log.info("Rxt migration for API Manager started.");
 
-        String rxtName = "api.rxt";
-        String rxtDir = CarbonUtils.getCarbonHome() + File.separator + "migration-resources" + File.separator + "rxts"
-                + File.separator + rxtName;
+        String rxtPath = rxtDir + Utility.API_RXT_FILE;
 
         for (Tenant tenant : tenants) {
             try {
@@ -44,16 +45,13 @@ public class RegistryResourceMigrator extends Migrator {
 
                 log.info("Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
                 //Update api.rxt file
-                String rxt = FileUtil.readFileToString(rxtDir);
-                regService.updateRXTResource(rxtName, rxt);
+                String rxt = FileUtil.readFileToString(rxtPath);
+                regService.updateRXTResource(Utility.API_RXT_FILE, rxt);
                 log.info("End Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
             } catch (IOException e) {
-                log.error("Error when reading api.rxt from " + rxtDir + " for tenant " + tenant.getId() + '(' + tenant
-                        .getDomain() + ')', e);
-            } catch (RegistryException e) {
-                log.error("Error while updating api.rxt in the registry for tenant " + tenant.getId() + '('
+                log.error("Error when reading api.rxt from " + rxtPath + " for tenant " + tenant.getId() + '('
                         + tenant.getDomain() + ')', e);
-            } catch (UserStoreException e) {
+            } catch (RegistryException | UserStoreException e) {
                 log.error("Error while updating api.rxt in the registry for tenant " + tenant.getId() + '('
                         + tenant.getDomain() + ')', e);
             } finally {

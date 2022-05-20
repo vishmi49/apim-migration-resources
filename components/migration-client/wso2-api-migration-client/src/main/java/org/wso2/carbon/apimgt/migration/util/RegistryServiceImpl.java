@@ -323,8 +323,8 @@ public class RegistryServiceImpl implements RegistryService {
                                           APIUtil.getMountedPath(RegistryContext.getBaseInstance(),
                                                                      RegistryConstants.GOVERNANCE_REGISTRY_BASE_PATH));
         // calculate resource path
-        RegistryAuthorizationManager authorizationManager = new RegistryAuthorizationManager(
-                                                                                ServiceReferenceHolder.getUserRealm());
+        RegistryAuthorizationManager authorizationManager =
+                new RegistryAuthorizationManager(ServiceReferenceHolder.getUserRealm());
         resourcePath = authorizationManager.computePathOnMount(resourcePath);
         org.wso2.carbon.user.api.AuthorizationManager authManager = ServiceReferenceHolder.getInstance()
                                                                                           .getRealmService()

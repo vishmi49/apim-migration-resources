@@ -34,6 +34,7 @@ import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.dto.APIInfoDTO;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
+import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
 import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
@@ -71,7 +72,7 @@ import java.util.*;
 
 import static org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.ExportUtils.*;
 
-public class V400RegistryResourceMigrator extends Migrator {
+public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
     private static final Log log = LogFactory.getLog(V400RegistryResourceMigrator.class);
     private RegistryService registryService;
     List<Tenant> tenants;
@@ -88,13 +89,13 @@ public class V400RegistryResourceMigrator extends Migrator {
     protected Registry userRegistry;
 
 
-    public V400RegistryResourceMigrator() throws UserStoreException {
+    public V400RegistryResourceMigrator(String rxtDir) throws UserStoreException {
+        super(rxtDir);
         tenants = loadTenants();
         registryService = new RegistryServiceImpl();
         this.artifactSaver = ServiceReferenceHolder.getInstance().getArtifactSaver();
         this.importExportAPI = ServiceReferenceHolder.getInstance().getImportExportService();
         this.gatewayArtifactsMgtDAO = GatewayArtifactsMgtDAO.getInstance();
-
     }
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
     private ApiMgtDAO apiMgtDAO1 = ApiMgtDAO.getInstance();
