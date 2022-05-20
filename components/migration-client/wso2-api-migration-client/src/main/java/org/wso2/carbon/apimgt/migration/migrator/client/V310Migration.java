@@ -29,18 +29,12 @@ public class V310Migration extends VersionMigrator {
 
 
     @Override
-    public void migrate() {
-
-        RegistryResourceMigrator registryResourceMigrator = null;
-        try {
-            PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
-            preDBScriptMigrator.run();
-            registryResourceMigrator = new RegistryResourceMigrator(V310_RXT_PATH);
-            registryResourceMigrator.migrate();
-        } catch (APIMigrationException e) {
-            e.printStackTrace();
-        } catch (UserStoreException e) {
-        e.printStackTrace();
-    }
+    public void migrate() throws APIMigrationException, UserStoreException {
+        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
+        PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
+        preDBScriptMigrator.run();
+        RegistryResourceMigrator registryResourceMigrator = new RegistryResourceMigrator(V310_RXT_PATH);
+        registryResourceMigrator.migrate();
+        log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 }

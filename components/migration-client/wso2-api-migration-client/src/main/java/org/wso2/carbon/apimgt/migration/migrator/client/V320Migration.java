@@ -34,6 +34,7 @@ public class V320Migration extends VersionMigrator {
 
     @Override
     public void migrate() throws APIMigrationException, UserStoreException {
+        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
         RegistryResourceMigrator registryResourceMigrator= new V320RegistryResourceMigrator(V320_RXT_PATH);
@@ -42,7 +43,7 @@ public class V320Migration extends VersionMigrator {
         scopeMigrator.migrate();
         SPMigrator spMigrator = new SPMigrator();
         spMigrator.migrate();
-        log.info("Migrated Successfully to 3.2");
+        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 
 

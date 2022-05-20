@@ -32,6 +32,7 @@ public class V410Migration extends VersionMigrator {
     }
     @Override
     public void migrate() throws UserStoreException, APIMigrationException {
+        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
         V410DBDataMigrator v410DBDataMigrator = new V410DBDataMigrator();
@@ -40,5 +41,6 @@ public class V410Migration extends VersionMigrator {
         v410RegistryResourceMigrator.migrate();
         PostDBScriptMigrator postDBScriptMigratorForAmDb = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_AMDB_PATH);
         postDBScriptMigratorForAmDb.run();
+        log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 }

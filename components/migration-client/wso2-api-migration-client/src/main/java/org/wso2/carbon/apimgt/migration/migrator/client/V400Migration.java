@@ -33,11 +33,13 @@ public class V400Migration extends VersionMigrator {
 
     @Override
     public void migrate() throws UserStoreException, APIMigrationException {
+        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
         V400DBDataMigrator v400DBDataMigrator = new V400DBDataMigrator();
         v400DBDataMigrator.migrate();
         V400RegistryResourceMigrator v400RegistryResourceMigrator = new V400RegistryResourceMigrator(V400_RXT_PATH);
         v400RegistryResourceMigrator.migrate();
+        log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 }

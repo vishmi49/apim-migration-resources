@@ -49,11 +49,13 @@ public class V300Migration extends VersionMigrator {
 
     @Override
     public void migrate() throws APIMigrationException, UserStoreException {
+        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
         PreDBScriptMigrator v300preMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
         v300preMigrator.run();
         RegistryResourceMigrator registryResourceMigrator = new V300RegistryResourceMigrator(V300_RXT_DIR);
         registryResourceMigrator.migrate();
         PopulateScopeRoleMappingMigrator populateScopeRoleMappingMigrator = new PopulateScopeRoleMappingMigrator();
         populateScopeRoleMappingMigrator.migrate();
+        log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 }
