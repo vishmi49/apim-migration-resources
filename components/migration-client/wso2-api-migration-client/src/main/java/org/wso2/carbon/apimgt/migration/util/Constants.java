@@ -17,8 +17,11 @@
 package org.wso2.carbon.apimgt.migration.util;
 
 import org.wso2.carbon.apimgt.impl.APIConstants;
+import org.wso2.carbon.apimgt.migration.migrator.Utility;
 import org.wso2.carbon.governance.api.util.GovernanceConstants;
 import org.wso2.carbon.registry.core.RegistryConstants;
+
+import java.io.File;
 
 public class Constants {
 
@@ -388,6 +391,9 @@ public class Constants {
     public static final String ARG_MIGRATED_VERSION = "migratedVersion";
 
     public static final String DEFAULT_GATEWAY_VENDOR = "wso2";
+
+    public static final String ARTIFACT_REINDEXING_SCRIPT_PATH = Utility.POST_MIGRATION_SCRIPT_DIR + "common"
+            + File.separator + "reg_db" + File.separator + "reg-index.sql";
 
     public static class preValidationService {
         public static final String API_DEFINITION_VALIDATION = "apiDefinitionValidation";
