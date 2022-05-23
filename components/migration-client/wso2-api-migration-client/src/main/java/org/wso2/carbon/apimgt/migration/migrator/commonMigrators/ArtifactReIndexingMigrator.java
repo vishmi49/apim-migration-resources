@@ -17,10 +17,12 @@ public class ArtifactReIndexingMigrator extends Migrator {
 
     @Override
     public void migrate() throws APIMigrationException {
+        log.info("Artifact re-indexing migrator started");
         try {
             AMDBUtil.runSQLScript(artifactReIndexingScriptPath, true);
         } catch (SQLException e) {
             log.error("Error running the artifact re-indexing script", e);
         }
+        log.info("Artifact re-indexing migrator completed");
     }
 }
