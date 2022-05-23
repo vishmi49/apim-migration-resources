@@ -9,6 +9,9 @@ import org.wso2.carbon.apimgt.migration.util.Constants;
 
 import java.sql.SQLException;
 
+/**
+ * Class to run artifact re-indexing scripts post-migration
+ */
 public class ArtifactReIndexingMigrator extends Migrator {
     private static final Log log = LogFactory.getLog(ArtifactReIndexingMigrator.class);
 

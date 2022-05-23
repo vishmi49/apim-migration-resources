@@ -10,13 +10,14 @@ import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
-import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.carbon.utils.FileUtil;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * Class to migrate registry resources from version to version
+ */
 public class RegistryResourceMigrator extends Migrator {
     private static final Log log = LogFactory.getLog(RegistryResourceMigrator.class);
     private RegistryService registryService;
