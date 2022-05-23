@@ -20,7 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
-import org.wso2.carbon.apimgt.migration.migrator.Utility;
+import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
@@ -54,7 +54,7 @@ public class RegistryResourceMigrator extends Migrator {
     private void rxtMigration(RegistryService regService) {
         log.info("Rxt migration for API Manager started.");
 
-        String rxtPath = rxtDir + Utility.API_RXT_FILE;
+        String rxtPath = rxtDir + Constants.API_RXT_FILE;
 
         for (Tenant tenant : tenants) {
             try {
@@ -63,7 +63,7 @@ public class RegistryResourceMigrator extends Migrator {
                 log.info("Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
                 //Update api.rxt file
                 String rxt = FileUtil.readFileToString(rxtPath);
-                regService.updateRXTResource(Utility.API_RXT_FILE, rxt);
+                regService.updateRXTResource(Constants.API_RXT_FILE, rxt);
                 log.info("End Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
             } catch (IOException e) {
                 log.error("Error when reading api.rxt from " + rxtPath + " for tenant " + tenant.getId() + '('

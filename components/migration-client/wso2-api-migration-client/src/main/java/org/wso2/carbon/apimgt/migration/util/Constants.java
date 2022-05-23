@@ -17,9 +17,9 @@
 package org.wso2.carbon.apimgt.migration.util;
 
 import org.wso2.carbon.apimgt.impl.APIConstants;
-import org.wso2.carbon.apimgt.migration.migrator.Utility;
 import org.wso2.carbon.governance.api.util.GovernanceConstants;
 import org.wso2.carbon.registry.core.RegistryConstants;
+import org.wso2.carbon.utils.CarbonUtils;
 
 import java.io.File;
 
@@ -31,6 +31,7 @@ public class Constants {
     public static final String VERSION_1_10 = "1.10.0";
     public static final String VERSION_2_0_0 = "2.0.0";
     public static final String VERSION_2_1_0 = "2.1.0";
+    public static final String VERSION_3_0_0 = "3.0.0";
     public static final String VERSION_4_0_0 = "4.0.0";
     public static final String VERSION_4_1_0 = "4.1.0";
     public static final String LINE_BREAK = "\\n";
@@ -392,8 +393,54 @@ public class Constants {
 
     public static final String DEFAULT_GATEWAY_VENDOR = "wso2";
 
-    public static final String ARTIFACT_REINDEXING_SCRIPT_PATH = Utility.POST_MIGRATION_SCRIPT_DIR + "common"
-            + File.separator + "reg_db" + File.separator + "reg-index.sql";
+    public static final String MIGRATION = "Migration";
+
+    public static final String META = "Meta";
+
+    // DB script paths
+    public static String PRE_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator + "migration-resources"
+            + File.separator + "migration-scripts"+ File.separator + "pre-migration-scripts" + File.separator;
+
+    public static String POST_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
+            + "migration-resources" + File.separator + "migration-scripts"+ File.separator + "post-migration-scripts"
+            + File.separator;
+
+    public static final String V300_PRE_MIGRATION_SCRIPTS_PATH = PRE_MIGRATION_SCRIPT_DIR + "migration-2.6.0_to_3.0.0"
+            + File.separator;
+
+    public static final String V310_PRE_MIGRATION_SCRIPTS_PATH = PRE_MIGRATION_SCRIPT_DIR + "migration-3.0.0_to_3.1.0"
+            + File.separator;
+
+    public static final String V320_PRE_MIGRATION_SCRIPTS_PATH = PRE_MIGRATION_SCRIPT_DIR + "migration-3.1.0_to_3.2.0"
+            + File.separator;
+
+    public static final String V400_PRE_MIGRATION_SCRIPTS_PATH = PRE_MIGRATION_SCRIPT_DIR + "migration-3.2.0_to_4.0.0"
+            + File.separator;
+
+    public static final String V410_PRE_MIGRATION_SCRIPTS_PATH = PRE_MIGRATION_SCRIPT_DIR + "migration-4.0.0_to_4.1.0"
+            + File.separator;
+
+    public static final String V410_POST_MIGRATION_SCRIPT_AMDB_PATH = POST_MIGRATION_SCRIPT_DIR
+            + "migration-4.0.0_to_4.1.0" + File.separator + "am_db" + File.separator;
+
+    public static final String ARTIFACT_REINDEXING_SCRIPT_PATH = POST_MIGRATION_SCRIPT_DIR + "common" + File.separator
+            + "reg_db" + File.separator + "reg-index.sql";
+
+    // RXT file paths
+    public static String RXT_DIR = CarbonUtils.getCarbonHome() + File.separator + "migration-resources" + File.separator
+            + "rxts" + File.separator;
+
+    public static String API_RXT_FILE = "api.rxt";
+
+    public static final String V300_RXT_DIR = RXT_DIR + "3.0.0" + File.separator;
+
+    public static final String V310_RXT_PATH = RXT_DIR + "3.1.0" + File.separator;
+
+    public static final String V320_RXT_PATH = RXT_DIR + "3.2.0" + File.separator;
+
+    public static final String V400_RXT_PATH = RXT_DIR + "4.0.0" + File.separator;
+
+    public static final String V410_RXT_PATH = RXT_DIR + "4.1.0" + File.separator;
 
     public static class preValidationService {
         public static final String API_DEFINITION_VALIDATION = "apiDefinitionValidation";

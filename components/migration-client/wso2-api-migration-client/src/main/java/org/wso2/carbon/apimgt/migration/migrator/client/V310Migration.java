@@ -20,18 +20,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
-import org.wso2.carbon.apimgt.migration.migrator.Utility;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
+import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.user.api.UserStoreException;
-
-import java.io.File;
 
 public class V310Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V310Migration .class);
-    private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-3.0.0_to_3.1.0"
-            + File.separator;
-    private final String V310_RXT_PATH = Utility.RXT_DIR + "3.1.0" + File.separator;
 
     @Override
     public String getPreviousVersion() {
@@ -47,9 +42,9 @@ public class V310Migration extends VersionMigrator {
     @Override
     public void migrate() throws APIMigrationException, UserStoreException {
         log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
-        PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
+        PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(Constants.V310_PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
-        RegistryResourceMigrator registryResourceMigrator = new RegistryResourceMigrator(V310_RXT_PATH);
+        RegistryResourceMigrator registryResourceMigrator = new RegistryResourceMigrator(Constants.V310_RXT_PATH);
         registryResourceMigrator.migrate();
         log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }

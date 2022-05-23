@@ -22,20 +22,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
-import org.wso2.carbon.apimgt.migration.migrator.Utility;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v300.PopulateScopeRoleMappingMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v300.V300RegistryResourceMigrator;
+import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.user.api.UserStoreException;
-
-import java.io.File;
 
 public class V300Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V300Migration.class);
-    private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-2.6.0_to_3.0.0"
-            + File.separator;
-    private final String V300_RXT_DIR = Utility.RXT_DIR + "3.0.0" + File.separator;
 
     @Override
     public String getPreviousVersion() {
@@ -50,9 +45,9 @@ public class V300Migration extends VersionMigrator {
     @Override
     public void migrate() throws APIMigrationException, UserStoreException {
         log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
-        PreDBScriptMigrator v300preMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
+        PreDBScriptMigrator v300preMigrator = new PreDBScriptMigrator(Constants.V300_PRE_MIGRATION_SCRIPTS_PATH);
         v300preMigrator.run();
-        RegistryResourceMigrator registryResourceMigrator = new V300RegistryResourceMigrator(V300_RXT_DIR);
+        RegistryResourceMigrator registryResourceMigrator = new V300RegistryResourceMigrator(Constants.V300_RXT_DIR);
         registryResourceMigrator.migrate();
         PopulateScopeRoleMappingMigrator populateScopeRoleMappingMigrator = new PopulateScopeRoleMappingMigrator();
         populateScopeRoleMappingMigrator.migrate();

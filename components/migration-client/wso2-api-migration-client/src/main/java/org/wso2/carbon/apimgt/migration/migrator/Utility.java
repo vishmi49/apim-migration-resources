@@ -39,8 +39,6 @@ import org.wso2.carbon.apimgt.migration.dto.UserRoleFromPermissionDTO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
-import org.wso2.carbon.governance.api.util.GovernanceConstants;
-import org.wso2.carbon.registry.core.RegistryConstants;
 import org.wso2.carbon.registry.core.Resource;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.session.UserRegistry;
@@ -63,19 +61,6 @@ import static org.wso2.carbon.apimgt.impl.utils.APIUtil.getTenantDomainFromTenan
 
 public class Utility {
     private static final Log log = LogFactory.getLog(Utility.class);
-    private static List<Tenant> tenantsArray;
-    private static final String MIGRATION = "Migration";
-    private static final String VERSION_3 = "3.0.0";
-    private static final String META = "Meta";
-    public static String PRE_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
-            + "migration-resources" + File.separator + "migration-scripts"+ File.separator
-            + "pre-migration-scripts" + File.separator;
-    public static String POST_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
-            + "migration-resources" + File.separator + "migration-scripts"+ File.separator
-            + "post-migration-scripts" + File.separator;
-    public static String RXT_DIR = CarbonUtils.getCarbonHome() + File.separator + "migration-resources" + File.separator
-            + "rxts" + File.separator;
-    public static String API_RXT_FILE = "api.rxt";
 
     public static void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
             throws UserStoreException {
@@ -245,10 +230,10 @@ public class Utility {
         JSONArray tenantScopesArray = (JSONArray) scopesConfigTenant.get(APIConstants.REST_API_SCOPE);
         boolean isRoleUpdated = false;
         boolean isMigrated = false;
-        JSONObject metaJson = (JSONObject) tenantConf.get(MIGRATION);
+        JSONObject metaJson = (JSONObject) tenantConf.get(Constants.MIGRATION);
 
-        if (metaJson != null && metaJson.get(VERSION_3) != null) {
-            isMigrated = Boolean.parseBoolean(metaJson.get(VERSION_3).toString());
+        if (metaJson != null && metaJson.get(Constants.VERSION_3_0_0) != null) {
+            isMigrated = Boolean.parseBoolean(metaJson.get(Constants.VERSION_3_0_0).toString());
         }
 
         if (!isMigrated) {
@@ -274,9 +259,9 @@ public class Utility {
                 if (isRoleUpdated) {
                     JSONObject metaInfo = new JSONObject();
                     JSONObject migrationInfo = new JSONObject();
-                    migrationInfo.put(VERSION_3, true);
-                    metaInfo.put(MIGRATION, migrationInfo);
-                    tenantConf.put(META, metaInfo);
+                    migrationInfo.put(Constants.VERSION_3_0_0, true);
+                    metaInfo.put(Constants.MIGRATION, migrationInfo);
+                    tenantConf.put(Constants.META, metaInfo);
                 }
             } catch (UserStoreException e) {
                 String tenantDomain = getTenantDomainFromTenantId(tenantId);
