@@ -7,8 +7,8 @@ import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.caching.CacheProvider;
 import org.wso2.carbon.apimgt.impl.config.APIMConfigServiceImpl;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
-import org.wso2.carbon.apimgt.impl.utils.APIUtil;
+import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
+import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -27,7 +27,7 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
     @Override
     public void addTenantConfig(String organization, String tenantConfig) throws APIManagementException {
 
-        if (org.wso2.carbon.apimgt.migration.util.APIUtil.isDisabledExtendedAPIMConfigService()) {
+        if (APIUtil.isDisabledExtendedAPIMConfigService()) {
             log.info("ExtendedAPIMConfigService is disabled. Hence, executing super method logic.");
             super.addTenantConfig(organization,tenantConfig);
         } else {
@@ -42,8 +42,7 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
                 if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(organization)) {
                     APIUtil.loadTenantRegistry(tenantId);
                 }
-
-                RegistryService registryService = ServiceReferenceHolder.getInstance().getRegistryService();
+                RegistryService registryService = ServiceHolder.getRegistryService();
                 UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
                 if (!registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
                     Resource resource = registry.newResource();
@@ -64,7 +63,7 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
     @Override
     public String getTenantConfig(String organization) throws APIManagementException {
 
-        if (org.wso2.carbon.apimgt.migration.util.APIUtil.isDisabledExtendedAPIMConfigService()) {
+        if (APIUtil.isDisabledExtendedAPIMConfigService()) {
             log.info("ExtendedAPIMConfigService is disabled. Hence, executing super method logic.");
             super.getTenantConfig(organization);
         } else {
@@ -79,7 +78,7 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
                 if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(organization)) {
                     APIUtil.loadTenantRegistry(tenantId);
                 }
-                RegistryService registryService = ServiceReferenceHolder.getInstance().getRegistryService();
+                RegistryService registryService = ServiceHolder.getRegistryService();
                 UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
                 if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
                     Resource resource = registry.get(APIConstants.API_TENANT_CONF_LOCATION);
@@ -101,7 +100,7 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
     @Override
     public void updateTenantConfig(String organization, String tenantConfig) throws APIManagementException {
 
-        if (org.wso2.carbon.apimgt.migration.util.APIUtil.isDisabledExtendedAPIMConfigService()) {
+        if (APIUtil.isDisabledExtendedAPIMConfigService()) {
             log.info("ExtendedAPIMConfigService is disabled. Hence, executing super method logic.");
             super.updateTenantConfig(organization,tenantConfig);
         } else {
@@ -119,7 +118,7 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
                 if (!MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equals(organization)) {
                     APIUtil.loadTenantRegistry(tenantId);
                 }
-                RegistryService registryService = ServiceReferenceHolder.getInstance().getRegistryService();
+                RegistryService registryService = ServiceHolder.getRegistryService();
                 UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
                 if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
                     Resource resource = registry.get(APIConstants.API_TENANT_CONF_LOCATION);
