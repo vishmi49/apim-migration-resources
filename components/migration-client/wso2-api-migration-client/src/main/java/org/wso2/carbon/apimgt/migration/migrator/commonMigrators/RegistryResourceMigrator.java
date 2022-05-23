@@ -61,6 +61,7 @@ public class RegistryResourceMigrator extends Migrator {
                 regService.startTenantFlow(tenant);
 
                 log.info("Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                log.info("Updating api.rxt for tenant with file: " + rxtPath);
                 //Update api.rxt file
                 String rxt = FileUtil.readFileToString(rxtPath);
                 regService.updateRXTResource(Constants.API_RXT_FILE, rxt);
