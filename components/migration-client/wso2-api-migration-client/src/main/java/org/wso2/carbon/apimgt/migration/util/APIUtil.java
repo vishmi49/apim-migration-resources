@@ -50,9 +50,9 @@ import org.wso2.carbon.apimgt.impl.dao.ApiMgtDAO;
 import org.wso2.carbon.apimgt.impl.dao.ScopesDAO;
 import org.wso2.carbon.apimgt.impl.dto.ThrottleProperties;
 import org.wso2.carbon.apimgt.impl.internal.APIManagerComponent;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.resolver.OnPremResolver;
 import org.wso2.carbon.apimgt.impl.utils.APIDescriptionGenUtil;
+import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
@@ -138,7 +138,7 @@ public final  class APIUtil {
      */
     public static void init() {
 
-        APIManagerConfiguration apiManagerConfiguration = ServiceReferenceHolder.getInstance()
+        APIManagerConfiguration apiManagerConfiguration = ServiceHolder
                 .getAPIManagerConfigurationService().getAPIManagerConfiguration();
         String isPublisherRoleCacheEnabledConfiguration = apiManagerConfiguration
                 .getFirstProperty(APIConstants.PUBLISHER_ROLE_CACHE_ENABLED);
@@ -232,7 +232,7 @@ public final  class APIUtil {
                     APIConstants.API_OVERVIEW_SUBSCRIPTION_AVAILABLE_TENANTS));
 
             String tenantDomainName = MultitenantUtils.getTenantDomain(replaceEmailDomainBack(providerName));
-            int tenantId = ServiceReferenceHolder.getInstance().getRealmService().getTenantManager()
+            int tenantId = ServiceHolder.getRealmService().getTenantManager()
                     .getTenantId(tenantDomainName);
 
             String apiLevelTier = ApiMgtDAO.getInstance().getAPILevelTier(apiId);
@@ -322,7 +322,7 @@ public final  class APIUtil {
      */
     public static int getTenantIdFromTenantDomain(String tenantDomain) {
 
-        RealmService realmService = ServiceReferenceHolder.getInstance().getRealmService();
+        RealmService realmService = ServiceHolder.getRealmService();
 
         if (realmService == null || tenantDomain == null) {
             return MultitenantConstants.SUPER_TENANT_ID;
@@ -611,7 +611,7 @@ public final  class APIUtil {
 
         try {
 
-            RegistryService registryService = ServiceReferenceHolder.getInstance().getRegistryService();
+            RegistryService registryService = ServiceHolder.getRegistryService();
             UserRegistry govRegistry = registryService.getGovernanceSystemRegistry(tenantID);
 
             //Add all custom in,out and fault sequences to tenant registry
@@ -704,7 +704,7 @@ public final  class APIUtil {
         InputStream inputStream = null;
 
         try {
-            RegistryService registryService = ServiceReferenceHolder.getInstance().getRegistryService();
+            RegistryService registryService = ServiceHolder.getRegistryService();
 
             UserRegistry govRegistry = registryService.getGovernanceSystemRegistry(tenantID);
 
@@ -775,7 +775,7 @@ public final  class APIUtil {
     public static void loadTenantRegistry(int tenantId) throws RegistryException {
 
         TenantRegistryLoader tenantRegistryLoader = APIManagerComponent.getTenantRegistryLoader();
-        ServiceReferenceHolder.getInstance().getIndexLoaderService().loadTenantIndex(tenantId);
+        ServiceHolder.getIndexLoaderService().loadTenantIndex(tenantId);
         tenantRegistryLoader.loadTenantRegistry(tenantId);
     }
 
@@ -1006,7 +1006,7 @@ public final  class APIUtil {
      * @return map of configured environments against environment name
      */
     public static Map<String, Environment> getReadOnlyEnvironments() {
-        return ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService()
+        return ServiceHolder.getAPIManagerConfigurationService()
                 .getAPIManagerConfiguration().getApiGatewayEnvironments();
     }
 
@@ -1143,7 +1143,7 @@ public final  class APIUtil {
      */
     public static String getTenantDomainFromTenantId(int tenantId) {
 
-        RealmService realmService = ServiceReferenceHolder.getInstance().getRealmService();
+        RealmService realmService = ServiceHolder.getRealmService();
 
         if (realmService == null) {
             return MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
@@ -1297,12 +1297,12 @@ public final  class APIUtil {
     public static String getTenantAdminUserName(String tenantDomain) throws APIManagementException {
 
         try {
-            int tenantId = ServiceReferenceHolder.getInstance().getRealmService().getTenantManager().
+            int tenantId = ServiceHolder.getRealmService().getTenantManager().
                     getTenantId(tenantDomain);
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            String adminUserName = ServiceReferenceHolder.getInstance().getRealmService().getTenantUserRealm(tenantId)
+            String adminUserName = ServiceHolder.getRealmService().getTenantUserRealm(tenantId)
                     .getRealmConfiguration().getAdminUserName();
             if (!tenantDomain.contentEquals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
                 return adminUserName.concat("@").concat(tenantDomain);
@@ -1484,7 +1484,7 @@ public final  class APIUtil {
      */
     public static boolean isEnabledUnlimitedTier() {
 
-        ThrottleProperties throttleProperties = ServiceReferenceHolder.getInstance()
+        ThrottleProperties throttleProperties = ServiceHolder
                 .getAPIManagerConfigurationService().getAPIManagerConfiguration()
                 .getThrottleProperties();
         return throttleProperties.isEnableUnlimitedTier();
@@ -1593,9 +1593,9 @@ public final  class APIUtil {
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain, true);
 
-            int tenantId = ServiceReferenceHolder.getInstance().getRealmService().getTenantManager()
+            int tenantId = ServiceHolder.getRealmService().getTenantManager()
                     .getTenantId(tenantDomain);
-            Registry registry = ServiceReferenceHolder.getInstance().getRegistryService()
+            Registry registry = ServiceHolder.getRegistryService()
                     .getConfigSystemRegistry(tenantId);
 
             if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
@@ -1648,7 +1648,7 @@ public final  class APIUtil {
 
     public static OrganizationResolver getOrganizationResolver() throws APIManagementException {
 
-        OrganizationResolver resolver = ServiceReferenceHolder.getInstance().getOrganizationResolver();
+        OrganizationResolver resolver = ServiceHolder.getOrganizationResolver();
         if (resolver == null) {
             resolver = new OnPremResolver();
         }
@@ -1787,7 +1787,7 @@ public final  class APIUtil {
 
     public static KeyManagerConnectorConfiguration getKeyManagerConnectorConfigurationsByConnectorType(String type) {
 
-        return ServiceReferenceHolder.getInstance().getKeyManagerConnectorConfiguration(type);
+        return ServiceHolder.getKeyManagerConnectorConfiguration(type);
     }
 
     public static List<ClaimMappingDto> getDefaultClaimMappings() {
@@ -1845,7 +1845,7 @@ public final  class APIUtil {
      */
     public static String getAllowedHeaders() {
 
-        return ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration().
+        return ServiceHolder.getAPIManagerConfigurationService().getAPIManagerConfiguration().
                 getFirstProperty(APIConstants.CORS_CONFIGURATION_ACCESS_CTL_ALLOW_HEADERS);
     }
 
@@ -1856,7 +1856,7 @@ public final  class APIUtil {
      */
     public static String getAllowedMethods() {
 
-        return ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration().
+        return ServiceHolder.getAPIManagerConfigurationService().getAPIManagerConfiguration().
                 getFirstProperty(APIConstants.CORS_CONFIGURATION_ACCESS_CTL_ALLOW_METHODS);
     }
 
@@ -1867,7 +1867,7 @@ public final  class APIUtil {
      */
     public static String getAccessControlExposedHeaders() {
 
-        return ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration().
+        return ServiceHolder.getAPIManagerConfigurationService().getAPIManagerConfiguration().
                 getFirstProperty(APIConstants.CORS_CONFIGURATION_ACCESS_CTL_EXPOSE_HEADERS);
     }
 
@@ -1879,7 +1879,7 @@ public final  class APIUtil {
     public static boolean isAllowCredentials() {
 
         String allowCredentials =
-                ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration().
+                ServiceHolder.getAPIManagerConfigurationService().getAPIManagerConfiguration().
                         getFirstProperty(APIConstants.CORS_CONFIGURATION_ACCESS_CTL_ALLOW_CREDENTIALS);
         return Boolean.parseBoolean(allowCredentials);
     }
@@ -1892,7 +1892,7 @@ public final  class APIUtil {
     public static boolean isCORSEnabled() {
 
         String corsEnabled =
-                ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration().
+                ServiceHolder.getAPIManagerConfigurationService().getAPIManagerConfiguration().
                         getFirstProperty(APIConstants.CORS_CONFIGURATION_ENABLED);
 
         return Boolean.parseBoolean(corsEnabled);
@@ -1905,7 +1905,7 @@ public final  class APIUtil {
      */
     public static String getAllowedOrigins() {
 
-        return ServiceReferenceHolder.getInstance().getAPIManagerConfigurationService().getAPIManagerConfiguration().
+        return ServiceHolder.getAPIManagerConfigurationService().getAPIManagerConfiguration().
                 getFirstProperty(APIConstants.CORS_CONFIGURATION_ACCESS_CTL_ALLOW_ORIGIN);
 
     }
@@ -1952,7 +1952,7 @@ public final  class APIUtil {
 
     public static List<Tenant> getAllTenantsWithSuperTenant() throws UserStoreException {
 
-        Tenant[] tenants = ServiceReferenceHolder.getInstance().getRealmService().getTenantManager().getAllTenants();
+        Tenant[] tenants = ServiceHolder.getRealmService().getTenantManager().getAllTenants();
         ArrayList<Tenant> tenantArrayList = new ArrayList<Tenant>();
         Collections.addAll(tenantArrayList, tenants);
         Tenant superAdminTenant = new Tenant();

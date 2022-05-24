@@ -15,19 +15,35 @@
 */
 package org.wso2.carbon.apimgt.migration.client.internal;
 
+import org.wso2.carbon.apimgt.api.OrganizationResolver;
+import org.wso2.carbon.apimgt.api.model.KeyManagerConnectorConfiguration;
 import org.wso2.carbon.apimgt.impl.APIManagerConfigurationService;
+import org.wso2.carbon.apimgt.impl.gatewayartifactsynchronizer.ArtifactSaver;
+import org.wso2.carbon.apimgt.impl.importexport.ImportExportAPI;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
+import org.wso2.carbon.registry.indexing.service.TenantIndexingLoader;
+import org.wso2.carbon.user.core.UserRealm;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.ConfigurationContextService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class ServiceHolder {
     //Registry Service which is used to get registry data.
     private static RegistryService registryService;
 
+    private static UserRealm userRealm;
+
     //Realm Service which is used to get tenant data.
     private static RealmService realmService;
+
+    private static ConfigurationContextService contextService;
+
+    private static TenantIndexingLoader indexLoader;
 
     //Tenant registry loader which is used to load tenant registry
     private static TenantRegistryLoader tenantRegLoader;
@@ -36,6 +52,14 @@ public class ServiceHolder {
     private static APIManagerConfigurationService amConfigurationService;
 
     private static ApplicationManagementService applicationManagementService;
+
+    private static ArtifactSaver artifactSaver;
+
+    private static ImportExportAPI importExportService;
+
+    private static OrganizationResolver organizationResolver;
+
+    private static Map<String, KeyManagerConnectorConfiguration> keyManagerConnectorConfigurationMap = new HashMap<>();
 
     /**
      * Method to get RegistryService.
@@ -121,5 +145,79 @@ public class ServiceHolder {
      */
     public static void setApplicationManagementService(ApplicationManagementService service) {
         applicationManagementService = service;
+    }
+
+    public static ConfigurationContextService getContextService() {
+
+        return contextService;
+    }
+
+    public static void setContextService(ConfigurationContextService contextService) {
+
+        ServiceHolder.contextService = contextService;
+    }
+
+    public static UserRealm getUserRealm() {
+
+        return userRealm;
+    }
+
+    public static void setUserRealm(UserRealm realm) {
+
+        userRealm = realm;
+    }
+
+    public static ArtifactSaver getArtifactSaver() {
+
+        return artifactSaver;
+    }
+
+    public static void setArtifactSaver(ArtifactSaver artifactSaver) {
+
+        artifactSaver = artifactSaver;
+    }
+
+    public static void setImportExportAPI(ImportExportAPI importExportService) {
+
+        importExportService = importExportService;
+    }
+
+    public static ImportExportAPI getImportExportService() {
+
+        return importExportService;
+    }
+
+    public static TenantIndexingLoader getIndexLoaderService() {
+
+        return indexLoader;
+    }
+
+    public static void setIndexLoaderService(TenantIndexingLoader indexLoader) {
+
+        indexLoader = indexLoader;
+    }
+
+    public static OrganizationResolver getOrganizationResolver() {
+        return organizationResolver;
+    }
+
+    public static void setOrganizationResolver(OrganizationResolver organizationResolver) {
+        organizationResolver = organizationResolver;
+    }
+
+
+    public static void removeKeyManagerConnectorConfiguration(String type) {
+
+        keyManagerConnectorConfigurationMap.remove(type);
+    }
+
+    public static KeyManagerConnectorConfiguration getKeyManagerConnectorConfiguration(String type) {
+
+        return keyManagerConnectorConfigurationMap.get(type);
+    }
+
+    public static Map<String, KeyManagerConnectorConfiguration> getKeyManagerConnectorConfigurations() {
+
+        return keyManagerConnectorConfigurationMap;
     }
 }

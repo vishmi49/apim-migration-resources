@@ -34,7 +34,6 @@ import org.wso2.carbon.apimgt.impl.dao.SystemConfigurationsDAO;
 import org.wso2.carbon.apimgt.impl.definitions.AsyncApiParserUtil;
 import org.wso2.carbon.apimgt.impl.definitions.GraphQLSchemaDefinition;
 import org.wso2.carbon.apimgt.impl.definitions.OASParserUtil;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.utils.APIMWSDLReader;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.impl.wsdl.model.WSDLValidationResponse;
@@ -113,7 +112,7 @@ public class CommonMigrationClient extends MigrationClientBase {
                     APIUtil.loadTenantRegistry(apiTenantId);
                     startTenantFlow(tenant.getDomain());
                     Registry registry =
-                            ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
+                            ServiceHolder.getRegistryService().getGovernanceSystemRegistry(apiTenantId);
                     GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(registry,
                             APIConstants.API_KEY);
                     if (tenantArtifactManager != null) {
