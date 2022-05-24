@@ -24,7 +24,6 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.model.VHost;
 import org.wso2.carbon.apimgt.impl.APIConstants;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
@@ -218,8 +217,7 @@ public class V400DBDataMigrator extends Migrator {
                     APIUtil.loadTenantRegistry(apiTenantId);
                     Utility.startTenantFlow(tenant.getDomain());
                     Registry registry =
-                            ServiceReferenceHolder.getInstance().getRegistryService().
-                                    getGovernanceSystemRegistry(apiTenantId);
+                            ServiceHolder.getRegistryService().getGovernanceSystemRegistry(apiTenantId);
                     GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(registry,
                             APIConstants.API_KEY);
                     if (tenantArtifactManager != null) {

@@ -19,9 +19,11 @@ package org.wso2.carbon.apimgt.migration.client.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.apimgt.api.OrganizationResolver;
 import org.wso2.carbon.apimgt.impl.APIManagerConfigurationService;
 import org.wso2.carbon.apimgt.impl.config.APIMConfigService;
-import org.wso2.carbon.apimgt.impl.config.APIMConfigServiceImpl;
+import org.wso2.carbon.apimgt.impl.gatewayartifactsynchronizer.ArtifactSaver;
+import org.wso2.carbon.apimgt.impl.importexport.ImportExportAPI;
 import org.wso2.carbon.apimgt.migration.APIMMigrationClient;
 import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.apimgt.migration.util.ExtendedAPIMConfigServiceImpl;
@@ -30,7 +32,9 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.registry.core.service.TenantRegistryLoader;
+import org.wso2.carbon.registry.indexing.service.TenantIndexingLoader;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.wso2.carbon.utils.ConfigurationContextService;
 
 
 /**
@@ -193,5 +197,71 @@ public class APIMMigrationServiceComponent {
             log.debug("Un-setting setApplicationManagementService");
         }
         ServiceHolder.setApplicationManagementService(null);
+    }
+    /**
+     * Method to set ConfigurationContextService
+     *
+     * @param contextService
+     */
+    protected void setConfigurationContextService(ConfigurationContextService contextService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Setting setConfigurationContextService");
+        }
+        ServiceHolder.setContextService(contextService);
+    }
+
+    /**
+     * Method to unset ConfigurationContextService
+     *
+     * @param contextService
+     */
+    protected void unsetConfigurationContextService(ConfigurationContextService contextService) {
+        if (log.isDebugEnabled()) {
+            log.debug("Un-Setting unsetConfigurationContextService");
+        }
+        ServiceHolder.setContextService(null);
+    }
+
+    protected void addArtifactSaver(ArtifactSaver artifactSaver) {
+        ServiceHolder.setArtifactSaver(artifactSaver);
+        try {
+            ServiceHolder.getArtifactSaver().init();
+        } catch (Exception e) {
+            log.error("Error connecting with the Artifact Saver");
+            removeArtifactSaver(null);
+        }
+    }
+
+    protected void removeArtifactSaver(ArtifactSaver artifactSaver) {
+        ServiceHolder.getArtifactSaver().disconnect();
+        ServiceHolder.setArtifactSaver(null);
+    }
+
+    protected void setImportExportService (ImportExportAPI importExportService) {
+
+        ServiceHolder.setImportExportAPI(importExportService);
+    }
+
+    protected void unsetImportExportService(ImportExportAPI importExportAPI) {
+        ServiceHolder.setImportExportAPI(null);
+    }
+
+    protected void setIndexLoader(TenantIndexingLoader indexLoader) {
+        if (indexLoader != null && log.isDebugEnabled()) {
+            log.debug("IndexLoader service initialized");
+        }
+        ServiceHolder.setIndexLoaderService(indexLoader);
+    }
+
+    protected void unsetIndexLoader(TenantIndexingLoader registryService) {
+        ServiceHolder.setIndexLoaderService(null);
+    }
+
+    protected void addOrganizationResolver(OrganizationResolver resolver) {
+        ServiceHolder.setOrganizationResolver(resolver);
+    }
+
+    protected void removeOrganizationResolver(OrganizationResolver resolver) {
+        ServiceHolder.setOrganizationResolver(null);
     }
 }

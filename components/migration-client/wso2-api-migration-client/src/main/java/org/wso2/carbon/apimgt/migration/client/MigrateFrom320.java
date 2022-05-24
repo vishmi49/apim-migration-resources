@@ -44,10 +44,10 @@ import org.wso2.carbon.apimgt.impl.importexport.ExportFormat;
 import org.wso2.carbon.apimgt.impl.importexport.ImportExportAPI;
 import org.wso2.carbon.apimgt.impl.importexport.ImportExportConstants;
 import org.wso2.carbon.apimgt.impl.importexport.utils.CommonUtil;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.APIManagerFactory;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
+import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.client.sp_migration.APIMStatMigrationException;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.dto.*;
@@ -144,8 +144,8 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         super(tenantArguments, blackListTenantArguments, tenantRange, tenantManager);
         this.registryService = registryService;
         this.tenantManager = tenantManager;
-        this.artifactSaver = ServiceReferenceHolder.getInstance().getArtifactSaver();
-        this.importExportAPI = ServiceReferenceHolder.getInstance().getImportExportService();
+        this.artifactSaver = ServiceHolder.getArtifactSaver();
+        this.importExportAPI = ServiceHolder.getImportExportService();
         this.gatewayArtifactsMgtDAO = GatewayArtifactsMgtDAO.getInstance();
     }
 
@@ -246,7 +246,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 APIUtil.loadTenantRegistry(apiTenantId);
                 startTenantFlow(tenant.getDomain(), apiTenantId,
                         MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
-                this.registry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
+                this.registry = ServiceHolder.getRegistryService().getGovernanceSystemRegistry(apiTenantId);
                 GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(this.registry,
                         APIConstants.API_KEY);
                 if (tenantArtifactManager != null) {
@@ -333,8 +333,8 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 APIUtil.loadTenantRegistry(apiTenantId);
                 startTenantFlow(tenant.getDomain(), apiTenantId,
                         MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
-                this.registry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
-                this.userRegistry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceUserRegistry(
+                this.registry = ServiceHolder.getRegistryService().getGovernanceSystemRegistry(apiTenantId);
+                this.userRegistry = ServiceHolder.getRegistryService().getGovernanceUserRegistry(
                         APIUtil.getTenantAdminUserName(tenant.getDomain()), apiTenantId);
                 GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(this.registry,
                         APIConstants.API_KEY);
@@ -891,7 +891,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 APIUtil.loadTenantRegistry(apiTenantId);
                 startTenantFlow(tenant.getDomain(), apiTenantId,
                         MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
-                this.registry = ServiceReferenceHolder.getInstance().getRegistryService().getGovernanceSystemRegistry(apiTenantId);
+                this.registry = ServiceHolder.getRegistryService().getGovernanceSystemRegistry(apiTenantId);
                 GenericArtifactManager tenantArtifactManager = APIUtil.getArtifactManager(this.registry,
                         APIConstants.API_KEY);
                 if (tenantArtifactManager != null) {
@@ -947,7 +947,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
                 APIUtil.loadTenantRegistry(apiTenantId);
                 startTenantFlow(tenant.getDomain(), apiTenantId,
                         MultitenantUtils.getTenantAwareUsername(APIUtil.getTenantAdminUserName(tenant.getDomain())));
-                this.registry = ServiceReferenceHolder.getInstance().getRegistryService()
+                this.registry = ServiceHolder.getRegistryService()
                         .getGovernanceSystemRegistry(apiTenantId);
                 // Fault Handlers that needs to be removed from fault sequences
                 String unnecessaryFaultHandler1 = "org.wso2.carbon.apimgt.usage.publisher.APIMgtFaultHandler";

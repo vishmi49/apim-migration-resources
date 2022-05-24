@@ -12,10 +12,10 @@ import org.wso2.carbon.apimgt.api.model.graphql.queryanalysis.CustomComplexityDe
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.APIManagerConfiguration;
 import org.wso2.carbon.apimgt.impl.dao.constants.SQLConstants;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.impl.utils.RemoteUserManagerClient;
+import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
@@ -35,10 +35,10 @@ public class ApiMgtDAO {
 
     private ApiMgtDAO() {
 
-        APIManagerConfiguration configuration = ServiceReferenceHolder.getInstance()
+        APIManagerConfiguration configuration = ServiceHolder
                 .getAPIManagerConfigurationService().getAPIManagerConfiguration();
 
-        String caseSensitiveComparison = ServiceReferenceHolder.getInstance().
+        String caseSensitiveComparison = ServiceHolder.
                 getAPIManagerConfigurationService().getAPIManagerConfiguration().
                 getFirstProperty(APIConstants.API_STORE_FORCE_CI_COMPARISIONS);
         if (caseSensitiveComparison != null) {
@@ -803,7 +803,7 @@ public class ApiMgtDAO {
      */
     public String getPrimaryLoginFromSecondary(String login) throws APIManagementException {
 
-        Map<String, Map<String, String>> loginConfiguration = ServiceReferenceHolder.getInstance()
+        Map<String, Map<String, String>> loginConfiguration = ServiceHolder
                 .getAPIManagerConfigurationService().getAPIManagerConfiguration().getLoginConfiguration();
         String claimURI, username = null;
         if (isUserLoggedInEmail(login)) {
@@ -1151,7 +1151,7 @@ public class ApiMgtDAO {
      */
     private boolean isSecondaryLogin(String userId) {
 
-        Map<String, Map<String, String>> loginConfiguration = ServiceReferenceHolder.getInstance()
+        Map<String, Map<String, String>> loginConfiguration = ServiceHolder
                 .getAPIManagerConfigurationService().getAPIManagerConfiguration().getLoginConfiguration();
         if (loginConfiguration.get(APIConstants.EMAIL_LOGIN) != null) {
             Map<String, String> emailConf = loginConfiguration.get(APIConstants.EMAIL_LOGIN);

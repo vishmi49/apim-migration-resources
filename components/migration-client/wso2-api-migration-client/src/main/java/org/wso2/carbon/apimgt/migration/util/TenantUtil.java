@@ -22,7 +22,7 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
+import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.base.MultitenantConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.core.multitenancy.utils.TenantAxisUtils;
@@ -45,7 +45,7 @@ public class TenantUtil {
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenant.getDomain(), true);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenant.getId());
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setUsername(getTenantAdminUserName(tenant.getDomain()));
-            ConfigurationContext ctx = ServiceReferenceHolder.getContextService().getServerConfigContext();
+            ConfigurationContext ctx = ServiceHolder.getContextService().getServerConfigContext();
             TenantAxisUtils.getTenantAxisConfiguration(tenant.getDomain(), ctx);
 
         } catch (Exception e) {
@@ -64,12 +64,12 @@ public class TenantUtil {
     public static String getTenantAdminUserName(String tenantDomain) throws APIManagementException {
 
         try {
-            int tenantId = ServiceReferenceHolder.getInstance().getRealmService().getTenantManager().
+            int tenantId = ServiceHolder.getRealmService().getTenantManager().
                     getTenantId(tenantDomain);
             PrivilegedCarbonContext.startTenantFlow();
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantDomain(tenantDomain);
             PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenantId);
-            String adminUserName = ServiceReferenceHolder.getInstance().getRealmService().getTenantUserRealm(tenantId)
+            String adminUserName = ServiceHolder.getRealmService().getTenantUserRealm(tenantId)
                     .getRealmConfiguration().getAdminUserName();
             if (!tenantDomain.contentEquals(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME)) {
                 return adminUserName.concat("@").concat(tenantDomain);
