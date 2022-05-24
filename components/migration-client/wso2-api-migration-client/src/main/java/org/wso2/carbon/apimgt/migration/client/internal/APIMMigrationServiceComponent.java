@@ -20,8 +20,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.apimgt.impl.APIManagerConfigurationService;
+import org.wso2.carbon.apimgt.impl.config.APIMConfigService;
+import org.wso2.carbon.apimgt.impl.config.APIMConfigServiceImpl;
 import org.wso2.carbon.apimgt.migration.APIMMigrationClient;
 import org.wso2.carbon.apimgt.migration.util.APIUtil;
+import org.wso2.carbon.apimgt.migration.util.ExtendedAPIMConfigServiceImpl;
 import org.wso2.carbon.core.ServerStartupObserver;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
@@ -65,6 +68,10 @@ public class APIMMigrationServiceComponent {
         context.getBundleContext().registerService(ServerStartupObserver.class.getName(), new
                 APIMMigrationClient(), null);
         APIUtil.init();
+        log.info("Activating ExtendedAPIMConfigService.");
+        ExtendedAPIMConfigServiceImpl extendedAPIMConfigService = new ExtendedAPIMConfigServiceImpl();
+        context.getBundleContext().registerService(APIMConfigService.class.getName(), extendedAPIMConfigService, null);
+        log.info("Activated ExtendedAPIMConfigService.");
     }
 
     /**
