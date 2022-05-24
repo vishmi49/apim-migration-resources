@@ -260,7 +260,7 @@ public class MigrateFrom18to19 extends MigrationClientBase implements MigrationC
                     GenericArtifact[] artifacts = artifactManager.getAllGenericArtifacts();
                     for (GenericArtifact artifact : artifacts) {
                         try {
-                            API api = APIUtil.getAPI(artifact, registry);
+                            API api = org.wso2.carbon.apimgt.migration.util.APIUtil.getAPI(artifact, registry);
 
                             if (api == null) {
                                 log.error("Cannot find corresponding api for registry artifact " +
@@ -1070,7 +1070,7 @@ public class MigrateFrom18to19 extends MigrationClientBase implements MigrationC
 
                 for (GenericArtifact artifact : artifacts) {
                     try {
-                        API api = APIUtil.getAPI(artifact, registry);
+                        API api = org.wso2.carbon.apimgt.migration.util.APIUtil.getAPI(artifact, registry);
 
                         APIIdentifier apiIdentifier = api.getId();
                         String apiName = apiIdentifier.getApiName();

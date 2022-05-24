@@ -65,6 +65,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
     SystemConfigurationsDAO systemConfigurationsDAO = SystemConfigurationsDAO.getInstance();
     private RegistryService registryService;
+    org.wso2.carbon.apimgt.migration.util.APIUtil apiUtil;
 
     public MigrateFrom400(String tenantArguments, String blackListTenantArguments, String tenantRange,
             RegistryService registryService, TenantManager tenantManager)
@@ -199,7 +200,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             if (artifactPath.contains("/apimgt/applicationdata/apis/")) {
                                 continue;
                             }
-                            API api = APIUtil.getAPI(artifact, registry);
+                            API api = apiUtil.getAPI(artifact, registry);
                             if (StringUtils.isNotEmpty(api.getVersionTimestamp())) {
                                 if (log.isDebugEnabled()) {
                                     log.info(
@@ -270,7 +271,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                                                 .getId().getVersion() + " from registry.");
                             }
                             // validate registry update
-                            API api = APIUtil.getAPI(artifact, registry);
+                            API api = apiUtil.getAPI(artifact, registry);
                             if (StringUtils.isEmpty(api.getVersionTimestamp())) {
                                 log.error("VersionComparable is empty for API: " + apiN.getId().getApiName()
                                         + " version: " + apiN.getId().getVersion() + " versionComparable: " + api
