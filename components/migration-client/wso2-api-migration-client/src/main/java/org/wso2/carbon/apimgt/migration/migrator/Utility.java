@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 package org.wso2.carbon.apimgt.migration.migrator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -44,16 +61,6 @@ import static org.wso2.carbon.apimgt.impl.utils.APIUtil.getTenantDomainFromTenan
 
 public class Utility {
     private static final Log log = LogFactory.getLog(Utility.class);
-    private static List<Tenant> tenantsArray;
-    private static final String MIGRATION = "Migration";
-    private static final String VERSION_3 = "3.0.0";
-    private static final String META = "Meta";
-    public static String PRE_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
-            + "migration-resources" + File.separator + "migration-scripts"+ File.separator
-            + "pre-migration-scripts" + File.separator;
-    public static String POST_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
-            + "migration-resources" + File.separator + "migration-scripts"+ File.separator
-            + "post-migration-scripts" + File.separator;
 
     public static void buildTenantList(TenantManager tenantManager, List<Tenant> tenantList, String tenantArguments)
             throws UserStoreException {
@@ -223,10 +230,10 @@ public class Utility {
         JSONArray tenantScopesArray = (JSONArray) scopesConfigTenant.get(APIConstants.REST_API_SCOPE);
         boolean isRoleUpdated = false;
         boolean isMigrated = false;
-        JSONObject metaJson = (JSONObject) tenantConf.get(MIGRATION);
+        JSONObject metaJson = (JSONObject) tenantConf.get(Constants.MIGRATION);
 
-        if (metaJson != null && metaJson.get(VERSION_3) != null) {
-            isMigrated = Boolean.parseBoolean(metaJson.get(VERSION_3).toString());
+        if (metaJson != null && metaJson.get(Constants.VERSION_3_0_0) != null) {
+            isMigrated = Boolean.parseBoolean(metaJson.get(Constants.VERSION_3_0_0).toString());
         }
 
         if (!isMigrated) {
@@ -252,9 +259,9 @@ public class Utility {
                 if (isRoleUpdated) {
                     JSONObject metaInfo = new JSONObject();
                     JSONObject migrationInfo = new JSONObject();
-                    migrationInfo.put(VERSION_3, true);
-                    metaInfo.put(MIGRATION, migrationInfo);
-                    tenantConf.put(META, metaInfo);
+                    migrationInfo.put(Constants.VERSION_3_0_0, true);
+                    metaInfo.put(Constants.MIGRATION, migrationInfo);
+                    tenantConf.put(Constants.META, metaInfo);
                 }
             } catch (UserStoreException e) {
                 String tenantDomain = getTenantDomainFromTenantId(tenantId);

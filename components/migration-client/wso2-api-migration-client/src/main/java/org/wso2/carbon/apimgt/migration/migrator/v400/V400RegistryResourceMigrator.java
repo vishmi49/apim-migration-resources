@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.wso2.carbon.apimgt.migration.migrator.v400;
 
 import com.google.gson.Gson;
@@ -32,8 +48,8 @@ import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.dto.APIInfoDTO;
-import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
+import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
 import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
@@ -71,7 +87,7 @@ import java.util.*;
 
 import static org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.ExportUtils.*;
 
-public class V400RegistryResourceMigrator extends Migrator {
+public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
     private static final Log log = LogFactory.getLog(V400RegistryResourceMigrator.class);
     private RegistryService registryService;
     List<Tenant> tenants;
@@ -88,13 +104,13 @@ public class V400RegistryResourceMigrator extends Migrator {
     protected Registry userRegistry;
 
 
-    public V400RegistryResourceMigrator() throws UserStoreException {
+    public V400RegistryResourceMigrator(String rxtDir) throws UserStoreException {
+        super(rxtDir);
         tenants = loadTenants();
         registryService = new RegistryServiceImpl();
         this.artifactSaver = ServiceReferenceHolder.getInstance().getArtifactSaver();
         this.importExportAPI = ServiceReferenceHolder.getInstance().getImportExportService();
         this.gatewayArtifactsMgtDAO = GatewayArtifactsMgtDAO.getInstance();
-
     }
     APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
     private ApiMgtDAO apiMgtDAO1 = ApiMgtDAO.getInstance();
