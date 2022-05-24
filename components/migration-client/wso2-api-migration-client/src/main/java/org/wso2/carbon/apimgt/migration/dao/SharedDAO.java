@@ -21,17 +21,19 @@ package org.wso2.carbon.apimgt.migration.dao;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.apimgt.impl.utils.APIMgtDBUtil;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
+import org.wso2.carbon.apimgt.migration.client.MigrationDBCreator;
 import org.wso2.carbon.apimgt.migration.dto.UserRoleFromPermissionDTO;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.SharedDBUtil;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * This class represent the SharedDAO.
@@ -41,6 +43,101 @@ public class SharedDAO {
     private static SharedDAO INSTANCE = null;
 
     private SharedDAO() {
+    }
+
+    public void runSQLScript(String sqlScriptPath) throws SQLException {
+        log.info("Running SQL script in " + sqlScriptPath + " started");
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        Statement statement = null;
+        try {
+            connection = SharedDBUtil.getConnection();
+            connection.setAutoCommit(false);
+            String dbType = MigrationDBCreator.getDatabaseType(connection);
+            InputStream is = new FileInputStream(sqlScriptPath);
+            List<String> sqlStatements = readSQLStatements(is, dbType);
+            for (String sqlStatement : sqlStatements) {
+                log.debug("SQL to be executed : " + sqlStatement);
+                if (Constants.DB_TYPE_ORACLE.equals(dbType)) {
+                    statement = connection.createStatement();
+                    statement.executeUpdate(sqlStatement);
+                } else {
+                    preparedStatement = connection.prepareStatement(sqlStatement);
+                    preparedStatement.execute();
+                }
+            }
+            connection.commit();
+        }  catch (Exception e) {
+            /* MigrationDBCreator extends from org.wso2.carbon.utils.dbcreator.DatabaseCreator and in the super class
+            method getDatabaseType throws generic Exception */
+            log.error("Error occurred while migrating databases", e);
+            if (connection != null) {
+                connection.rollback();
+            }
+        } finally {
+            if (statement != null) {
+                statement.close();
+            }
+            if (preparedStatement != null) {
+                preparedStatement.close();
+            }
+            if (connection != null) {
+                connection.close();
+            }
+        }
+        log.info("Running SQL script completed successfully.");
+    }
+
+    private List<String> readSQLStatements(InputStream is, String dbType) {
+        List<String> sqlStatements = new ArrayList<>();
+        try {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
+            String sqlQuery = "";
+            boolean isFoundQueryEnd = false;
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("//") || line.startsWith("--")) {
+                    continue;
+                }
+                StringTokenizer stringTokenizer = new StringTokenizer(line);
+                if (stringTokenizer.hasMoreTokens()) {
+                    String token = stringTokenizer.nextToken();
+                    if ("REM".equalsIgnoreCase(token)) {
+                        continue;
+                    }
+                }
+                if (line.contains("\\n")) {
+                    line = line.replace("\\n", "");
+                }
+                sqlQuery += ' ' + line;
+                if (line.contains(";")) {
+                    isFoundQueryEnd = true;
+                }
+                if (org.wso2.carbon.apimgt.migration.util.Constants.DB_TYPE_ORACLE.equals(dbType)) {
+                    isFoundQueryEnd = "/".equals(line.trim());
+                    sqlQuery = sqlQuery.replaceAll("/", "");
+                }
+                if (org.wso2.carbon.apimgt.migration.util.Constants.DB_TYPE_DB2.equals(dbType)) {
+                    sqlQuery = sqlQuery.replace(";", "");
+                }
+                if (isFoundQueryEnd) {
+                    if (sqlQuery.length() > 0) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("SQL to be executed : " + sqlQuery);
+                        }
+                        sqlStatements.add(sqlQuery.trim());
+                    }
+                    // Reset variables to read next SQL
+                    sqlQuery = "";
+                    isFoundQueryEnd = false;
+                }
+            }
+            bufferedReader.close();
+        }  catch (IOException e) {
+            log.error("Error while reading SQL statements from stream", e);
+        }
+        return sqlStatements;
     }
 
     public List<UserRoleFromPermissionDTO> getRoleNamesMatchingPermission(String permission, int tenantId) throws APIMigrationException {

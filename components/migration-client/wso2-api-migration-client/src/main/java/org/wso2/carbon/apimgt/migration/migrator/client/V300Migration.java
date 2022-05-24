@@ -22,22 +22,15 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
-import org.wso2.carbon.apimgt.migration.migrator.Utility;
-import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PostDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v300.PopulateScopeRoleMappingMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v300.V300RegistryResourceMigrator;
+import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.user.api.UserStoreException;
-
-import java.io.File;
 
 public class V300Migration extends VersionMigrator {
     private static final Log log = LogFactory.getLog(V300Migration.class);
-    private final String PRE_MIGRATION_SCRIPTS_PATH = Utility.PRE_MIGRATION_SCRIPT_DIR + "migration-2.6.0_to_3.0.0"
-            + File.separator;
-    private final String POST_MIGRATION_SCRIPT_REGDB_PATH = Utility.POST_MIGRATION_SCRIPT_DIR+ "reg_db" + File.separator
-            + "reg-index.sql";
 
     @Override
     public String getPreviousVersion() {
@@ -51,13 +44,13 @@ public class V300Migration extends VersionMigrator {
 
     @Override
     public void migrate() throws APIMigrationException, UserStoreException {
-        PreDBScriptMigrator v300preMigrator = new PreDBScriptMigrator(PRE_MIGRATION_SCRIPTS_PATH);
+        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
+        PreDBScriptMigrator v300preMigrator = new PreDBScriptMigrator(Constants.V300_PRE_MIGRATION_SCRIPTS_PATH);
         v300preMigrator.run();
-        RegistryResourceMigrator registryResourceMigrator = new V300RegistryResourceMigrator();
+        RegistryResourceMigrator registryResourceMigrator = new V300RegistryResourceMigrator(Constants.V300_RXT_DIR);
         registryResourceMigrator.migrate();
         PopulateScopeRoleMappingMigrator populateScopeRoleMappingMigrator = new PopulateScopeRoleMappingMigrator();
         populateScopeRoleMappingMigrator.migrate();
-        PostDBScriptMigrator v300postMigrator = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_REGDB_PATH);
-        v300postMigrator.run();
+        log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 }
