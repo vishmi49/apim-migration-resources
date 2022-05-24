@@ -9,6 +9,7 @@ import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PostDBScriptMig
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v410.V410DBDataMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v410.V410RegistryResourceMigrator;
+import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.File;
@@ -42,5 +43,9 @@ public class V410Migration extends VersionMigrator {
         postDBScriptMigratorForRegDB.run();
         PostDBScriptMigrator postDBScriptMigratorForAmDb = new PostDBScriptMigrator(POST_MIGRATION_SCRIPT_AMDB_PATH);
         postDBScriptMigratorForAmDb.run();
+        // Setting ExtendedAPIMConfigService as disabled. This extended implementation is only needed and enabled for migrations
+        // which are from before APIM 4.1. Also need to disable this for future migrations such as from APIM 4.2 to APIM 4.3.
+        APIUtil.setDisabledExtendedAPIMConfigService(true);
+        log.info("ExtendedAPIMConfigService is disabled");
     }
 }

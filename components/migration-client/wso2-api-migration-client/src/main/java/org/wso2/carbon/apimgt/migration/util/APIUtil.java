@@ -106,6 +106,15 @@ public final  class APIUtil {
     private static String hostAddress = null;
     private static final int timeoutInSeconds = 15;
     private static final int retries = 2;
+    private static boolean disabledExtendedAPIMConfigService = false;
+
+    public static boolean isDisabledExtendedAPIMConfigService() {
+        return disabledExtendedAPIMConfigService;
+    }
+
+    public static void setDisabledExtendedAPIMConfigService(boolean isDisabledExtendedAPIMConfigService) {
+        disabledExtendedAPIMConfigService = isDisabledExtendedAPIMConfigService;
+    }
 
     /**
      * To initialize the publisherRoleCache configurations, based on configurations.
