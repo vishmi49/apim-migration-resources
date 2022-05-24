@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.apimgt.migration.util;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIManagementException;
@@ -26,12 +25,9 @@ import org.wso2.carbon.apimgt.api.APIProvider;
 import org.wso2.carbon.apimgt.api.model.API;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.APIManagerFactory;
-import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.impl.utils.APIUtil;
 import org.wso2.carbon.apimgt.impl.wsdl.util.SOAPOperationBindingUtils;
-import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
-import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
@@ -324,12 +320,11 @@ public class RegistryServiceImpl implements RegistryService {
                                                                      RegistryConstants.GOVERNANCE_REGISTRY_BASE_PATH));
         // calculate resource path
         RegistryAuthorizationManager authorizationManager =
-                new RegistryAuthorizationManager(ServiceReferenceHolder.getUserRealm());
+                new RegistryAuthorizationManager(ServiceHolder.getRegistryService().getConfigSystemRegistry()
+                        .getUserRealm());
         resourcePath = authorizationManager.computePathOnMount(resourcePath);
-        org.wso2.carbon.user.api.AuthorizationManager authManager = ServiceReferenceHolder.getInstance()
-                                                                                          .getRealmService()
-                                                                                          .getTenantUserRealm(tenant.getId())
-                                                                                          .getAuthorizationManager();
+        org.wso2.carbon.user.api.AuthorizationManager authManager = ServiceHolder.getRealmService()
+                .getTenantUserRealm(tenant.getId()).getAuthorizationManager();
 
         if (registry.resourceExists(govRelativePath)) {     
             Resource resource = registry.get(govRelativePath);
@@ -456,7 +451,7 @@ public class RegistryServiceImpl implements RegistryService {
             GenericArtifactManager artifactManager = APIUtil.getArtifactManager(registry, APIConstants.API_KEY);
             boolean isResourceUpdated = false;
             boolean enableStore = Boolean.parseBoolean(artifact.getAttribute(Constants.API_OVERVIEW_ENABLE_STORE));
-            if (enableStore == false) {
+            if (!enableStore) {
                 if (log.isDebugEnabled()) {
                     log.debug("Setting " + Constants.API_OVERVIEW_ENABLE_STORE + " property of API at " + resourcePath
                             + "to true.");
