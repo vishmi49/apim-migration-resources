@@ -48,7 +48,6 @@ import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
 import org.wso2.carbon.apimgt.migration.dto.APIInfoDTO;
-import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
 import org.wso2.carbon.apimgt.migration.util.APIUtil;
