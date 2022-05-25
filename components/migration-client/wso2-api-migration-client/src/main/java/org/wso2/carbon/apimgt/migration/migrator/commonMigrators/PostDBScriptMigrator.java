@@ -31,7 +31,7 @@ public class PostDBScriptMigrator {
 
     public void run() {
         try {
-            AMDBUtil.runSQLScript(scriptPath, true);
+            AMDBUtil.runSQLScript(scriptPath, false);
         } catch (SQLException e) {
             e.printStackTrace();
         }
