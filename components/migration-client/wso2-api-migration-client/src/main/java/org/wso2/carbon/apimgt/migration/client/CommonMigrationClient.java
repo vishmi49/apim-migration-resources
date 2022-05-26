@@ -218,7 +218,7 @@ public class CommonMigrationClient extends MigrationClientBase {
                             continue;
                         }
 
-                        API api = APIUtil.getAPI(artifact, registry);
+                        API api = org.wso2.carbon.apimgt.migration.util.APIUtil.getAPI(artifact, registry);
 
                         if (Constants.preValidationService.API_ENDPOINT_VALIDATION.equals(validateStep)) {
                             validateEndpoints(api);

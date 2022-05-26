@@ -89,7 +89,7 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                             if (artifactPath.contains("/apimgt/applicationdata/apis/")) {
                                 continue;
                             }
-                            API api = APIUtil.getAPI(artifact, registry);
+                            API api = org.wso2.carbon.apimgt.migration.util.APIUtil.getAPI(artifact, registry);
                             if (StringUtils.isNotEmpty(api.getVersionTimestamp())) {
                                 if (log.isDebugEnabled()) {
                                     log.info(
@@ -160,7 +160,7 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                                                 .getId().getVersion() + " from registry.");
                             }
                             // validate registry update
-                            API api = APIUtil.getAPI(artifact, registry);
+                            API api = org.wso2.carbon.apimgt.migration.util.APIUtil.getAPI(artifact, registry);
                             if (StringUtils.isEmpty(api.getVersionTimestamp())) {
                                 log.error("VersionComparable is empty for API: " + apiN.getId().getApiName()
                                         + " version: " + apiN.getId().getVersion() + " versionComparable: " + api

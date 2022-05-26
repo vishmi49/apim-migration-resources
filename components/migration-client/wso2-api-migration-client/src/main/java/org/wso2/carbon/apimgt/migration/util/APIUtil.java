@@ -162,7 +162,8 @@ public final  class APIUtil {
             String apiName = artifact.getAttribute(APIConstants.API_OVERVIEW_NAME);
             String apiVersion = artifact.getAttribute(APIConstants.API_OVERVIEW_VERSION);
             APIIdentifier apiIdentifier = new APIIdentifier(providerName, apiName, apiVersion);
-            int apiId = ApiMgtDAO.getInstance().getAPIID(String.valueOf(apiIdentifier));
+            int apiId = org.wso2.carbon.apimgt.migration.migrator.v410.dao.ApiMgtDAO.getInstance()
+                    .getAPIID(apiIdentifier);
 
             if (apiId == -1) {
                 return null;
