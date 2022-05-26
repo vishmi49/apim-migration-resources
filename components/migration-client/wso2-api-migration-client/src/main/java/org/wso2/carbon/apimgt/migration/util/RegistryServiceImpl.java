@@ -259,7 +259,7 @@ public class RegistryServiceImpl implements RegistryService {
     public void setGovernanceRegistryResourcePermissions(String userName, String visibility, String[] roles,
                                                                 String resourcePath) throws APIManagementException {
         initAPIProvider();
-        APIUtil.setResourcePermissions(userName, visibility, roles, resourcePath);
+       // APIUtil.setResourcePermissions(userName, visibility, roles, resourcePath);
     }
 
     private void initAPIProvider() throws APIManagementException {
