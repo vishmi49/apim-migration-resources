@@ -174,12 +174,12 @@ public class ServiceHolder {
 
     public static void setArtifactSaver(ArtifactSaver artifactSaver) {
 
-        artifactSaver = artifactSaver;
+        ServiceHolder.artifactSaver = artifactSaver;
     }
 
     public static void setImportExportAPI(ImportExportAPI importExportService) {
 
-        importExportService = importExportService;
+        ServiceHolder.importExportService = importExportService;
     }
 
     public static ImportExportAPI getImportExportService() {
@@ -202,7 +202,7 @@ public class ServiceHolder {
     }
 
     public static void setOrganizationResolver(OrganizationResolver organizationResolver) {
-        organizationResolver = organizationResolver;
+        ServiceHolder.organizationResolver = organizationResolver;
     }
 
 

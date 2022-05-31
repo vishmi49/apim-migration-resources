@@ -59,6 +59,9 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  * @scr.reference name="tenant.indexloader"
  * interface="org.wso2.carbon.registry.indexing.service.TenantIndexingLoader" cardinality="1..1" policy="dynamic"
  * bind="setIndexLoader" unbind="unsetIndexLoader"
+ * @scr.reference name="import.export.implementation"
+ * interface="org.wso2.carbon.apimgt.impl.importexport.ImportExportAPI" policy="dynamic"
+ * bind="setImportExportService" unbind="unsetImportExportService"
  */
 
 @SuppressWarnings("unused")
