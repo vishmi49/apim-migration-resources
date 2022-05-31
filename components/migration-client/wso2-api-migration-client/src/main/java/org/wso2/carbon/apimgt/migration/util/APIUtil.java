@@ -1750,13 +1750,15 @@ public final  class APIUtil {
      */
     public static Map<String, Scope> getAPIScopes(String id, String organization)
             throws APIManagementException {
-        String currentApiUuid;
-        APIRevision apiRevision = ApiMgtDAO.getInstance().checkAPIUUIDIsARevisionUUID(id);
-        if (apiRevision != null && apiRevision.getApiUUID() != null) {
-            currentApiUuid = apiRevision.getApiUUID();
-        } else {
-            currentApiUuid = id;
+        String currentApiUuid = id;
+        String migrateFromVersion = System.getProperty(Constants.ARG_MIGRATE_FROM_VERSION);
+        if ("4.0.0".equals(migrateFromVersion)) {
+            APIRevision apiRevision = ApiMgtDAO.getInstance().checkAPIUUIDIsARevisionUUID(id);
+            if (apiRevision != null && apiRevision.getApiUUID() != null) {
+                currentApiUuid = apiRevision.getApiUUID();
+            }
         }
+
         Set<String> scopeKeys = ApiMgtDAO.getInstance().getAPIScopeKeys(currentApiUuid);
         return getScopes(scopeKeys, organization);
     }
