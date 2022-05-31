@@ -252,10 +252,10 @@ public final  class APIUtil {
             api.setEnableSchemaValidation(Boolean.parseBoolean(
                     artifact.getAttribute(APIConstants.API_OVERVIEW_ENABLE_JSON_SCHEMA)));
 
-            Map<String, Scope> scopeToKeyMapping = getAPIScopes(String.valueOf(api.getId()), tenantDomainName);
+            Map<String, Scope> scopeToKeyMapping = getAPIScopes(artifact.getId(), tenantDomainName);
             api.setScopes(new LinkedHashSet<>(scopeToKeyMapping.values()));
 
-            Set<URITemplate> uriTemplates = ApiMgtDAO.getInstance().getURITemplatesOfAPI(String.valueOf(api.getId()));
+            Set<URITemplate> uriTemplates = ApiMgtDAO.getInstance().getURITemplatesOfAPI(artifact.getId());
 
             for (URITemplate uriTemplate : uriTemplates) {
                 List<Scope> oldTemplateScopes = uriTemplate.retrieveAllScopes();
@@ -1743,20 +1743,22 @@ public final  class APIUtil {
     /**
      * Get scopes attached to the API.
      *
-     * @param id   API uuid
+     * @param id   API identifier string
      * @param organization Organization
      * @return Scope key to Scope object mapping
      * @throws APIManagementException if an error occurs while getting scope attached to API
      */
     public static Map<String, Scope> getAPIScopes(String id, String organization)
             throws APIManagementException {
-        String currentApiUuid;
-        APIRevision apiRevision = ApiMgtDAO.getInstance().checkAPIUUIDIsARevisionUUID(id);
-        if (apiRevision != null && apiRevision.getApiUUID() != null) {
-            currentApiUuid = apiRevision.getApiUUID();
-        } else {
-            currentApiUuid = id;
+        String currentApiUuid = id;
+        String migrateFromVersion = System.getProperty(Constants.ARG_MIGRATE_FROM_VERSION);
+        if (Constants.VERSION_4_0_0.equals(migrateFromVersion)) {
+            APIRevision apiRevision = ApiMgtDAO.getInstance().checkAPIUUIDIsARevisionUUID(id);
+            if (apiRevision != null && apiRevision.getApiUUID() != null) {
+                currentApiUuid = apiRevision.getApiUUID();
+            }
         }
+
         Set<String> scopeKeys = ApiMgtDAO.getInstance().getAPIScopeKeys(currentApiUuid);
         return getScopes(scopeKeys, organization);
     }
