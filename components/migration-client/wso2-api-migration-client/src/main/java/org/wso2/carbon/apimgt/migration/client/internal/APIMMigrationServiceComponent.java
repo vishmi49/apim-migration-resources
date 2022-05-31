@@ -56,6 +56,9 @@ import org.wso2.carbon.utils.ConfigurationContextService;
  * interface="org.wso2.carbon.identity.application.mgt.ApplicationManagementService"
  * cardinality="1..1" policy="dynamic" bind="setApplicationManagementService"
  * unbind="unsetApplicationManagementService"
+ * @scr.reference name="tenant.indexloader"
+ * interface="org.wso2.carbon.registry.indexing.service.TenantIndexingLoader" cardinality="1..1" policy="dynamic"
+ * bind="setIndexLoader" unbind="unsetIndexLoader"
  */
 
 @SuppressWarnings("unused")

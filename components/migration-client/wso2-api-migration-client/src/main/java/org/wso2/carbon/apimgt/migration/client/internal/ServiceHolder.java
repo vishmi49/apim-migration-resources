@@ -194,7 +194,7 @@ public class ServiceHolder {
 
     public static void setIndexLoaderService(TenantIndexingLoader indexLoader) {
 
-        indexLoader = indexLoader;
+        ServiceHolder.indexLoader = indexLoader;
     }
 
     public static OrganizationResolver getOrganizationResolver() {
