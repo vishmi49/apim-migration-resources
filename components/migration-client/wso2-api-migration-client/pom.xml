@@ -235,7 +235,7 @@
         <dependency>
             <groupId>org.wso2.carbon.apimgt</groupId>
             <artifactId>org.wso2.carbon.apimgt.persistence</artifactId>
-            <version>9.20.75-SNAPSHOT</version>
+            <version>9.20.74</version>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
@@ -245,7 +245,7 @@
         <dependency>
             <groupId>org.wso2.carbon.apimgt</groupId>
             <artifactId>org.wso2.carbon.apimgt.rest.api.common</artifactId>
-            <version>9.20.75-SNAPSHOT</version>
+            <version>9.20.74</version>
         </dependency>
 
     </dependencies>
