@@ -689,6 +689,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
 
         String organization = tenant.getDomain();
         APIProductIdentifier apiProductIdentifier = APIUtil.getAPIProductIdentifierFromUUID(apiId);
+        apiProductIdentifier.setUUID(apiId);
         APIProduct product = apiProvider.getAPIProductbyUUID(revisionUUID, organization);
         APIProductDTO apiProductDtoToReturn = APIMappingUtil.fromAPIProducttoDTO(product);
         return exportApiProduct(apiProvider, apiProductIdentifier, apiProductDtoToReturn, tenant, format,
