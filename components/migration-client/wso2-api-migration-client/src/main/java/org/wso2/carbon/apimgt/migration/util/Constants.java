@@ -483,4 +483,6 @@ public class Constants {
             + "ON ARSM.URL_MAPPING_ID = AUM.URL_MAPPING_ID "
             + "WHERE AUM.API_ID IN ( $paramList ) AND AUM.REVISION_UUID IS NULL";
 
+    public static final String DEFAULT_ROLES_CONFIG = "DefaultRoles";
+
 }

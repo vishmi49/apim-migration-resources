@@ -76,6 +76,7 @@ public class V410DBDataMigrator extends Migrator {
 
     public void migrateTenantConfToDB() throws APIMigrationException {
         for (Tenant tenant : tenants) {
+            V410ScopeMigrator.loadAndSyncTenantConf(tenant.getId());
             addTenantConfToDB(tenant);
         }
     }
