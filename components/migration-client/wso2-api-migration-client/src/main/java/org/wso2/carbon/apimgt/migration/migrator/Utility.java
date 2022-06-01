@@ -148,6 +148,12 @@ public class Utility {
 
         return (JSONObject) tenantConf.get(APIConstants.REST_API_ROLE_MAPPINGS_CONFIG);
     }
+
+    private static JSONObject getDefaultRolesFromTenantConfig(JSONObject tenantConf) {
+
+        return (JSONObject) tenantConf.get(Constants.DEFAULT_ROLES_CONFIG);
+    }
+
     /**
      * Returns the REST API scopes JSONObject from the tenant-conf.json in the file system
      *
@@ -210,6 +216,37 @@ public class Utility {
     }
 
     /**
+     * Returns the DefaultRoles config JSONObject from the tenant-conf.json in the file system
+     *
+     * @return DefaultRoles JSONObject from the tenant-conf.json in the file system
+     * @throws APIManagementException when error occurred while retrieving DefaultRoles config.
+     */
+    private static JSONObject getDefaultRolesConfigFromFileSystem() throws APIMigrationException {
+
+        try {
+            byte[] tenantConfData = getTenantConfFromFile();
+            String tenantConfDataStr = new String(tenantConfData, Charset.defaultCharset());
+            JSONParser parser = new JSONParser();
+            JSONObject tenantConfJson = (JSONObject) parser.parse(tenantConfDataStr);
+            if (tenantConfJson == null) {
+                throw new APIMigrationException("tenant-conf.json (in file system) content cannot be null");
+            }
+            JSONObject defaultRoles = getDefaultRolesFromTenantConfig(tenantConfJson);
+            if (defaultRoles == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("DefaultRoles are not defined in the tenant-conf.json in file system");
+                }
+            }
+            return defaultRoles;
+        } catch (IOException e) {
+            throw new APIMigrationException("Error while reading tenant conf file content from file system", e);
+        } catch (ParseException e) {
+            throw new APIMigrationException("ParseException thrown when parsing tenant config json from string " +
+                    "content", e);
+        }
+    }
+
+    /**
      * Migrate the newly added scopes to the tenant-conf which is already in the registry identified with tenantId and
      * its byte content is returned. If there were no changes done, an empty Optional will be returned.
      *
@@ -227,6 +264,7 @@ public class Utility {
         Map<String, String> scopesTenant = APIUtil.getRESTAPIScopesFromConfig(scopesConfigTenant,
                 roleMappingConfigTenant);
         Map<String, String> scopesLocal = APIUtil.getRESTAPIScopesFromConfig(scopeConfigLocal, roleMappingConfigLocal);
+        JSONObject defaultRolesLocal = getDefaultRolesConfigFromFileSystem();
         JSONArray tenantScopesArray = (JSONArray) scopesConfigTenant.get(APIConstants.REST_API_SCOPE);
         boolean isRoleUpdated = false;
         boolean isMigrated = false;
@@ -238,6 +276,9 @@ public class Utility {
 
         if (!isMigrated) {
             try {
+                //Update default roles from file system
+                tenantConf.put(Constants.DEFAULT_ROLES_CONFIG, defaultRolesLocal);
+
                 //Get admin role name of the current domain
                 String adminRoleName = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
                         .getRealmConfiguration().getAdminRoleName();
