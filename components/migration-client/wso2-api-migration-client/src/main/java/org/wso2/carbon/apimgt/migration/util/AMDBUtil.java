@@ -94,9 +94,19 @@ public class AMDBUtil {
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
             String sqlQuery = "";
             boolean isFoundQueryEnd = false;
+            boolean isProcedure = false;
+
             String line;
             while ((line = bufferedReader.readLine()) != null) {
                 line = line.trim();
+                if (line.contains("Start of Procedure")) {
+                    isProcedure = true;
+                    continue;
+                }
+                if (line.contains("End of Procedure")) {
+                    isProcedure = false;
+                    isFoundQueryEnd = true;
+                }
                 if (line.startsWith("//") || line.startsWith("--")) {
                     continue;
                 }
@@ -107,11 +117,14 @@ public class AMDBUtil {
                         continue;
                     }
                 }
-                if (line.contains("\\n")) {
+                if (!isProcedure && line.contains("\\n")) {
                     line = line.replace("\\n", "");
                 }
-                sqlQuery += ' ' + line;
-                if (line.contains(";")) {
+
+                if (!line.contains("End of Procedure")) {
+                    sqlQuery += ' ' + line;
+                }
+                if (!isProcedure && line.contains(";")) {
                     isFoundQueryEnd = true;
                 }
                 if (org.wso2.carbon.apimgt.migration.util.Constants.DB_TYPE_ORACLE.equals(dbType)) {

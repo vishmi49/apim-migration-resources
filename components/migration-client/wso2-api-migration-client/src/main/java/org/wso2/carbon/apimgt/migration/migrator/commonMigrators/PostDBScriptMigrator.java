@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.apimgt.migration.migrator.commonMigrators;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.util.AMDBUtil;
 
 import java.sql.SQLException;
@@ -28,12 +30,13 @@ public class PostDBScriptMigrator {
     public PostDBScriptMigrator(String scriptPath) {
         this.scriptPath = scriptPath;
     }
+    private static final Log log = LogFactory.getLog(PreDBScriptMigrator.class);
 
     public void run() {
         try {
             AMDBUtil.runSQLScript(scriptPath, false);
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Error while running AM_DB post migration SQL scripts ", e);
         }
     }
 }
