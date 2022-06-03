@@ -83,7 +83,7 @@ BEGIN
     NEW.TIME_STAMP= now();
     RETURN NEW;
 END;
-$$ LANGUAGE 'plpgsql' VOLATILE;
+$$ LANGUAGE plpgsql;
 --<![CDATA[End of Procedure]]>--
 
 CREATE TRIGGER TIME_STAMP AFTER UPDATE ON AM_GW_API_ARTIFACTS FOR EACH ROW EXECUTE PROCEDURE  update_modified_column();
