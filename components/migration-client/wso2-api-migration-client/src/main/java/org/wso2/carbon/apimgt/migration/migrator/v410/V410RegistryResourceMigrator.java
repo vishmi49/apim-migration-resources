@@ -172,13 +172,14 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                             }
                         }
                         try {
-                            apiMgtDAO.populateApiVersionTimestamp(versionedAPIList);
+                            apiMgtDAO.populateApiVersionTimestamp(versionedAPIList, tenant.getId(), tenant.getDomain());
                         } catch (APIMigrationException e) {
                             throw new APIMigrationException("Exception while populating versionComparable for api "
                                     + apiName + " tenant: " + tenant.getDomain() + "at database");
                         }
                     }
-                    log.info("Successfully migrated data for api rxts to include versionComparable..........");
+                    log.info("Successfully migrated data for api rxts to include versionComparable.......... tenant:"
+                            + tenant.getId() + '(' + tenant.getDomain() + ')');
                 } else {
                     if (log.isDebugEnabled()) {
                         log.debug("No api artifacts found in registry for tenant " + tenant.getId() + '(' + tenant

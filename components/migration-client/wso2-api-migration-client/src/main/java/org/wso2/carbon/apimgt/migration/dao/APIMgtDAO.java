@@ -1284,7 +1284,7 @@ public class APIMgtDAO {
      *
      * @throws APIMigrationException
      */
-    public void populateApiVersionTimestamp(List<API> versionedAPIList) throws APIMigrationException {
+    public void populateApiVersionTimestamp(List<API> versionedAPIList, int tenantId, String tenantDomain) throws APIMigrationException {
 
         try (Connection conn = APIMgtDBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -1294,11 +1294,12 @@ public class APIMgtDAO {
                     ps.setString(2, api.getUuid());
                     ps.addBatch();
                     log.info("Persisting version timestamp: " + api.getVersionTimestamp() + " of "
-                            + api.getId().getApiName() + " version: " + api.getId().getVersion());
+                            + api.getId().getApiName() + " version: " + api.getId().getVersion() + " in "
+                            + tenantId + '(' + tenantDomain + ')');
                 }
                 ps.executeBatch();
                 conn.commit();
-                log.info("Version timestamps are persisted in the db. APIName; " +
+                log.info("Version timestamps are persisted in the db. API: " +
                         versionedAPIList.get(0).getId().getApiName());
             } catch (SQLException e) {
                 conn.rollback();
