@@ -283,7 +283,7 @@ public class MigrateFrom400 extends MigrationClientBase implements MigrationClie
                             }
                         }
                         try {
-                            apiMgtDAO.populateApiVersionTimestamp(versionedAPIList);
+                            apiMgtDAO.populateApiVersionTimestamp(versionedAPIList, tenant.getId(), tenant.getDomain());
                         } catch (APIMigrationException e) {
                             throw new APIMigrationException("Exception while populating versionComparable for api "
                                     + apiName + " tenant: " + tenant.getDomain() + "at database");
