@@ -22,6 +22,7 @@ import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.PreDBScriptMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.commonMigrators.RegistryResourceMigrator;
+import org.wso2.carbon.apimgt.migration.migrator.v320.IdentityScopeMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v320.SPMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v320.ScopeMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v320.V320RegistryResourceMigrator;
@@ -52,7 +53,9 @@ public class V320Migration extends VersionMigrator {
         scopeMigrator.migrate();
         SPMigrator spMigrator = new SPMigrator();
         spMigrator.migrate();
-        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
+        IdentityScopeMigrator identityScopeMigrator = new IdentityScopeMigrator();
+        identityScopeMigrator.migrate();
+        log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 
 
