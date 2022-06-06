@@ -52,35 +52,11 @@ ALTER TABLE AM_GRAPHQL_COMPLEXITY ADD REVISION_UUID VARCHAR(256)
 /
 ALTER TABLE AM_API_PRODUCT_MAPPING ADD REVISION_UUID VARCHAR(256)
 /
-
-declare
-    c int;
-begin
-    select count(*) into c from user_tables where table_name = upper('AM_GW_API_DEPLOYMENTS');
-    if c = 1 then
-          execute immediate 'drop table AM_GW_API_DEPLOYMENTS';
-    end if;
-end;
+DROP TABLE AM_GW_API_DEPLOYMENTS
 /
-
-declare
-    c int;
-begin
-    select count(*) into c from user_tables where table_name = upper('AM_GW_API_ARTIFACTS');
-    if c = 1 then
-              execute immediate 'drop table AM_GW_API_ARTIFACTS';
-    end if;
-end;
+DROP TABLE AM_GW_API_ARTIFACTS
 /
-
-declare
-c int;
-begin
-    select count(*) into c from user_tables where table_name = upper('AM_GW_PUBLISHED_API_DETAILS');
-    if c = 1 then
-                  execute immediate 'drop table AM_GW_PUBLISHED_API_DETAILS';
-    end if;
-end;
+DROP TABLE AM_GW_PUBLISHED_API_DETAILS
 /
 
 CREATE TABLE AM_GW_PUBLISHED_API_DETAILS (
