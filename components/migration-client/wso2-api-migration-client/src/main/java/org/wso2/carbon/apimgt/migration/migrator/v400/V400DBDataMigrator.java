@@ -171,6 +171,8 @@ public class V400DBDataMigrator extends Migrator {
 
         for (Tenant tenant : tenants) {
             //Add tenant specific resident key manager with uuids to the AM_KEY_MANAGER table
+            log.info("Adding default key manager and updating key mappings for tenant: "
+                    + tenant.getId() + "(" + tenant.getDomain() + ")");
             addDefaultKM(apiMgtDAO, tenant.getDomain());
             apiMgtDAO.replaceKeyMappingKMNamebyUUID(tenant);
             apiMgtDAO.replaceRegistrationKMNamebyUUID(tenant);

@@ -194,7 +194,7 @@ public class APIMgtDAO {
 
     private static String GET_API_ID_OF_WS_APIS = "SELECT API_ID FROM AM_API WHERE API_TYPE = 'WS'";
     private static final String ADD_KEY_MANAGER =
-            " INSERT INTO AM_KEY_MANAGER (UUID,NAME,DESCRIPTION,TYPE,TENANT_DOMAIN,ORGANIZATION,ENABLED," +
+            " INSERT INTO AM_KEY_MANAGER (UUID,NAME,DESCRIPTION,TYPE,CONFIGURATION,TENANT_DOMAIN,ENABLED," +
                     "DISPLAY_NAME) VALUES (?,?,?,?,?,?,?,?)";
 
     private static String UPDATE_API_CATEGORY_ORGANIZATION =
@@ -1421,6 +1421,10 @@ public class APIMgtDAO {
                                 keyManagerConfigurationDTO.getName() + " in tenant " +
                                 keyManagerConfigurationDTO.getTenantDomain(), e);
                     }
+                } else {
+                    throw new APIMigrationException("Error while Storing key manager configuration with name " +
+                            keyManagerConfigurationDTO.getName() + " in tenant " +
+                            keyManagerConfigurationDTO.getTenantDomain(), e);
                 }
             }
         } catch (SQLException | IOException e) {
