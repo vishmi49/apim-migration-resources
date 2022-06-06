@@ -233,7 +233,7 @@ DECLARE
   command      VARCHAR2(200);
   databasename VARCHAR2(100);
 BEGIN
-  
+
   SELECT sys_context('userenv', 'current_schema')
   INTO databasename
   FROM dual;
