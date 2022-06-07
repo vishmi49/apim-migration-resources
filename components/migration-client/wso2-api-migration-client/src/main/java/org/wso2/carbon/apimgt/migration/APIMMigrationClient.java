@@ -46,13 +46,11 @@ public class APIMMigrationClient implements ServerStartupObserver {
         } catch (Exception e) {
             log.error("Error occurred while initializing DB Util ", e);
         }
+
         String migrateFromVersion = System.getProperty(Constants.ARG_MIGRATE_FROM_VERSION);
         String migratedVersion = System.getProperty(Constants.ARG_MIGRATED_VERSION);
         String preMigrationStep = System.getProperty(Constants.PRE_MIGRATION_STEP);
-        VersionMigrationHolder versionMigrationHolder = VersionMigrationHolder.getInstance();
-        List<VersionMigrator> versionMigrationList = versionMigrationHolder.getVersionMigrationList();
 
-        boolean isMigrationStarted = false;
         if (preMigrationStep != null) {
             ValidationHandler validationHandler = new ValidationHandler(migrateFromVersion, migratedVersion);
             try {
@@ -61,40 +59,35 @@ public class APIMMigrationClient implements ServerStartupObserver {
                 log.error("Error while running the pre-migration validation", e);
             }
         } else {
-            for (VersionMigrator versionMigration : versionMigrationList) {
-                if (!isMigrationStarted && versionMigration.getPreviousVersion().equals(migrateFromVersion)) {
-                    try {
-                        versionMigration.migrate();
-                    } catch (APIMigrationException e) {
-                        e.printStackTrace();
-                    } catch (UserStoreException e) {
-                        e.printStackTrace();
-                    }
-                    isMigrationStarted = true;
-                    migrateFromVersion = versionMigration.getCurrentVersion();
-                    if (versionMigration.getCurrentVersion().equals(migratedVersion)) {
-                        break;
-                    }
-                    continue;
-                }
-                if (isMigrationStarted) {
-                    try {
-                        versionMigration.migrate();
-                    } catch (APIMigrationException e) {
-                        e.printStackTrace();
-                    } catch (UserStoreException e) {
-                        e.printStackTrace();
-                    }
-                    if (versionMigration.getCurrentVersion().equals(migrateFromVersion)) {
-                        break;
-                    }
-                }
+            try {
+                executeMigration(migrateFromVersion, migratedVersion);
+            } catch (APIMigrationException e) {
+                log.error("API Management exception occurred while migrating", e);
             }
             ArtifactReIndexingMigrator artifactReIndexingMigrator = new ArtifactReIndexingMigrator();
             try {
                 artifactReIndexingMigrator.migrate();
             } catch (APIMigrationException e) {
                 log.error("Error running the artifact re-indexing script", e);
+            }
+        }
+    }
+
+    private void executeMigration(String migrateFromVersion, String migratedVersion) throws APIMigrationException {
+        VersionMigrationHolder versionMigrationHolder = VersionMigrationHolder.getInstance();
+        List<VersionMigrator> versionMigrationList = versionMigrationHolder.getVersionMigrationList();
+        for (VersionMigrator versionMigration : versionMigrationList) {
+            if (versionMigration.getPreviousVersion().equals(migrateFromVersion)) {
+                try {
+                    versionMigration.migrate();
+                } catch (APIMigrationException | UserStoreException e) {
+                    throw new APIMigrationException("Error while executing migration from API-Manager " +
+                            migrateFromVersion + ". ", e);
+                }
+                migrateFromVersion = versionMigration.getCurrentVersion();
+                if (versionMigration.getCurrentVersion().equals(migratedVersion)) {
+                    break;
+                }
             }
         }
     }
