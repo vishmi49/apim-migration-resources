@@ -402,7 +402,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             revisionId = apiMgtDAO1.getMostRecentRevisionId(apiRevision.getApiUUID()) + 1;
         } catch (APIManagementException e) {
-            log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID());
+            log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID()
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         apiRevision.setId(revisionId);
         APIIdentifier apiId;
@@ -410,38 +411,45 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
             apiId = APIUtil.getAPIIdentifierFromUUID(apiRevision.getApiUUID());
         } catch (APIManagementException e) {
             throw new APIMigrationException(
-                    "Couldn't retrieve API Identifier for from revision UUID: " + apiRevision.getApiUUID());
+                    "Couldn't retrieve API Identifier for from revision UUID: " + apiRevision.getApiUUID()
+                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         if (apiId == null) {
             throw new APIMigrationException(
-                    "Couldn't retrieve existing API with API UUID: " + apiRevision.getApiUUID());
+                    "Couldn't retrieve existing API with API UUID: " + apiRevision.getApiUUID()
+                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         apiId.setUuid(apiRevision.getApiUUID());
         String revisionUUID;
         try {
             revisionUUID = addAPIRevisionToRegistry(apiId.getUUID(), revisionId, tenant.getDomain(), artifactManager);
         } catch (APIPersistenceException e) {
-            throw new APIMigrationException("Failed to add revision registry artifacts for API: " + apiId.getUUID());
+            throw new APIMigrationException("Failed to add revision registry artifacts for API: " + apiId.getUUID()
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         if (StringUtils.isEmpty(revisionUUID)) {
             throw new APIMigrationException(
-                    "Failed to retrieve revision from registry artifacts for API: " + apiId.getUUID());
+                    "Failed to retrieve revision from registry artifacts for API: " + apiId.getUUID()
+                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } else {
-            log.info("successfully added revision: " + revisionUUID + " to registry for API: " + apiId.getUUID());
+            log.info("successfully added revision: " + revisionUUID + " to registry for API: " + apiId.getUUID()
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
 
         apiRevision.setRevisionUUID(revisionUUID);
 
         try {
             apiMgtDAO1.addAPIRevision(apiRevision);
-            log.info("successfully added revision: " + revisionUUID + " to database for API: " + apiId.getUUID());
+            log.info("successfully added revision: " + revisionUUID + " to database for API: " + apiId.getUUID()
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } catch (APIManagementException e) {
             throw new APIMigrationException(
                     "Failed to add revision to database artifacts for API: " + apiId.getUUID() + " revision uuid: "
-                            + revisionUUID);
+                            + revisionUUID + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
 
-        log.info ("Storing revision artifacts of API Product for gateway artifacts and external server...");
+        log.info("Storing revision artifacts of API: " + apiRevision.getApiUUID() + " into gateway artifacts "
+                + "and external server for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
 
         try {
             File artifact = importExportAPI
@@ -459,9 +467,11 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiId.getApiName(), apiId.getVersion(),
                         apiRevision.getRevisionUUID(), organization, artifact);
             }
-            log.info("successfully added revision artifact of API: " + apiId.getUUID());
+            log.info("successfully added revision artifact of API: " + apiId.getUUID()
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } catch (APIImportExportException | ArtifactSynchronizerException | APIManagementException e) {
-            throw new APIMigrationException("Error while Store the Revision Artifact for API: " + apiId.getUUID(), e);
+            throw new APIMigrationException("Error while Store the Revision Artifact for API: " + apiId.getUUID()
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
         }
         return revisionUUID;
     }
@@ -475,7 +485,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             revisionId = apiMgtDAO1.getMostRecentRevisionId(apiRevision.getApiUUID()) + 1;
         } catch (APIManagementException e) {
-            log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID());
+            log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID()
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         apiRevision.setId(revisionId);
         APIProductIdentifier apiProductIdentifier;
@@ -484,12 +495,14 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
             apiProductIdentifier = APIUtil.getAPIProductIdentifierFromUUID(apiRevision.getApiUUID());
         } catch (APIManagementException e) {
             throw new APIMigrationException(
-                    "Couldn't retrieve APIProduct identifier for API product: " + apiRevision.getApiUUID());
+                    "Couldn't retrieve APIProduct identifier for API product: " + apiRevision.getApiUUID()
+                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
 
         if (apiProductIdentifier == null) {
             throw new APIMigrationException(
-                    "Couldn't retrieve existing API Product with ID: " + apiRevision.getApiUUID());
+                    "Couldn't retrieve existing API Product with ID: " + apiRevision.getApiUUID()
+                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         apiProductIdentifier.setUUID(apiRevision.getApiUUID());
         String revisionUUID;
@@ -498,16 +511,19 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                     artifactManager);
         } catch (APIPersistenceException e) {
             throw new APIMigrationException(
-                    "Failed to add revision registry artifacts for API Product: " + apiRevision.getApiUUID());
+                    "Failed to add revision registry artifacts for API Product: " + apiRevision.getApiUUID()
+                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
 
         if (StringUtils.isEmpty(revisionUUID)) {
             throw new APIMigrationException(
                     "Failed to retrieve revision registry artifacts for API Product uuid: " + apiRevision.getApiUUID()
-                            + " revision uuid: " + revisionUUID);
+                            + " revision uuid: " + revisionUUID + "...for tenant " + tenant.getId()
+                            + '(' + tenant.getDomain() + ')');
         } else {
             log.info("successfully added revision: " + revisionUUID + " to registry for API Product: "
-                    + apiProductIdentifier.getUUID());
+                    + apiProductIdentifier.getUUID() + "...for tenant " + tenant.getId()
+                    + '(' + tenant.getDomain() + ')');
             apiRevision.setRevisionUUID(revisionUUID);
         }
 
@@ -515,14 +531,18 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
             org.wso2.carbon.apimgt.migration.
                     migrator.v400.dao.ApiMgtDAO.getInstance().addAPIProductRevision(apiRevision);
             log.info("successfully added revision: " + revisionUUID + " to database for API Product: "
-                    + apiProductIdentifier.getUUID());
+                    + apiProductIdentifier.getUUID() + " for tenant " + tenant.getId() + '('
+                    + tenant.getDomain() + ')');
         } catch (APIManagementException e) {
             throw new APIMigrationException(
                     "Failed to add API revision uuid: " + revisionUUID + " " + "for API Product : "
-                            + apiProductIdentifier.getUUID());
+                            + apiProductIdentifier.getUUID() + " for tenant " + tenant.getId()
+                            + '(' + tenant.getDomain() + ')');
         }
 
-        log.info ("Storing revision artifacts of API Product for gateway artifacts and external server...");
+        log.info("Storing revision artifacts of API Product: " + apiRevision.getApiUUID() +
+                " into gateway artifacts and external server for tenant " + tenant.getId() +
+                '(' + tenant.getDomain() + ')');
 
         // Storing revision artifacts of API Product for gateway artifacts and external server
         try {
@@ -538,10 +558,12 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiProductIdentifier.getName(),
                         apiProductIdentifier.getVersion(), apiRevision.getRevisionUUID(), organization, artifact);
             }
-            log.info("successfully added revision artifact of API Product: " + apiProductIdentifier.getUUID());
+            log.info("successfully added revision artifact of API Product: " + apiProductIdentifier.getUUID()
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } catch (APIImportExportException | ArtifactSynchronizerException | APIManagementException e) {
             throw new APIMigrationException(
-                    "Error while Store the Revision Artifact for API product: " + apiProductIdentifier.getUUID(), e);
+                    "Error while Store the Revision Artifact for API product: " + apiProductIdentifier.getUUID()
+                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
         }
         return revisionUUID;
     }

@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS AM_GW_API_ARTIFACTS (
   FOREIGN KEY (API_ID) REFERENCES AM_GW_PUBLISHED_API_DETAILS(API_ID) ON UPDATE CASCADE ON DELETE NO ACTION
 );
 
+--<![CDATA[Start of Procedure]]>--
 CREATE OR REPLACE FUNCTION update_modified_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -40,18 +41,21 @@ BEGIN
     RETURN NEW;
 END;
 $$ language 'plpgsql';
+--<![CDATA[End of Procedure]]>--
 
 CREATE TRIGGER TIME_STAMP AFTER UPDATE ON AM_GW_API_ARTIFACTS FOR EACH ROW EXECUTE PROCEDURE  update_modified_column();
 
+
+--<![CDATA[Start of Procedure]]>--
 DO $$ DECLARE con_name varchar(200);
 BEGIN
 SELECT 'ALTER TABLE AM_APPLICATION_REGISTRATION DROP CONSTRAINT ' || tc .constraint_name || ';' INTO con_name
 FROM information_schema.table_constraints AS tc
 JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name
 WHERE constraint_type = 'UNIQUE' AND tc.table_name = 'am_application_registration' AND kcu.column_name = 'token_type';
-
 EXECUTE con_name;
 END $$;
+--<![CDATA[End of Procedure]]>--
 
 ALTER TABLE AM_APPLICATION_REGISTRATION
     ADD KEY_MANAGER VARCHAR(255) DEFAULT 'Resident Key Manager',
@@ -64,6 +68,7 @@ ALTER TABLE AM_APPLICATION_KEY_MAPPING
     ADD APP_INFO BYTEA NULL,
     ADD CONSTRAINT application_key_unique UNIQUE(APPLICATION_ID,KEY_TYPE,KEY_MANAGER);
 
+--<![CDATA[Start of Procedure]]>--
 DO $$ DECLARE con_name varchar(200);
 BEGIN
 SELECT 'ALTER TABLE AM_APPLICATION_KEY_MAPPING DROP CONSTRAINT ' || tc .constraint_name || ';' INTO con_name
@@ -72,6 +77,7 @@ JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.cons
 WHERE constraint_type = 'PRIMARY KEY' AND tc.table_name = 'am_application_key_mapping';
 EXECUTE con_name;
 END $$;
+--<![CDATA[End of Procedure]]>--
 
 ALTER TABLE AM_WORKFLOWS
     ADD WF_METADATA BYTEA NULL,
@@ -98,6 +104,7 @@ CREATE TABLE IF NOT EXISTS AM_SHARED_SCOPE (
      PRIMARY KEY (UUID)
 );
 
+--<![CDATA[Start of Procedure]]>--
 DO $$ DECLARE con_name varchar(200);
 BEGIN SELECT 'ALTER TABLE IDN_OAUTH2_RESOURCE_SCOPE DROP CONSTRAINT ' || tc .constraint_name || ';' INTO con_name
 FROM information_schema.table_constraints AS tc
@@ -106,6 +113,7 @@ JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = 
 WHERE constraint_type = 'PRIMARY KEY' AND tc.table_name = 'IDN_OAUTH2_RESOURCE_SCOPE';
 EXECUTE con_name;
 END $$;
+--<![CDATA[End of Procedure]]>--
 
 DROP TABLE IF EXISTS AM_TENANT_THEMES;
 CREATE TABLE IF NOT EXISTS AM_TENANT_THEMES (
