@@ -62,7 +62,7 @@ public class APIMMigrationClient implements ServerStartupObserver {
             try {
                 executeMigration(migrateFromVersion, migratedVersion);
             } catch (APIMigrationException e) {
-                log.error("API Management exception occurred while migrating", e);
+                log.error("API Migration exception occurred while migrating", e);
             }
             ArtifactReIndexingMigrator artifactReIndexingMigrator = new ArtifactReIndexingMigrator();
             try {
