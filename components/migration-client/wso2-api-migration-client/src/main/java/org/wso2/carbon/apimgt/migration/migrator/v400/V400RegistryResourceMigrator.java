@@ -430,7 +430,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         if (StringUtils.isEmpty(revisionUUID)) {
             throw new APIMigrationException(
                     "Failed to retrieve revision from registry artifacts for API: " + apiId.getUUID()
-                            + " tenant:" + organization);
+                            + "...for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } else {
             log.info("successfully added revision: " + revisionUUID + " to registry for API: " + apiId.getUUID()
                     + "...for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
@@ -467,7 +467,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiId.getApiName(), apiId.getVersion(),
                         apiRevision.getRevisionUUID(), organization, artifact);
             }
-            log.info("successfully added revision artifact of API: " + apiId.getUUID() + " tenant:" + organization);
+            log.info("successfully added revision artifact of API: " + apiId.getUUID()
+                    + "...for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } catch (APIImportExportException | ArtifactSynchronizerException | APIManagementException e) {
             throw new APIMigrationException("Error while Store the Revision Artifact for API: " + apiId.getUUID()
                     + "...for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
