@@ -484,5 +484,6 @@ public class Constants {
             + "WHERE AUM.API_ID IN ( $paramList ) AND AUM.REVISION_UUID IS NULL";
 
     public static final String DEFAULT_ROLES_CONFIG = "DefaultRoles";
+    public static final String ENABLE_RECOMMENDATION = "EnableRecommendation";
 
 }
