@@ -51,7 +51,7 @@ public class V410ScopeMigrator extends Migrator {
             byte[] data = Utility.getTenantConfFromFile();
             if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
                 log.debug("tenant-conf of tenant " + tenantID + " is  already uploaded to the registry");
-                Optional<Byte[]> migratedTenantConf = Utility.migrateTenantConfScopes(tenantID);
+                Optional<Byte[]> migratedTenantConf = Utility.migrateTenantConf(tenantID);
                 if (migratedTenantConf.isPresent()) {
                     log.debug("Detected new additions to tenant-conf of tenant " + tenantID);
                     data = ArrayUtils.toPrimitive(migratedTenantConf.get());

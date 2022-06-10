@@ -92,7 +92,7 @@ public class Utility {
             byte[] data = getTenantConfFromFile();
             if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
                 log.debug("tenant-conf of tenant " + tenantID + " is  already uploaded to the registry");
-                Optional<Byte[]> migratedTenantConf = migrateTenantConfScopes(tenantID);
+                Optional<Byte[]> migratedTenantConf = migrateTenantConf(tenantID);
                 if (migratedTenantConf.isPresent()) {
                     log.debug("Detected new additions to tenant-conf of tenant " + tenantID);
                     data = ArrayUtils.toPrimitive(migratedTenantConf.get());
@@ -120,7 +120,6 @@ public class Utility {
      * @throws IOException error while reading local tenant-conf.json
      */
     public static byte[] getTenantConfFromFile() throws IOException {
-        JSONObject tenantConfJson = null;
         String tenantConfLocation = CarbonUtils.getCarbonHome() + File.separator +
                 APIConstants.RESOURCE_FOLDER_LOCATION + File.separator +
                 APIConstants.API_TENANT_CONF;
@@ -139,6 +138,32 @@ public class Utility {
         return data;
     }
 
+    /**
+     * Gets the content of the local tenant-conf.json as a JSON Object
+     *
+     * @return JSON content of the local tenant-conf.json
+     * @throws IOException error while reading local tenant-conf.json
+     */
+    public static JSONObject getTenantConfFromFileAsJSON() throws APIMigrationException {
+        JSONObject tenantConfJson = null;
+
+        try {
+            byte[] data = getTenantConfFromFile();
+
+            String tenantConfDataStr = new String(data, Charset.defaultCharset());
+            JSONParser parser = new JSONParser();
+            tenantConfJson = (JSONObject) parser.parse(tenantConfDataStr);
+            if (tenantConfJson == null) {
+                throw new APIMigrationException("tenant-conf.json (in file system) content cannot be null");
+            }
+        } catch (IOException e) {
+            throw new APIMigrationException("Error while reading tenant-conf.json from file system", e);
+        } catch (ParseException e) {
+            throw new APIMigrationException("Error while parsing tenant-conf.json read from file system", e);
+        }
+        return tenantConfJson;
+    }
+
     private static JSONObject getRESTAPIScopesFromTenantConfig(JSONObject tenantConf) {
 
         return (JSONObject) tenantConf.get(APIConstants.REST_API_SCOPES_CONFIG);
@@ -155,195 +180,93 @@ public class Utility {
     }
 
     /**
-     * Returns the REST API scopes JSONObject from the tenant-conf.json in the file system
-     *
-     * @return REST API scopes JSONObject from the tenant-conf.json in the file system
-     * @throws APIManagementException when error occurred while retrieving local REST API scopes.
-     */
-    private static JSONObject getRESTAPIScopesConfigFromFileSystem() throws APIMigrationException {
-
-        try {
-            byte[] tenantConfData = getTenantConfFromFile();
-            String tenantConfDataStr = new String(tenantConfData, Charset.defaultCharset());
-            JSONParser parser = new JSONParser();
-            JSONObject tenantConfJson = (JSONObject) parser.parse(tenantConfDataStr);
-            if (tenantConfJson == null) {
-                throw new APIMigrationException("tenant-conf.json (in file system) content cannot be null");
-            }
-            JSONObject restAPIScopes = getRESTAPIScopesFromTenantConfig(tenantConfJson);
-            if (restAPIScopes == null) {
-                throw new APIMigrationException("tenant-conf.json (in file system) should have RESTAPIScopes config");
-            }
-            return restAPIScopes;
-        } catch (IOException e) {
-            throw new APIMigrationException("Error while reading tenant conf file content from file system", e);
-        } catch (ParseException e) {
-            throw new APIMigrationException("ParseException thrown when parsing tenant config json from string " +
-                    "content", e);
-        }
-    }
-
-
-    /**
-     * Returns the REST API role mappings JSONObject from the tenant-conf.json in the file system
-     *
-     * @return REST API role mappings JSONObject from the tenant-conf.json in the file system
-     * @throws APIManagementException when error occurred while retrieving local REST API role mappings.
-     */
-    private static JSONObject getRESTAPIRoleMappingsConfigFromFileSystem() throws APIMigrationException {
-
-        try {
-            byte[] tenantConfData = getTenantConfFromFile();
-            String tenantConfDataStr = new String(tenantConfData, Charset.defaultCharset());
-            JSONParser parser = new JSONParser();
-            JSONObject tenantConfJson = (JSONObject) parser.parse(tenantConfDataStr);
-            if (tenantConfJson == null) {
-                throw new APIMigrationException("tenant-conf.json (in file system) content cannot be null");
-            }
-            JSONObject roleMappings = getRESTAPIScopeRoleMappingsFromTenantConfig(tenantConfJson);
-            if (roleMappings == null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Scope role mappings are not defined in the tenant-conf.json in file system");
-                }
-            }
-            return roleMappings;
-        } catch (IOException e) {
-            throw new APIMigrationException("Error while reading tenant conf file content from file system", e);
-        } catch (ParseException e) {
-            throw new APIMigrationException("ParseException thrown when parsing tenant config json from string " +
-                    "content", e);
-        }
-    }
-
-    /**
-     * Returns the DefaultRoles config JSONObject from the tenant-conf.json in the file system
-     *
-     * @return DefaultRoles JSONObject from the tenant-conf.json in the file system
-     * @throws APIManagementException when error occurred while retrieving DefaultRoles config.
-     */
-    private static JSONObject getDefaultRolesConfigFromFileSystem() throws APIMigrationException {
-
-        try {
-            byte[] tenantConfData = getTenantConfFromFile();
-            String tenantConfDataStr = new String(tenantConfData, Charset.defaultCharset());
-            JSONParser parser = new JSONParser();
-            JSONObject tenantConfJson = (JSONObject) parser.parse(tenantConfDataStr);
-            if (tenantConfJson == null) {
-                throw new APIMigrationException("tenant-conf.json (in file system) content cannot be null");
-            }
-            JSONObject defaultRoles = getDefaultRolesFromTenantConfig(tenantConfJson);
-            if (defaultRoles == null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("DefaultRoles are not defined in the tenant-conf.json in file system");
-                }
-            }
-            return defaultRoles;
-        } catch (IOException e) {
-            throw new APIMigrationException("Error while reading tenant conf file content from file system", e);
-        } catch (ParseException e) {
-            throw new APIMigrationException("ParseException thrown when parsing tenant config json from string " +
-                    "content", e);
-        }
-    }
-
-    /**
-     * Migrate the newly added scopes to the tenant-conf which is already in the registry identified with tenantId and
+     * Migrate the newly configs to the tenant-conf which is already in the registry identified with tenantId and
      * its byte content is returned. If there were no changes done, an empty Optional will be returned.
      *
      * @param tenantId Tenant Id
      * @return Optional byte content
      * @throws APIManagementException when error occurred while updating the updating the tenant-conf with scopes.
      */
-    public static Optional<Byte[]> migrateTenantConfScopes(int tenantId) throws APIMigrationException {
+    public static Optional<Byte[]> migrateTenantConf(int tenantId) throws APIMigrationException {
 
         JSONObject tenantConf = getTenantConfigFromRegistry(tenantId);
+        JSONObject tenantConfFromFile = getTenantConfFromFileAsJSON();
+
         JSONObject scopesConfigTenant = getRESTAPIScopesFromTenantConfig(tenantConf);
-        JSONObject scopeConfigLocal = getRESTAPIScopesConfigFromFileSystem();
+        JSONObject scopeConfigLocal = getRESTAPIScopesFromTenantConfig(tenantConfFromFile);
         JSONObject roleMappingConfigTenant = getRESTAPIScopeRoleMappingsFromTenantConfig(tenantConf);
-        JSONObject roleMappingConfigLocal = getRESTAPIRoleMappingsConfigFromFileSystem();
+        JSONObject roleMappingConfigLocal = getRESTAPIScopeRoleMappingsFromTenantConfig(tenantConfFromFile);
         Map<String, String> scopesTenant = APIUtil.getRESTAPIScopesFromConfig(scopesConfigTenant,
                 roleMappingConfigTenant);
         Map<String, String> scopesLocal = APIUtil.getRESTAPIScopesFromConfig(scopeConfigLocal, roleMappingConfigLocal);
-        JSONObject defaultRolesLocal = getDefaultRolesConfigFromFileSystem();
         JSONArray tenantScopesArray = (JSONArray) scopesConfigTenant.get(APIConstants.REST_API_SCOPE);
+        JSONObject defaultRolesLocal = getDefaultRolesFromTenantConfig(tenantConfFromFile);
         boolean isRoleUpdated = false;
-        boolean isMigrated = false;
-        JSONObject metaJson = (JSONObject) tenantConf.get(Constants.MIGRATION);
 
-        if (metaJson != null && metaJson.get(Constants.VERSION_3_0_0) != null) {
-            isMigrated = Boolean.parseBoolean(metaJson.get(Constants.VERSION_3_0_0).toString());
-        }
+        try {
+            //Update default roles from file system
+            tenantConf.put(Constants.DEFAULT_ROLES_CONFIG, defaultRolesLocal);
 
-        if (!isMigrated) {
-            try {
-                //Update default roles from file system
-                tenantConf.put(Constants.DEFAULT_ROLES_CONFIG, defaultRolesLocal);
-
-                //Get admin role name of the current domain
-                String adminRoleName = CarbonContext.getThreadLocalCarbonContext().getUserRealm()
-                        .getRealmConfiguration().getAdminRoleName();
-                for (int i = 0; i < tenantScopesArray.size(); i++) {
-                    JSONObject scope = (JSONObject) tenantScopesArray.get(i);
-                    String roles = scope.get(APIConstants.REST_API_SCOPE_ROLE).toString();
-                    if (APIConstants.APIM_SUBSCRIBE_SCOPE.equals(scope.get(APIConstants.REST_API_SCOPE_NAME)) &&
-                            !roles.contains(adminRoleName)) {
-                        tenantScopesArray.remove(i);
-                        JSONObject scopeJson = new JSONObject();
-                        scopeJson.put(APIConstants.REST_API_SCOPE_NAME, APIConstants.APIM_SUBSCRIBE_SCOPE);
-                        scopeJson.put(APIConstants.REST_API_SCOPE_ROLE,
-                                roles + APIConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT + adminRoleName);
-                        tenantScopesArray.add(scopeJson);
-                        isRoleUpdated = true;
-                        break;
-                    }
-                }
-                if (isRoleUpdated) {
-                    JSONObject metaInfo = new JSONObject();
-                    JSONObject migrationInfo = new JSONObject();
-                    migrationInfo.put(Constants.VERSION_3_0_0, true);
-                    metaInfo.put(Constants.MIGRATION, migrationInfo);
-                    tenantConf.put(Constants.META, metaInfo);
-                }
-            } catch (UserStoreException e) {
-                String tenantDomain = getTenantDomainFromTenantId(tenantId);
-                String errorMessage = "Error while retrieving admin role name of " + tenantDomain;
-                log.error(errorMessage, e);
-                throw new APIMigrationException(errorMessage, e);
+            //Update Enable recommendation
+            if (tenantConf.get(Constants.ENABLE_RECOMMENDATION) == null) {
+                tenantConf.put(Constants.ENABLE_RECOMMENDATION, false);
             }
-            Set<String> scopes = scopesLocal.keySet();
-            //Find any scopes that are not added to tenant conf which is available in local tenant-conf
-            scopes.removeAll(scopesTenant.keySet());
-            if (!scopes.isEmpty() || isRoleUpdated) {
-                for (String scope : scopes) {
+
+            //Get admin role name of the current domain
+            String adminRoleName = CarbonContext.getThreadLocalCarbonContext().getUserRealm().getRealmConfiguration()
+                    .getAdminRoleName();
+            for (int i = 0; i < tenantScopesArray.size(); i++) {
+                JSONObject scope = (JSONObject) tenantScopesArray.get(i);
+                String roles = scope.get(APIConstants.REST_API_SCOPE_ROLE).toString();
+                if (APIConstants.APIM_SUBSCRIBE_SCOPE.equals(scope.get(APIConstants.REST_API_SCOPE_NAME)) && !roles
+                        .contains(adminRoleName)) {
+                    tenantScopesArray.remove(i);
                     JSONObject scopeJson = new JSONObject();
-                    scopeJson.put(APIConstants.REST_API_SCOPE_NAME, scope);
-                    scopeJson.put(APIConstants.REST_API_SCOPE_ROLE, scopesLocal.get(scope));
-                    if (log.isDebugEnabled()) {
-                        log.debug("Found scope that is not added to tenant-conf.json in tenant " + tenantId +
-                                ": " + scopeJson);
-                    }
+                    scopeJson.put(APIConstants.REST_API_SCOPE_NAME, APIConstants.APIM_SUBSCRIBE_SCOPE);
+                    scopeJson.put(APIConstants.REST_API_SCOPE_ROLE,
+                            roles + APIConstants.MULTI_ATTRIBUTE_SEPARATOR_DEFAULT + adminRoleName);
                     tenantScopesArray.add(scopeJson);
+                    isRoleUpdated = true;
+                    break;
                 }
-                try {
-                    ObjectMapper mapper = new ObjectMapper();
-                    String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
-                    if (log.isDebugEnabled()) {
-                        log.debug("Finalized tenant-conf.json: " + formattedTenantConf);
-                    }
-                    return Optional.of(ArrayUtils.toObject(formattedTenantConf.getBytes()));
-                } catch (JsonProcessingException e) {
-                    throw new APIMigrationException("Error while formatting tenant-conf.json of tenant " + tenantId);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            }
+        } catch (UserStoreException e) {
+            String tenantDomain = getTenantDomainFromTenantId(tenantId);
+            String errorMessage = "Error while retrieving admin role name of " + tenantDomain;
+            log.error(errorMessage, e);
+            throw new APIMigrationException(errorMessage, e);
+        }
+        Set<String> scopes = scopesLocal.keySet();
+        //Find any scopes that are not added to tenant conf which is available in local tenant-conf
+        scopes.removeAll(scopesTenant.keySet());
+        if (!scopes.isEmpty() || isRoleUpdated) {
+            for (String scope : scopes) {
+                JSONObject scopeJson = new JSONObject();
+                scopeJson.put(APIConstants.REST_API_SCOPE_NAME, scope);
+                scopeJson.put(APIConstants.REST_API_SCOPE_ROLE, scopesLocal.get(scope));
+                if (log.isDebugEnabled()) {
+                    log.debug("Found scope that is not added to tenant-conf.json in tenant " + tenantId + ": "
+                            + scopeJson);
                 }
-            } else {
-                log.debug("Scopes in tenant-conf.json in tenant " + tenantId + " are already migrated.");
-                return Optional.empty();
+                tenantScopesArray.add(scopeJson);
+            }
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
+                if (log.isDebugEnabled()) {
+                    log.debug("Finalized tenant-conf.json: " + formattedTenantConf);
+                }
+                return Optional.of(ArrayUtils.toObject(formattedTenantConf.getBytes()));
+            } catch (JsonProcessingException e) {
+                throw new APIMigrationException("Error while formatting tenant-conf.json of tenant " + tenantId);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         } else {
             log.debug("Scopes in tenant-conf.json in tenant " + tenantId + " are already migrated.");
             return Optional.empty();
         }
+
         return Optional.empty();
     }
 
