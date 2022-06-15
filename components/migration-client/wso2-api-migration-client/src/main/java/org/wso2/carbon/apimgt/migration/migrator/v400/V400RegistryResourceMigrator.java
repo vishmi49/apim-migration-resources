@@ -136,7 +136,6 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         tenantManager = ServiceHolder.getRealmService().getTenantManager();
         try {
             // migrate registry artifacts
-            List<Integer> wsAPIs = new ArrayList<>();
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             Map<String, String> wsUriMapping = new HashMap<>();
             for (Tenant tenant : tenants) {
@@ -154,7 +153,10 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                 APIConstants.APITransportType.WS.toString())) {
                             int id = Integer.parseInt(APIMgtDAO.getInstance().getAPIID(
                                     artifact.getAttribute(Constants.API_OVERVIEW_CONTEXT)));
-                            wsAPIs.add(id);
+                            // Remove previous entries(In 3.x we are setting default REST methods with /*)
+                            apiMgtDAO.removePreviousURLTemplatesForWSAPIs(id);
+                            //  add default url templates for WS APIs
+                            apiMgtDAO.addDefaultURLTemplatesForWSAPIs(id);
                             artifact.setAttribute(APIConstants.API_OVERVIEW_WS_URI_MAPPING,
                                     new Gson().toJson(wsUriMapping));
                             tenantArtifactManager.updateGenericArtifact(artifact);
@@ -177,10 +179,6 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 }
                 PrivilegedCarbonContext.endTenantFlow();
             }
-            // Remove previous entries(In 3.x we are setting default REST methods with /*)
-            apiMgtDAO.removePreviousURLTemplatesForWSAPIs(wsAPIs);
-            //  add default url templates
-            apiMgtDAO.addDefaultURLTemplatesForWSAPIs(wsAPIs);
         } catch (RegistryException e) {
             log.error("Error while initiation the registry", e);
         } catch (UserStoreException e) {
