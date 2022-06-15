@@ -116,6 +116,9 @@ public class APIMgtDAO {
             "API_PROVIDER = ? AND API_NAME = ? AND API_VERSION = ? ";
     private static String INSERT_URL_MAPPINGS_FOR_WS_APIS =
             "INSERT INTO AM_API_URL_MAPPING (API_ID,HTTP_METHOD,AUTH_SCHEME,URL_PATTERN) VALUES (?,?,?,?)";
+    private static String INSERT_URL_MAPPINGS_FOR_WS_APIS_WITH_THROTTLE =
+            "INSERT INTO AM_API_URL_MAPPING (API_ID,HTTP_METHOD,AUTH_SCHEME,URL_PATTERN,THROTTLING_TIER) " +
+                    "VALUES (?,?,?,?,?)";
     private static String REMOVE_URL_MAPPINGS_FOR_WS_APIS = "DELETE FROM AM_API_URL_MAPPING WHERE API_ID = ?";
     private static String GET_ALL_API_IDENTIFIERS = "SELECT API_PROVIDER, API_NAME, API_VERSION FROM AM_API";
 
@@ -1121,6 +1124,32 @@ public class APIMgtDAO {
     }
 
     /**
+     * This method is used to insert data to add default URL Mappings of WS APIs
+     *
+     * @param wsApiId API Id of WS API
+     * @throws APIMigrationException
+     */
+    public void addDefaultURLTemplatesForWSAPIs(int wsApiId) throws APIMigrationException {
+        try (Connection conn = APIMgtDBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(INSERT_URL_MAPPINGS_FOR_WS_APIS_WITH_THROTTLE)) {
+                ps.setInt(1, wsApiId);
+                ps.setString(2, "SUBSCRIBE");
+                ps.setString(3, Constants.AUTH_APPLICATION_OR_USER_LEVEL_TOKEN);
+                ps.setString(4, Constants.API_DEFAULT_URI_TEMPLATE);
+                ps.setString(5, "Unlimited");
+                ps.executeUpdate();
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw new APIMigrationException("Error while adding URL template(s) to the database " + e);
+            }
+        } catch (SQLException e) {
+            throw new APIMigrationException("Error while adding URL template(s) to the database " + e);
+        }
+    }
+
+    /**
      * This method is used to remove previous entries from URL Mapping table of WS APIs
      *
      * @param wsApiIds
@@ -1135,6 +1164,28 @@ public class APIMgtDAO {
                     ps.addBatch();
                 }
                 ps.executeBatch();
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw new APIMigrationException("Error while removing URL template(s) from the database " + e);
+            }
+        } catch (SQLException e) {
+            throw new APIMigrationException("Error while removing URL template(s) from the database " + e);
+        }
+    }
+
+    /**
+     * This method is used to remove previous entries from URL Mapping table of WS APIs
+     *
+     * @param wsApiId API ID of WS API
+     * @throws APIMigrationException
+     */
+    public void removePreviousURLTemplatesForWSAPIs(int wsApiId) throws APIMigrationException {
+        try (Connection conn = APIMgtDBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps = conn.prepareStatement(REMOVE_URL_MAPPINGS_FOR_WS_APIS)) {
+                ps.setInt(1, wsApiId);
+                ps.executeUpdate();
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
