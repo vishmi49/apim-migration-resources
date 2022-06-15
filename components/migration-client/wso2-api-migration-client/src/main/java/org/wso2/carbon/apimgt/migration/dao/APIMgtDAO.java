@@ -224,10 +224,10 @@ public class APIMgtDAO {
     private static String UPDATE_API_DEFAULT_VERSION_ORGANIZATION =
             "UPDATE AM_API_DEFAULT_VERSION SET ORGANIZATION = ? WHERE API_PROVIDER = ?";
 
-    private static String   UPDATE_API_VERSION_COMPARABLE =
+    private static String UPDATE_API_VERSION_COMPARABLE =
             "UPDATE AM_API " +
                     "SET VERSION_COMPARABLE = ? " +
-                    "WHERE API_UUID = ?" ;
+                    "WHERE API_UUID = ?";
 
     private static String GET_DISTINCT_SUBSCRIBER_ID_TENANT_ID =
             "SELECT DISTINCT AM_SUBSCRIBER.SUBSCRIBER_ID, AM_SUBSCRIBER.TENANT_ID " +
@@ -801,6 +801,7 @@ public class APIMgtDAO {
 
     /**
      * This method is used to update the AM_API_PRODUCT_MAPPING_TABLE
+     *
      * @throws APIMigrationException
      */
     public void updateProductMappings() throws APIMigrationException {
@@ -808,13 +809,13 @@ public class APIMgtDAO {
             connection.setAutoCommit(false);
             // Retrieve All Product Resources url mapping ids
             PreparedStatement getProductMappingsStatement = connection.prepareStatement(GET_CURRENT_API_PRODUCT_RESOURCES);
-            Map<Integer,Integer> urlMappingIds = new HashMap<>();
+            Map<Integer, Integer> urlMappingIds = new HashMap<>();
             try (ResultSet rs = getProductMappingsStatement.executeQuery()) {
                 while (rs.next()) {
-                    urlMappingIds.put(rs.getInt(1),rs.getInt(2));
+                    urlMappingIds.put(rs.getInt(1), rs.getInt(2));
                 }
             }
-            for (Map.Entry<Integer, Integer> entry : urlMappingIds.entrySet())   {
+            for (Map.Entry<Integer, Integer> entry : urlMappingIds.entrySet()) {
                 int urlMappingId = entry.getKey();
                 int productId = entry.getValue();
                 // Adding to AM_API_URL_MAPPING table
@@ -929,7 +930,7 @@ public class APIMgtDAO {
 
             // Removing previous product entries from AM_API_PRODUCT_MAPPING table
             PreparedStatement removeURLMappingsStatement = connection.prepareStatement(REMOVE_PRODUCT_ENTRIES_IN_AM_API_PRODUCT_MAPPING);
-            for (Map.Entry<Integer, Integer> entry : urlMappingIds.entrySet())   {
+            for (Map.Entry<Integer, Integer> entry : urlMappingIds.entrySet()) {
                 int urlMappingId = entry.getKey();
                 int productId = entry.getValue();
                 removeURLMappingsStatement.setInt(1, urlMappingId);
@@ -945,6 +946,7 @@ public class APIMgtDAO {
     /**
      * Function converts IS to String
      * Used for handling blobs
+     *
      * @param is - The Input Stream
      * @return - The inputStream as a String
      */
@@ -1031,8 +1033,8 @@ public class APIMgtDAO {
      * This method is used to insert Vhosts to the table AM_GW_VHOST
      *
      * @param connection DB connection
-     * @param id ID of the dynamic environment
-     * @param vhosts VHost to be added
+     * @param id         ID of the dynamic environment
+     * @param vhosts     VHost to be added
      * @throws APIMigrationException if failed to insert data
      */
     private void addGatewayVhosts(Connection connection, int id, List<VHost> vhosts) throws
@@ -1059,7 +1061,7 @@ public class APIMgtDAO {
      *
      * @throws APIMigrationException if failed to drop tables
      */
-    public void dropLabelTable () throws APIMigrationException {
+    public void dropLabelTable() throws APIMigrationException {
         try (Connection conn = APIMgtDBUtil.getConnection()) {
             conn.setAutoCommit(false);
             try (
@@ -1486,7 +1488,7 @@ public class APIMgtDAO {
     }
 
     private KeyManagerConfigurationDTO getKeyManagerConfigurationByName(Connection connection, String tenantDomain,
-            String name)
+                                                                        String name)
             throws SQLException, IOException {
 
         final String query = "SELECT * FROM AM_KEY_MANAGER WHERE NAME = ? AND TENANT_DOMAIN = ?";
