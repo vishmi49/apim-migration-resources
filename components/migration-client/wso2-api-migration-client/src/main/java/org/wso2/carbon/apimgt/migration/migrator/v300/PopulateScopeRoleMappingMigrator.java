@@ -62,10 +62,7 @@ public class PopulateScopeRoleMappingMigrator extends Migrator {
         for (Tenant tenant : tenants) {
             try {
                 registryService.startTenantFlow(tenant);
-                if (tenant.getId() != MultitenantConstants.SUPER_TENANT_ID) {
-                    Utility.loadAndSyncTenantConf(tenant.getId());
-                }
-
+                Utility.loadAndSyncTenantConf(tenant.getId());
                 log.info("Updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
 
                 // Retrieve user roles which has create permission
@@ -111,16 +108,18 @@ public class PopulateScopeRoleMappingMigrator extends Migrator {
                 String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
 
                 updateTenantConf(formattedTenantConf, tenant.getId());
-                log.info("Updated tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
-                        + "\n" + formattedTenantConf);
 
+                if (log.isDebugEnabled()) {
+                    log.info("Updated tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
+                            + "\n" + formattedTenantConf);
+                }
                 log.info("End updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
             } catch (APIMigrationException e) {
                 log.error("Error while retrieving role names based on existing permissions. ", e);
             } catch (JsonProcessingException e) {
                 log.error("Error while formatting tenant-conf.json of tenant " + tenant.getId());
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("Error occurred while writing tenant-conf.json value to string." + tenant.getId(), e);
             } finally {
                 registryService.endTenantFlow();
             }
