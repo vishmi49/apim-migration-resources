@@ -57,7 +57,7 @@ public class PopulateScopeRoleMappingMigrator extends Migrator {
      * This method is used to update the scopes of the user roles which will be retrieved based on the
      * permissions assigned.
      */
-    private void populateRoleMappingWithUserRoles() throws APIMigrationException {
+    private void populateRoleMappingWithUserRoles() {
         log.info("Updating User Roles based on Permissions started.");
         for (Tenant tenant : tenants) {
             try {
@@ -110,7 +110,7 @@ public class PopulateScopeRoleMappingMigrator extends Migrator {
                 updateTenantConf(formattedTenantConf, tenant.getId());
 
                 if (log.isDebugEnabled()) {
-                    log.info("Updated tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
+                    log.debug("Updated tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
                             + "\n" + formattedTenantConf);
                 }
                 log.info("End updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');

@@ -47,7 +47,7 @@ public class V320RegistryResourceMigrator extends RegistryResourceMigrator {
 
     private void updateEnableStoreInRxt() {
 
-        for (Tenant tenant : tenants ){
+        for (Tenant tenant : tenants) {
             try {
                 registryService.startTenantFlow(tenant);
                 log.debug("Updating APIs for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');

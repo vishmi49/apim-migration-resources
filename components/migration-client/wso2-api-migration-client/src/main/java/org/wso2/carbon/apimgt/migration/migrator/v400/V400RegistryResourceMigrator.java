@@ -190,7 +190,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         }
     }
     
-    public void updateRegistryPathsOfIconAndWSDL() throws APIMigrationException {
+    public void updateRegistryPathsOfIconAndWSDL() {
         try {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {

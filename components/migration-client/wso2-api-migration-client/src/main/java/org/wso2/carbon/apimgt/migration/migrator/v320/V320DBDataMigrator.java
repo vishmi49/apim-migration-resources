@@ -27,8 +27,6 @@ import org.wso2.carbon.apimgt.migration.dto.APIInfoDTO;
 import org.wso2.carbon.apimgt.migration.migrator.v320.dao.ApiMgtDAO;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
-import org.wso2.carbon.apimgt.migration.util.RegistryService;
-import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.governance.api.generic.GenericArtifactManager;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
@@ -46,7 +44,6 @@ public class V320DBDataMigrator extends Migrator {
 
     private static final Log log = LogFactory.getLog(V320DBDataMigrator.class);
 
-    private RegistryService registryService;
     List<Tenant> tenants;
     TenantManager tenantManager;
 
@@ -54,7 +51,6 @@ public class V320DBDataMigrator extends Migrator {
 
     public V320DBDataMigrator() throws UserStoreException {
         tenants = loadTenants();
-        registryService = new RegistryServiceImpl();
     }
 
     @Override
