@@ -96,7 +96,7 @@ public class V410DBDataMigrator extends Migrator {
             log.error("Error while JSON Processing tenant conf :" + jse);
             log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error occurred while writing tenant-conf.json value to string." + tenantId, e);
         }
 
         if (formattedTenantConf != null) {

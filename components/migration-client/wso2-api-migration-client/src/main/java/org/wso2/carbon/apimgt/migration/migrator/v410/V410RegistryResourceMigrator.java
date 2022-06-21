@@ -92,7 +92,7 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                             API api = org.wso2.carbon.apimgt.migration.util.APIUtil.getAPI(artifact, registry);
                             if (StringUtils.isNotEmpty(api.getVersionTimestamp())) {
                                 if (log.isDebugEnabled()) {
-                                    log.info(
+                                    log.debug(
                                             "VersionTimestamp already available in APIName: " + api.getId().getApiName()
                                                     + api.getId().getVersion());
                                 }

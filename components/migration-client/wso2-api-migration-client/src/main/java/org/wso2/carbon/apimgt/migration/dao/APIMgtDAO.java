@@ -1064,10 +1064,8 @@ public class APIMgtDAO {
     public void dropLabelTable() throws APIMigrationException {
         try (Connection conn = APIMgtDBUtil.getConnection()) {
             conn.setAutoCommit(false);
-            try (
-                    PreparedStatement ps1 = conn.prepareStatement(DROP_AM_LABEL_URLS_TABLE);
-                    PreparedStatement ps2 = conn.prepareStatement(DROP_AM_LABELS_TABLE)
-            ) {
+            try (PreparedStatement ps1 = conn.prepareStatement(DROP_AM_LABEL_URLS_TABLE);
+                    PreparedStatement ps2 = conn.prepareStatement(DROP_AM_LABELS_TABLE)) {
                 ps1.executeUpdate();
                 ps2.executeUpdate();
                 conn.commit();
