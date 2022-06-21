@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.validator.utils.Utils;
+import org.wso2.carbon.apimgt.migration.validator.utils.V260Utils;
 import org.wso2.carbon.governance.api.exception.GovernanceException;
 import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
 import org.wso2.carbon.registry.core.session.UserRegistry;
@@ -32,7 +33,16 @@ public abstract class Validator {
         this.apiName = artifact.getAttribute(APIConstants.API_OVERVIEW_NAME);
         this.apiVersion = artifact.getAttribute(APIConstants.API_OVERVIEW_VERSION);
         this.provider = artifact.getAttribute(APIConstants.API_OVERVIEW_PROVIDER);
-        this.apiType = artifact.getAttribute(APIConstants.API_OVERVIEW_TYPE);
+
+        // At this point of  pre-validation step, SOAP and SOAPTOREST APIs from 2.6.0 will have their overview_type
+        // set as HTTP, hence we are employing a Util method to fetch correct API Type based on other resources and
+        // artifact fields.
+        if (Constants.VERSION_2_6_0.equals(utils.getMigrateFromVersion())) {
+            this.apiType = V260Utils.getAPIType(artifact);
+        } else {
+            this.apiType = artifact.getAttribute(APIConstants.API_OVERVIEW_TYPE);
+        }
+
         this.apiId = artifact.getId();
         if (Constants.preValidationService.API_ENDPOINT_VALIDATION.equals(preMigrationStep)) {
             validateEndpoints();
