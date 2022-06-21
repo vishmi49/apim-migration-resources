@@ -31,7 +31,7 @@ public class Constants {
     public static final String VERSION_1_10 = "1.10.0";
     public static final String VERSION_2_0_0 = "2.0.0";
     public static final String VERSION_2_1_0 = "2.1.0";
-    public static final String VERSION_2_6_0 = "2.1.0";
+    public static final String VERSION_2_6_0 = "2.6.0";
     public static final String VERSION_3_0_0 = "3.0.0";
     public static final String VERSION_4_0_0 = "4.0.0";
     public static final String VERSION_4_1_0 = "4.1.0";

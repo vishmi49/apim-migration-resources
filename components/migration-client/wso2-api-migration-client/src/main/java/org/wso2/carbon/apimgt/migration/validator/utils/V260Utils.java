@@ -56,7 +56,7 @@ public class V260Utils extends Utils {
                     apiType = Constants.API_TYPE_SOAP;
                 }
             } catch (APIManagementException e) {
-                log.error("Error occurred when getting artifact manager", e);
+                log.error("Error occurred when getting attributes from artifact manager", e);
             }
         }
         return apiType;

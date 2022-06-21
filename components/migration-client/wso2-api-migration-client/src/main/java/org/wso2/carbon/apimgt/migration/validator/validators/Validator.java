@@ -37,7 +37,7 @@ public abstract class Validator {
         // At this point of  pre-validation step, SOAP and SOAPTOREST APIs from 2.6.0 will have their overview_type
         // set as HTTP, hence we are employing a Util method to fetch correct API Type based on other resources and
         // artifact fields.
-        if ("2.6.0".equals(utils.getMigrateFromVersion())) {
+        if (Constants.VERSION_2_6_0.equals(utils.getMigrateFromVersion())) {
             this.apiType = V260Utils.getAPIType(artifact);
         } else {
             this.apiType = artifact.getAttribute(APIConstants.API_OVERVIEW_TYPE);
