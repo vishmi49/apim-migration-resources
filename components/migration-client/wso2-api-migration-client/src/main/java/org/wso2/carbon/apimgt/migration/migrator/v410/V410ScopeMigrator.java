@@ -9,7 +9,6 @@ import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.migrator.Utility;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
-import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.registry.core.session.UserRegistry;
 import org.wso2.carbon.user.api.Tenant;
@@ -21,7 +20,6 @@ import java.util.Optional;
 
 public class V410ScopeMigrator extends Migrator {
     private static final Log log = LogFactory.getLog(V410ScopeMigrator.class);
-    private RegistryService registryService;
     List<Tenant> tenants;
 
 
@@ -51,7 +49,7 @@ public class V410ScopeMigrator extends Migrator {
             byte[] data = Utility.getTenantConfFromFile();
             if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
                 log.debug("tenant-conf of tenant " + tenantID + " is  already uploaded to the registry");
-                Optional<Byte[]> migratedTenantConf = Utility.migrateTenantConfScopes(tenantID);
+                Optional<Byte[]> migratedTenantConf = Utility.migrateTenantConf(tenantID);
                 if (migratedTenantConf.isPresent()) {
                     log.debug("Detected new additions to tenant-conf of tenant " + tenantID);
                     data = ArrayUtils.toPrimitive(migratedTenantConf.get());
@@ -68,7 +66,7 @@ public class V410ScopeMigrator extends Migrator {
         } catch (IOException e) {
             throw new APIMigrationException("Error while reading tenant conf file content of tenant " + tenantID, e);
         } catch (APIMigrationException e) {
-            e.printStackTrace();
+            throw new APIMigrationException("Error while reading tenant conf file content of tenant " + tenantID, e);
         }
     }
 }

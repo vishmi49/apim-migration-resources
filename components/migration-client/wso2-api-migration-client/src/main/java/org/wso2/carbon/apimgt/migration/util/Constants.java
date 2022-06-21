@@ -31,6 +31,7 @@ public class Constants {
     public static final String VERSION_1_10 = "1.10.0";
     public static final String VERSION_2_0_0 = "2.0.0";
     public static final String VERSION_2_1_0 = "2.1.0";
+    public static final String VERSION_2_6_0 = "2.6.0";
     public static final String VERSION_3_0_0 = "3.0.0";
     public static final String VERSION_4_0_0 = "4.0.0";
     public static final String VERSION_4_1_0 = "4.1.0";
@@ -332,8 +333,10 @@ public class Constants {
     public static final String API_OVERVIEW_VERSION = "overview_version";
     public static final String API_OVERVIEW_PROVIDER = "overview_provider";
     public static final String API_OVERVIEW_CONTEXT = "overview_context";
+    public static final String API_OVERVIEW_WSDL = "overview_wsdl";
     public static final String[] HTTP_DEFAULT_METHODS = {"GET", "PUT", "POST", "DELETE", "PATCH"};
     public static final String API_TYPE_SOAPTOREST = "SOAPTOREST";
+    public static final String API_TYPE_SOAP = "SOAP";
     public static final String API_TYPE_HTTP = "HTTP";
     public static final String API_TYPE_WS = "WS";
 
@@ -484,5 +487,6 @@ public class Constants {
             + "WHERE AUM.API_ID IN ( $paramList ) AND AUM.REVISION_UUID IS NULL";
 
     public static final String DEFAULT_ROLES_CONFIG = "DefaultRoles";
+    public static final String ENABLE_RECOMMENDATION = "EnableRecommendation";
 
 }
