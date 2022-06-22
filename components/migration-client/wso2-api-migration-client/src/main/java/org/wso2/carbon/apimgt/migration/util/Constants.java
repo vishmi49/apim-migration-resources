@@ -448,6 +448,7 @@ public class Constants {
     public static class preValidationService {
         public static final String API_DEFINITION_VALIDATION = "apiDefinitionValidation";
         public static final String API_ENDPOINT_VALIDATION = "apiEndpointValidation";
+        public static final String API_AVAILABILITY_VALIDATION = "apiAvailabilityValidation";
     }
 
     /** Environment related constants **/
