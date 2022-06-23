@@ -55,11 +55,11 @@ public class V410Validator extends Validator {
     @Override
     public void validateApiAvailability() {
         try {
-            log.info("Validating API availability in db for API {name:" + apiName + ", version: " +
+            log.info("Validating API availability in db for API {name: " + apiName + ", version: " +
                     apiVersion + ", provider: " + provider + "}");
             int id = ApiMgtDAO.getInstance().getAPIID(provider, apiName, apiVersion);
             if (id == -1) {
-                log.error("Unable to find the API " + "{name:" + apiName + ", version: " +
+                log.error("Unable to find the API " + "{name: " + apiName + ", version: " +
                         apiVersion + ", provider: " + provider + "} in the database");
             }
         } catch (SQLException e) {
@@ -69,7 +69,8 @@ public class V410Validator extends Validator {
 
     public void validateOpenAPIDefinition() {
         APIDefinitionValidationResponse validationResponse = null;
-        log.info("Validating open API definition of  " + apiName + " version: " + apiVersion + " type: " + apiType);
+        log.info("Validating open API definition of API {name: " + apiName + ", version: " +
+                apiVersion + ", provider: " + provider + "}");
         try {
             String apiDefinition = utils.getAPIDefinition(registry, apiName, apiVersion, provider, apiId);
             validationResponse = OASParserUtil.validateAPIDefinition(apiDefinition, Boolean.TRUE);
@@ -79,8 +80,9 @@ public class V410Validator extends Validator {
         }
         if (validationResponse != null && !validationResponse.isValid()) {
             for (ErrorHandler error : validationResponse.getErrorItems()) {
-                log.error("Open API Definition is invalid. ErrorMessage: " + error.getErrorMessage()
-                        + " ErrorDescription: " + error.getErrorDescription());
+                log.error("OpenAPI Definition for API {name: " + apiName + ", version: " +
+                        apiVersion + ", provider: " + provider + "}" + " is invalid. ErrorMessage: " +
+                        error.getErrorMessage() + " ErrorDescription: " + error.getErrorDescription());
             }
         } else {
             log.info("Successfully validated open API definition of " + apiName + " version: " + apiVersion
