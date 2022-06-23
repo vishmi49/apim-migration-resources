@@ -1,0 +1,13 @@
+{
+  "id" : "3886f803-374b-487f-99dc-f2ac398d044e",
+  "request" : {
+    "url" : "/users/1",
+    "method" : "DELETE"
+  },
+  "response" : {
+    "status" : 204
+  },
+  "uuid" : "3886f803-374b-487f-99dc-f2ac398d044e",
+  "persistent" : true,
+  "insertionIndex" : 9
+}

@@ -1,0 +1,5 @@
+role_name,permission1,permission2
+ADP_CREATOR,/permission/admin/login,/permission/admin/manage/api/create
+ADP_PUBLISHER,/permission/admin/login,/permission/admin/manage/api/publish
+ADP_SUBSCRIBER,/permission/admin/login,/permission/admin/manage/api/subscribe
+ADP_COMMON,/permission/admin/login,

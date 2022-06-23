@@ -1,0 +1,20 @@
+{
+   "openapi": "3.0.1",
+   "info": {
+      "title": "ADP_REST_API_IMPORTED_OAS3",
+      "version": "1.0.0"
+   },
+   "paths": {
+      "/hello": {
+         "get": {
+            "parameters": [
+            ],
+            "responses": {
+               "200": {
+                  "description": "ok"
+               }
+            }
+         }
+      }
+   }
+}

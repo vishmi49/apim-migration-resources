@@ -1,0 +1,5 @@
+username,password,role1,role2,role3
+adp_crt_user,adp_crt_user,ADP_CREATOR,ADP_COMMON,Internal/creator
+adp_pub_user,adp_pub_user,ADP_PUBLISHER,ADP_COMMON,Internal/publisher
+adp_sub_user,adp_sub_user,ADP_SUBSCRIBER,ADP_COMMON,Internal/subscriber
+adp_nul_user,adp_nul_user,ADP_COMMON,,

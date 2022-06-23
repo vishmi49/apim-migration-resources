@@ -1,0 +1,15 @@
+{
+  "id" : "4d54f201-6d93-47f9-8fe2-c6a35c34ef73",
+  "request" : {
+    "url" : "/hello",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "headers": {"Content-Type":"text/plain"},
+    "body" : "Hello from WireMock!"
+  },
+  "uuid" : "4d54f201-6d93-47f9-8fe2-c6a35c34ef73",
+  "persistent" : true,
+  "insertionIndex" : 0
+}

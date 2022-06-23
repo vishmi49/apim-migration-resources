@@ -1,0 +1,13 @@
+{
+  "id" : "8d1fc3cc-01d7-416b-adfc-8a828af28f8d",
+  "request" : {
+    "url" : "/users/2",
+    "method" : "DELETE"
+  },
+  "response" : {
+    "status" : 204
+  },
+  "uuid" : "8d1fc3cc-01d7-416b-adfc-8a828af28f8d",
+  "persistent" : true,
+  "insertionIndex" : 10
+}

@@ -1,0 +1,15 @@
+{
+  "id" : "9a3e8bfd-2347-476b-b1d7-51ce1d03fab0",
+  "request" : {
+    "url" : "/users",
+    "method" : "POST"
+  },
+  "response" : {
+    "status" : 201,
+    "headers": {"Content-Type":"text/plain"},
+    "body" : "User created successfully!"
+  },
+  "uuid" : "9a3e8bfd-2347-476b-b1d7-51ce1d03fab0",
+  "persistent" : true,
+  "insertionIndex" : 6
+}
