@@ -1,18 +1,18 @@
 /*
-* Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2015, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.wso2.carbon.apimgt.migration.util;
 
@@ -175,7 +175,6 @@ public class Constants {
     public static final String SWAGGER_PRODUCES = "produces";
 
 
-
     // Work flow extensions
     public static final String WF_SUBSCRIPTION_DELETION_TAG = "SubscriptionDeletion";
     public static final String WF_EXECUTOR_ATTRIBUTE = "executor";
@@ -263,11 +262,11 @@ public class Constants {
     public static final String SWAGGER_CONSUMES = "consumes";
     public static final String DEFAULT_DATA_TYPE = "string";
 
-	public static final String API_KEY_VALIDATOR_ENCRYPT_TOKENS =
+    public static final String API_KEY_VALIDATOR_ENCRYPT_TOKENS =
             APIConstants.API_KEY_VALIDATOR + "EncryptPersistedTokens";
 
-    public static final String THROTTLING_CONFIGURATIONS ="ThrottlingConfigurations.";
-    public static final String ENABLE_THROTTLING_CONFIGURATIONS =THROTTLING_CONFIGURATIONS + "EnableAdvanceThrottling";
+    public static final String THROTTLING_CONFIGURATIONS = "ThrottlingConfigurations.";
+    public static final String ENABLE_THROTTLING_CONFIGURATIONS = THROTTLING_CONFIGURATIONS + "EnableAdvanceThrottling";
 
     public static final String SECURITY_DEFINITION__KEY = "securityDefinitions";
     public static final String SECURITY_DEFINITION_TYPE_KEY = "type";
@@ -402,10 +401,10 @@ public class Constants {
 
     // DB script paths
     public static String PRE_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator + "migration-resources"
-            + File.separator + "migration-scripts"+ File.separator + "pre-migration-scripts" + File.separator;
+            + File.separator + "migration-scripts" + File.separator + "pre-migration-scripts" + File.separator;
 
     public static String POST_MIGRATION_SCRIPT_DIR = CarbonUtils.getCarbonHome() + File.separator
-            + "migration-resources" + File.separator + "migration-scripts"+ File.separator + "post-migration-scripts"
+            + "migration-resources" + File.separator + "migration-scripts" + File.separator + "post-migration-scripts"
             + File.separator;
 
     public static final String V300_PRE_MIGRATION_SCRIPTS_PATH = PRE_MIGRATION_SCRIPT_DIR + "migration-2.6.0_to_3.0.0"
@@ -448,9 +447,12 @@ public class Constants {
     public static class preValidationService {
         public static final String API_DEFINITION_VALIDATION = "apiDefinitionValidation";
         public static final String API_ENDPOINT_VALIDATION = "apiEndpointValidation";
+        public static final String API_AVAILABILITY_VALIDATION = "apiAvailabilityValidation";
     }
 
-    /** Environment related constants **/
+    /**
+     * Environment related constants
+     **/
 
     public static final String GET_ENVIRONMENT_BY_TENANT_SQL =
             "SELECT ID, UUID, NAME, TENANT_DOMAIN, DISPLAY_NAME, DESCRIPTION " +

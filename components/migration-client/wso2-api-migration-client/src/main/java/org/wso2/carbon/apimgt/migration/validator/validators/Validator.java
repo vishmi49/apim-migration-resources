@@ -48,10 +48,14 @@ public abstract class Validator {
             validateEndpoints();
         } else if (Constants.preValidationService.API_DEFINITION_VALIDATION.equals(preMigrationStep)) {
             validateAPIDefinition();
+        } else if (Constants.preValidationService.API_AVAILABILITY_VALIDATION.equals(preMigrationStep)) {
+            validateApiAvailability();
         }
     }
 
     public abstract void validateEndpoints();
 
     public abstract void validateAPIDefinition();
+
+    public abstract void validateApiAvailability();
 }

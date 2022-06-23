@@ -34,6 +34,8 @@ public class ValidationHandler {
     private String tenantArguments = System.getProperty(Constants.ARG_MIGRATE_TENANTS);
     private final String tenantRangeArgs = System.getProperty(Constants.ARG_MIGRATE_TENANTS_RANGE);
     private String blackListTenantArguments = System.getProperty(Constants.ARG_MIGRATE_BLACKLIST_TENANTS);
+    private final String[] validatorList = {Constants.preValidationService.API_AVAILABILITY_VALIDATION,
+            Constants.preValidationService.API_DEFINITION_VALIDATION};
     private final Validator validator;
 
     public ValidationHandler(String migrateFromVersion, String migratedVersion) {
@@ -45,8 +47,17 @@ public class ValidationHandler {
 
     public void doValidation() throws UserStoreException, APIMigrationException {
         List<Tenant> tenants = loadTenants();
-        for (Tenant tenant : tenants) {
-            validateRegistryData(tenant, preMigrationStep);
+        if (Arrays.asList(validatorList).contains(preMigrationStep)) {
+            for (Tenant tenant : tenants) {
+                validateRegistryData(tenant, preMigrationStep);
+            }
+        } else {
+            log.info("Running all validator steps.........");
+            for (String validatorStep : validatorList) {
+                for (Tenant tenant : tenants) {
+                    validateRegistryData(tenant, validatorStep);
+                }
+            }
         }
     }
 
@@ -59,7 +70,8 @@ public class ValidationHandler {
                 GovernanceUtils.loadGovernanceArtifacts(registry);
                 GenericArtifact[] artifacts = artifactManager.getAllGenericArtifacts();
                 String artifactPath = "";
-                log.info("Starting validate the api definitions of tenant " + tenant.getDomain() + "..........");
+                log.info("Starting " + preMigrationStep + " for tenant " + tenant.getId() +
+                        "(" + tenant.getDomain() + ")" + "..........");
                 for (GenericArtifact artifact : artifacts) {
                     try {
                         artifactPath = ((GenericArtifactImpl) artifact).getArtifactPath();
@@ -75,7 +87,8 @@ public class ValidationHandler {
                                 + "artifact path name " + artifactPath, e);
                     }
                 }
-                log.info("Successfully validated the api definitions of tenant " + tenant.getDomain() + "..........");
+                log.info("Successfully completed " + preMigrationStep + " for tenant " + tenant.getId() +
+                        "(" + tenant.getDomain() + ")" + "..........");
             } else {
                 log.info("No API artifacts found in registry for tenant " + tenant.getId() + '(' + tenant.getDomain()
                         + ')');

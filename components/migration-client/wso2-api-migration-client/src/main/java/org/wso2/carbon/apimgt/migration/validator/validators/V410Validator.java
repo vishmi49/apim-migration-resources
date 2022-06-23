@@ -5,11 +5,13 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.api.APIDefinitionValidationResponse;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.ErrorHandler;
+import org.wso2.carbon.apimgt.api.model.APIIdentifier;
 import org.wso2.carbon.apimgt.impl.APIConstants;
 import org.wso2.carbon.apimgt.impl.definitions.AsyncApiParserUtil;
 import org.wso2.carbon.apimgt.impl.definitions.OASParserUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIMWSDLReader;
 import org.wso2.carbon.apimgt.impl.wsdl.model.WSDLValidationResponse;
+import org.wso2.carbon.apimgt.migration.validator.dao.ApiMgtDAO;
 import org.wso2.carbon.apimgt.migration.validator.utils.Utils;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.PublisherCommonUtils;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.dto.GraphQLValidationResponseDTO;
@@ -21,6 +23,7 @@ import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.sql.SQLException;
 
 public class V410Validator extends Validator {
     private static final Log log = LogFactory.getLog(V410Validator.class);
@@ -49,9 +52,25 @@ public class V410Validator extends Validator {
         }
     }
 
+    @Override
+    public void validateApiAvailability() {
+        try {
+            log.info("Validating API availability in db for API {name: " + apiName + ", version: " +
+                    apiVersion + ", provider: " + provider + "}");
+            int id = ApiMgtDAO.getInstance().getAPIID(provider, apiName, apiVersion);
+            if (id == -1) {
+                log.error("Unable to find the API " + "{name: " + apiName + ", version: " +
+                        apiVersion + ", provider: " + provider + "} in the database");
+            }
+        } catch (SQLException e) {
+            log.error("Error while getting the database connection ", e);
+        }
+    }
+
     public void validateOpenAPIDefinition() {
         APIDefinitionValidationResponse validationResponse = null;
-        log.info("Validating open API definition of  " + apiName + " version: " + apiVersion + " type: " + apiType);
+        log.info("Validating open API definition of API {name: " + apiName + ", version: " +
+                apiVersion + ", provider: " + provider + "}");
         try {
             String apiDefinition = utils.getAPIDefinition(registry, apiName, apiVersion, provider, apiId);
             validationResponse = OASParserUtil.validateAPIDefinition(apiDefinition, Boolean.TRUE);
@@ -61,8 +80,9 @@ public class V410Validator extends Validator {
         }
         if (validationResponse != null && !validationResponse.isValid()) {
             for (ErrorHandler error : validationResponse.getErrorItems()) {
-                log.error("Open API Definition is invalid. ErrorMessage: " + error.getErrorMessage()
-                        + " ErrorDescription: " + error.getErrorDescription());
+                log.error("OpenAPI Definition for API {name: " + apiName + ", version: " +
+                        apiVersion + ", provider: " + provider + "}" + " is invalid. ErrorMessage: " +
+                        error.getErrorMessage() + " ErrorDescription: " + error.getErrorDescription());
             }
         } else {
             log.info("Successfully validated open API definition of " + apiName + " version: " + apiVersion
