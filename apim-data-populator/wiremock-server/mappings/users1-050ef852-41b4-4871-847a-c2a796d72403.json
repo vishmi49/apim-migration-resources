@@ -1,0 +1,15 @@
+{
+  "id" : "050ef852-41b4-4871-847a-c2a796d72403",
+  "request" : {
+    "url" : "/users/1",
+    "method" : "PUT"
+  },
+  "response" : {
+    "status" : 200,
+    "headers": {"Content-Type":"text/plain"},
+    "body" : "User updated successfully!"
+  },
+  "uuid" : "050ef852-41b4-4871-847a-c2a796d72403",
+  "persistent" : true,
+  "insertionIndex" : 7
+}

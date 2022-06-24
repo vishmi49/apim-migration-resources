@@ -1,0 +1,27 @@
+{
+  "id" : "38e038fa-fb6e-4acd-ac57-30033fc2e13b",
+  "request" : {
+    "url" : "/users/2",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "headers": {"Content-Type":"application/json"},
+    "jsonBody" : {
+      "data" : {
+        "id" : 2,
+        "email" : "janet.weaver@reqres.in",
+        "first_name" : "Janet",
+        "last_name" : "Weaver",
+        "avatar" : "https://reqres.in/img/faces/2-image.jpg"
+      },
+      "support" : {
+        "url" : "https://reqres.in/#support-heading",
+        "text" : "To keep ReqRes free, contributions towards server costs are appreciated!"
+      }
+    }
+  },
+  "uuid" : "38e038fa-fb6e-4acd-ac57-30033fc2e13b",
+  "persistent" : true,
+  "insertionIndex" : 5
+}

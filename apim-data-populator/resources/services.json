@@ -1,0 +1,8 @@
+{
+  "services" : [ {
+    "id" : "8rmm9",
+    "name" : "test",
+    "port" : 8000,
+    "rootDir" : "test"
+  } ]
+}
