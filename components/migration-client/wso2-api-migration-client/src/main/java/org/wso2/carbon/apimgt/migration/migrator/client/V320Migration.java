@@ -52,6 +52,7 @@ public class V320Migration extends VersionMigrator {
         dbDataMigrator.migrate();
         RegistryResourceMigrator registryResourceMigrator= new V320RegistryResourceMigrator(Constants.V320_RXT_PATH);
         registryResourceMigrator.migrate();
+        registryResourceMigrator.updateAPIPropertyVisibility();
         ScopeMigrator scopeMigrator = new ScopeMigrator();
         scopeMigrator.migrate();
         SPMigrator spMigrator = new SPMigrator();

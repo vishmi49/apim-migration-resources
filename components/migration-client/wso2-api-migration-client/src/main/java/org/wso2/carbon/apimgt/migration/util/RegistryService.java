@@ -81,6 +81,8 @@ public interface RegistryService {
     void updateGenericAPIArtifact(String resourcePath, GenericArtifact artifact);
 
     void updateEnableStoreInRxt(String resourcePath, GenericArtifact artifact);
+
+    void updateAPIPropertyVisibility(String resourcePath);
 }
 
 

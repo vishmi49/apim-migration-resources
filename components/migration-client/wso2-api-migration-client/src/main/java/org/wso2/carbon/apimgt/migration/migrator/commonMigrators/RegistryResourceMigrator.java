@@ -23,6 +23,8 @@ import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.util.RegistryService;
 import org.wso2.carbon.apimgt.migration.util.RegistryServiceImpl;
+import org.wso2.carbon.governance.api.exception.GovernanceException;
+import org.wso2.carbon.governance.api.generic.dataobjects.GenericArtifact;
 import org.wso2.carbon.registry.core.exceptions.RegistryException;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -77,5 +79,35 @@ public class RegistryResourceMigrator extends Migrator {
             }
         }
         log.info("Rxt resource migration done for all the tenants");
+    }
+
+    public void updateAPIPropertyVisibility() {
+        for (Tenant tenant : tenants) {
+            try {
+                registryService.startTenantFlow(tenant);
+                log.debug("Updating API properties for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                GenericArtifact[] artifacts = registryService.getGenericAPIArtifacts();
+                for (GenericArtifact artifact : artifacts) {
+                    String path = artifact.getPath();
+                    if (registryService.isGovernanceRegistryResourceExists(path)) {
+                        Object apiResource = registryService.getGovernanceRegistryResource(path);
+                        if (apiResource == null) {
+                            continue;
+                        }
+                        registryService.updateAPIPropertyVisibility(path);
+                    }
+                }
+                log.info("Completed Updating API properties for tenant ---- "
+                        + tenant.getId() + '(' + tenant.getDomain() + ')');
+            } catch (GovernanceException e) {
+                log.error("Error while accessing API artifact in registry for tenant " + tenant.getId() + '(' +
+                        tenant.getDomain() + ')', e);
+            } catch (RegistryException | UserStoreException e) {
+                log.error("Error while updating API artifact in the registry for tenant " + tenant.getId() + '(' +
+                        tenant.getDomain() + ')', e);
+            } finally {
+                registryService.endTenantFlow();
+            }
+        }
     }
 }
