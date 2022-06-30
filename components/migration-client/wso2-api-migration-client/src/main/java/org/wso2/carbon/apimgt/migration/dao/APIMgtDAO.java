@@ -729,6 +729,9 @@ public class APIMgtDAO {
             connection.setAutoCommit(false);
             try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_UUID_BY_THE_IDENTIFIER)) {
                 for (APIInfoDTO apiInfoDTO : apiInfoDTOS) {
+                    log.info("Adding API uuid: " + apiInfoDTO.getUuid() + " and  status: "
+                            + apiInfoDTO.getStatus().toUpperCase() + " for API: " + apiInfoDTO.getApiProvider() + "-"
+                            + apiInfoDTO.getApiName() + "-" + apiInfoDTO.getApiVersion() + " to the batch.");
                     preparedStatement.setString(1, apiInfoDTO.getUuid());
                     preparedStatement.setString(2, apiInfoDTO.getStatus().toUpperCase());
                     preparedStatement.setString(3, apiInfoDTO.getApiProvider());
