@@ -91,9 +91,9 @@ public class V400DBDataMigrator extends Migrator {
         replaceKMNamebyUUID();
         log.info("Successfully replaced KM name by UUID.");
 
-        log.info("Start updating API uuid and status in all api artifacts  ..........");
+        log.info("Start updating API UUID and Status in all api artifacts  ..........");
         moveUUIDToDBFromRegistry();
-        log.info("Successfully updated the UUID and Status for all API artifacts.");
+        log.info("Successfully updated the API UUID and Status for all API artifacts.");
     }
 
     private void migrateLabelsToVhosts() throws APIMigrationException {
