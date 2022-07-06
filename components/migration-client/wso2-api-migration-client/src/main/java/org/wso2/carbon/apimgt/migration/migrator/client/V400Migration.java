@@ -43,14 +43,27 @@ public class V400Migration extends VersionMigrator {
 
     @Override
     public void migrate() throws UserStoreException, APIMigrationException {
-        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
+        log.info("--------------------------------------------------------------------------------------------------");
+        log.info("WSO2 API-M Migration Task : Starting migration from " + getPreviousVersion() + " to "
+                + getCurrentVersion() + "...");
+        log.info("--------------------------------------------------------------------------------------------------");
+
+        log.info("WSO2 API-M Migration Task : Starting AM_DB schema migration from 3.2.0 to 4.0.0");
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(Constants.V400_PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
+        log.info("WSO2 API-M Migration Task : Completed AM_DB schema migration from 3.2.0 to 4.0.0");
+
+        log.info("WSO2 API-M Migration Task : Starting AM_DB data migration from 3.2.0 to 4.0.0");
         V400DBDataMigrator v400DBDataMigrator = new V400DBDataMigrator();
         v400DBDataMigrator.migrate();
+        log.info("WSO2 API-M Migration Task : Completed AM_DB data migration from 3.2.0 to 4.0.0");
+
+        log.info("WSO2 API-M Migration Task : Starting registry resource migration from 3.2.0 to 4.0.0");
         V400RegistryResourceMigrator v400RegistryResourceMigrator =
                 new V400RegistryResourceMigrator(Constants.V400_RXT_PATH);
         v400RegistryResourceMigrator.migrate();
-        log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
+        log.info("WSO2 API-M Migration Task : Completed registry resource migration from 3.2.0 to 4.0.0");
+
+        log.info("WSO2 API-M Migration Task : Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 }

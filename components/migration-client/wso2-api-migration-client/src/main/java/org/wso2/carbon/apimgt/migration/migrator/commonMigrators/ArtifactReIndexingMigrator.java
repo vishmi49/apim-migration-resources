@@ -33,12 +33,12 @@ public class ArtifactReIndexingMigrator extends Migrator {
 
     @Override
     public void migrate() throws APIMigrationException {
-        log.info("Artifact re-indexing migrator started");
+        log.info("WSO2 API-M Migration Task : Artifact re-indexing migrator started");
         try {
             SharedDAO.getInstance().runSQLScript(Constants.ARTIFACT_REINDEXING_SCRIPT_PATH);
         } catch (SQLException e) {
             log.error("Error running the artifact re-indexing script", e);
         }
-        log.info("Artifact re-indexing migrator completed");
+        log.info("WSO2 API-M Migration Task : Artifact re-indexing migrator completed");
     }
 }

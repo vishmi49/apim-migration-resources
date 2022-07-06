@@ -552,6 +552,10 @@ public class APIMgtDAO {
                     preparedStatement.executeUpdate();
                 }
             }
+            if (!duplicateList.isEmpty()) {
+                log.info("Removed duplicate scope entries from IDN_OAUTH2_SCOPE, AM_API_SCOPE and "
+                        + "IDN_OAUTH2_SCOPE_BINDING tables");
+            }
         } catch (SQLException ex) {
             throw new APIMigrationException("Failed to delete duplicate scope data : ", ex);
         }
@@ -612,7 +616,9 @@ public class APIMgtDAO {
      *
      * @throws APIMigrationException
      */
-    public void replaceKeyMappingKMNamebyUUID(Tenant tenant) throws APIMigrationException {
+    public void replaceKeyMappingKMNameByUUID(Tenant tenant) throws APIMigrationException {
+        log.info("Replacing KMName with UUID in AM_APPLICATION_KEY_MAPPING table for tenant " + tenant.getId() +
+                '(' + tenant.getDomain() + ')');
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             connection.setAutoCommit(false);
             HashMap<String, String> results = new HashMap<>();
@@ -666,7 +672,9 @@ public class APIMgtDAO {
      *
      * @throws APIMigrationException
      */
-    public void replaceRegistrationKMNamebyUUID(Tenant tenant) throws APIMigrationException {
+    public void replaceRegistrationKMNameByUUID(Tenant tenant) throws APIMigrationException {
+        log.info("Replacing KMName with UUID in table AM_APPLICATION_REGISTRATION for tenant " + tenant.getId() +
+                '(' + tenant.getDomain() + ')');
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             try {
                 HashMap<Integer, String> results = new HashMap<>();
@@ -803,7 +811,7 @@ public class APIMgtDAO {
     }
 
     /**
-     * This method is used to update the AM_API_PRODUCT_MAPPING_TABLE
+     * This method is used to update the AM_API_PRODUCT_MAPPING table
      *
      * @throws APIMigrationException
      */
@@ -1212,8 +1220,12 @@ public class APIMgtDAO {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(UPDATE_API_CATEGORY_ORGANIZATION)) {
                 for (Map.Entry<Integer, String> tenantIdAndOrganization : tenantIdsAndOrganizations.entrySet()) {
-                    ps.setString(1, tenantIdAndOrganization.getValue());
-                    ps.setInt(2, tenantIdAndOrganization.getKey());
+                    String organization = tenantIdAndOrganization.getValue();
+                    int tenantId = tenantIdAndOrganization.getKey();
+                    log.info("Updating Organization column of AM_API_CATEGORY table as " + organization + " where "
+                            + "TENANT_ID is " + tenantId);
+                    ps.setString(1, organization);
+                    ps.setInt(2, tenantId);
                     ps.addBatch();
                 }
                 ps.executeBatch();
@@ -1244,6 +1256,8 @@ public class APIMgtDAO {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(UPDATE_GATEWAY_ENVIRONMENT_ORGANIZATION)) {
                 for (String tenantDomain : tenantDomains) {
+                    log.info("Updated ORGANIZATION column of AM_GATEWAY_ENVIRONMENT as " + tenantDomain + " where "
+                            + "TENANT_DOMAIN was " + tenantDomain);
                     ps.setString(1, tenantDomain);
                     ps.setString(2, tenantDomain);
                     ps.addBatch();
@@ -1258,8 +1272,10 @@ public class APIMgtDAO {
         } catch (SQLException e) {
             throw new APIMigrationException("Error while deriving the database connection" + e);
         }
-        log.info("successfully persisted organization data in AM_GATEWAY_ENVIRONMENT tenantDomains: "
-                + tenantDomainsList);
+        if (!tenantDomainsList.isEmpty()) {
+            log.info("successfully persisted organization data in AM_GATEWAY_ENVIRONMENT tenantDomains: "
+                    + tenantDomainsList);
+        }
     }
 
     private List<String> getGatewayTenantDomains() throws APIMigrationException {
@@ -1288,11 +1304,11 @@ public class APIMgtDAO {
         String providerList = String.join(",", apiProviders);
 
         updateAPIOrganizations(apiProviders, UPDATE_API_ORGANIZATION);
-        log.info("successfully persisted organization data in AM_API table for apis created by" + providerList);
+        log.info("successfully persisted organization data in AM_API table for apis created by " + providerList);
 
         updateAPIOrganizations(apiProviders, UPDATE_API_DEFAULT_VERSION_ORGANIZATION);
         log.info("successfully persisted organization data in AM_API_DEFAULT_VERSION for apis "
-                + "created by" + providerList);
+                + "created by " + providerList);
     }
 
     private List<String> getAPIProviders() throws APIMigrationException {
@@ -1317,6 +1333,8 @@ public class APIMgtDAO {
             try (PreparedStatement ps = conn.prepareStatement(query)) {
                 for (String apiProvider : apiProviders) {
                     String organization = MultitenantUtils.getTenantDomain(APIUtil.replaceEmailDomainBack(apiProvider));
+                    log.info("Updating ORGANIZATION column of " + query.split(" ")[1] + " table as " +
+                            organization + " where API_PROVIDER was " + apiProvider);
                     ps.setString(1, organization);
                     ps.setString(2, apiProvider);
                     ps.addBatch();
@@ -1353,8 +1371,6 @@ public class APIMgtDAO {
                 }
                 ps.executeBatch();
                 conn.commit();
-                log.info("Version timestamps are persisted in the db. API: " +
-                        versionedAPIList.get(0).getId().getApiName());
             } catch (SQLException e) {
                 conn.rollback();
                 throw new APIMigrationException(
@@ -1400,8 +1416,12 @@ public class APIMgtDAO {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(UPDATE_APPLICATION_ORGANIZATION)) {
                 for (Map.Entry<Integer, String> subscriberOrganization : subscriberIdsAndOrganizations.entrySet()) {
-                    ps.setString(1, subscriberOrganization.getValue());
-                    ps.setInt(2, subscriberOrganization.getKey());
+                    String organization = subscriberOrganization.getValue();
+                    int subscriberId = subscriberOrganization.getKey();
+                    log.info("Updating AM_APPLICATION ORGANIZATION as " + organization + " where SUBSCRIBER_ID is " +
+                            subscriberId);
+                    ps.setString(1, organization);
+                    ps.setInt(2, subscriberId);
                     ps.addBatch();
                 }
                 ps.executeBatch();

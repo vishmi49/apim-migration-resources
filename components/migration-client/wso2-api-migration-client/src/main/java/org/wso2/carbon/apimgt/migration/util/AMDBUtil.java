@@ -40,7 +40,7 @@ public class AMDBUtil {
     private static final Log log = LogFactory.getLog(AMDBUtil.class);
 
     public static void runSQLScript(String sqlScriptPath, boolean isPathProvided) throws SQLException {
-        log.info("Running SQL script in " + sqlScriptPath + " started");
+        log.info("WSO2 API-M Migration Task : Executing SQL script at " + sqlScriptPath);
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         Statement statement = null;
@@ -85,7 +85,7 @@ public class AMDBUtil {
                 connection.close();
             }
         }
-        log.info("Running SQL script completed successfully.");
+        log.info("WSO2 API-M Migration Task : Successfully executed script at " + sqlScriptPath);
     }
 
     private static List<String> readSQLStatements(InputStream is, String dbType) {

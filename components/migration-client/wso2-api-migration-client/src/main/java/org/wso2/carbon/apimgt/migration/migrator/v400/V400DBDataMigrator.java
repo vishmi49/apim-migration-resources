@@ -75,25 +75,25 @@ public class V400DBDataMigrator extends Migrator {
 
     @Override
     public void migrate() throws APIMigrationException {
-        log.info("Start migrating Labels to Vhosts ..........");
+        log.info("WSO2 API-M Migration Task : Start migrating Labels to Vhosts");
         migrateLabelsToVhosts();
-        log.info("Successfully migrated Labels to Vhosts ..........");
+        log.info("WSO2 API-M Migration Task : Successfully migrated Labels to Vhosts");
 
-        log.info("Start migrating API Product Mappings  ..........");
+        log.info("WSO2 API-M Migration Task : Start migrating API Product Mappings");
         migrateProductMappingTable();
-        log.info("Successfully migrated API Product Mappings ..........");
+        log.info("WSO2 API-M Migration Task : Successfully migrated API Product Mappings");
 
-        log.info("Start migrating Endpoint Certificates  ..........");
+        log.info("WSO2 API-M Migration Task : Start migrating Endpoint Certificates");
         migrateEndpointCertificates();
-        log.info("Successfully migrated Endpoint Certificates.");
+        log.info("WSO2 API-M Migration Task : Successfully migrated Endpoint Certificates");
 
-        log.info("Start replacing KM name by UUID  ..........");
+        log.info("WSO2 API-M Migration Task : Start replacing KM name by UUID");
         replaceKMNamebyUUID();
-        log.info("Successfully replaced KM name by UUID.");
+        log.info("WSO2 API-M Migration Task : Successfully replaced KM name by UUID");
 
-        log.info("Start updating API UUID and Status in all api artifacts  ..........");
+        log.info("WSO2 API-M Migration Task : Start moving API UUIDs from registry to DB");
         moveUUIDToDBFromRegistry();
-        log.info("Successfully updated the API UUID and Status for all API artifacts.");
+        log.info("WSO2 API-M Migration Task : Successfully completed moving API UUIDs from registry to DB");
     }
 
     private void migrateLabelsToVhosts() throws APIMigrationException {
@@ -123,10 +123,18 @@ public class V400DBDataMigrator extends Migrator {
                 }
                 environment.setVhosts(vhosts);
                 environments.add(environment);
+                log.info("WSO2 API-M Migration Task : Converting label " + labelDTO.getName() + "of tenant " + labelDTO
+                        .getTenantDomain() + " to a Vhost");
             }
             // insert dynamic environments
             apiMgtDAO.addDynamicGatewayEnvironments(environments);
+            if (!labelDTOS.isEmpty()) {
+                log.info("WSO2 API-M Migration Task : Converted labels to Vhosts");
+            } else {
+                log.info("WSO2 API-M Migration Task : No labels found");
+            }
             apiMgtDAO.dropLabelTable();
+            log.info("WSO2 API-M Migration Task : Dropped AM_LABELS and AM_LABEL_URLS tables");
         } catch (APIMigrationException e) {
             throw new APIMigrationException("Error while Reading Labels", e);
         } catch (APIManagementException e) {
@@ -149,7 +157,7 @@ public class V400DBDataMigrator extends Migrator {
             }
             Set<String> aliases = APIMgtDAO.getInstance().retrieveListOfEndpointCertificateAliases();
             Map<String, String> certificateMap = new HashMap<>();
-            if (aliases != null) {
+            if (!aliases.isEmpty()) {
                 for (String alias : aliases) {
                     Certificate certificate = trustStore.getCertificate(alias);
                     if (certificate != null) {
@@ -159,7 +167,11 @@ public class V400DBDataMigrator extends Migrator {
                         base64EncodedString = Base64.encodeBase64URLSafeString(base64EncodedString.getBytes());
                         certificateMap.put(alias, base64EncodedString);
                     }
+                    log.info("WSO2 API-M Migration Task : Adding encoded certificate content of alias: " + alias
+                            + " to DB");
                 }
+            } else {
+                log.info("WSO2 API-M Migration Task : No endpoint certificates defined");
             }
             APIMgtDAO.getInstance().updateEndpointCertificates(certificateMap);
         } catch (NoSuchAlgorithmException | IOException | CertificateException
@@ -173,11 +185,11 @@ public class V400DBDataMigrator extends Migrator {
 
         for (Tenant tenant : tenants) {
             //Add tenant specific resident key manager with uuids to the AM_KEY_MANAGER table
-            log.info("Adding default key manager and updating key mappings for tenant: "
+            log.info("WSO2 API-M Migration Task : Adding default key manager and updating key mappings for tenant: "
                     + tenant.getId() + "(" + tenant.getDomain() + ")");
             addDefaultKM(apiMgtDAO, tenant.getDomain());
-            apiMgtDAO.replaceKeyMappingKMNamebyUUID(tenant);
-            apiMgtDAO.replaceRegistrationKMNamebyUUID(tenant);
+            apiMgtDAO.replaceKeyMappingKMNameByUUID(tenant);
+            apiMgtDAO.replaceRegistrationKMNameByUUID(tenant);
         }
     }
 
@@ -216,6 +228,8 @@ public class V400DBDataMigrator extends Migrator {
         try {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {
+                log.info("WSO2 API-M Migration Task : Adding API UUIDs to AM_API table for tenant " + tenant.getId()
+                        + '(' + tenant.getDomain() + ')');
                 try {
                     int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
                     APIUtil.loadTenantRegistry(apiTenantId);
@@ -239,8 +253,16 @@ public class V400DBDataMigrator extends Migrator {
                             apiInfoDTO.setApiVersion(artifact.getAttribute("overview_version"));
                             apiInfoDTO.setStatus(((GenericArtifactImpl) artifact).getLcState());
                             apiInfoDTOList.add(apiInfoDTO);
+                            log.info("Adding UUID: " + artifact.getId() + " as UUID of API: " +
+                                    apiInfoDTO.getApiProvider() + "-" + apiInfoDTO.getApiName() + "-" +
+                                    apiInfoDTO.getApiVersion());
+                            log.info("Adding API Status: " + ((GenericArtifactImpl) artifact).getLcState() + " as "
+                                    + "status of API: " + apiInfoDTO.getApiProvider() + "-" +
+                                    apiInfoDTO.getApiName() + "-" + apiInfoDTO.getApiVersion());
                         }
                     }
+                    log.info("WSO2 API-M Migration Task : Added API UUIDs to AM_API table for tenant " + tenant.getId()
+                            + '(' + tenant.getDomain() + ')');
                 } finally {
                     PrivilegedCarbonContext.endTenantFlow();
                 }

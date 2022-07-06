@@ -362,10 +362,8 @@ public class RegistryServiceImpl implements RegistryService {
             if (resource != null) {
                 String publisherAccessControl = resource.getProperty(Constants.PUBLISHER_ROLES);
                 if (publisherAccessControl == null || publisherAccessControl.trim().isEmpty()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("API at " + resourcePath + "did not have property : " + Constants.PUBLISHER_ROLES
+                    log.info("API at " + resourcePath + "did not have property : " + Constants.PUBLISHER_ROLES
                                 + ", hence adding the null value for that API resource.");
-                    }
                     resource.setProperty(Constants.PUBLISHER_ROLES, Constants.NULL_USER_ROLE_LIST);
                     resource.setProperty(Constants.ACCESS_CONTROL, Constants.NO_ACCESS_CONTROL);
                     isResourceUpdated = true;
@@ -376,22 +374,23 @@ public class RegistryServiceImpl implements RegistryService {
                 if (storeViewRoles == null) {
                     if (Constants.PUBLIC_STORE_VISIBILITY.equals(storeVisibility) || publisherAccessControl == null ||
                             publisherAccessControl.trim().isEmpty() || publisherAccessControl.equals(Constants.NULL_USER_ROLE_LIST)) {
-                        if (log.isDebugEnabled()) {
-                            log.debug("API at " + resourcePath + "has the public visibility, but  : "
-                                    + Constants.STORE_VIEW_ROLES + " property is not set to "
-                                    + Constants.NULL_USER_ROLE_LIST + ". Hence setting the correct value.");
-                        }
+                        log.info("API at " + resourcePath + " has the public visibility, but  : "
+                                + Constants.STORE_VIEW_ROLES + " property is not set to "
+                                + Constants.NULL_USER_ROLE_LIST + ". Hence setting the correct value.");
+
                         resource.setProperty(Constants.STORE_VIEW_ROLES, Constants.NULL_USER_ROLE_LIST);
-                        isResourceUpdated = true;
                     } else {
                         StringBuilder combinedRoles = new StringBuilder(publisherAccessControl);
                         String[] roles = storeVisibleRoles.split(",");
                         for (String role : roles) {
                             combinedRoles.append(",").append(role.trim().toLowerCase());
                         }
+
+                        log.info("API at " + resourcePath + " does not have public visibility. Hence updated "
+                                + Constants.STORE_VIEW_ROLES + " property as " + combinedRoles);
                         resource.setProperty(Constants.STORE_VIEW_ROLES, String.valueOf(combinedRoles));
-                        isResourceUpdated = true;
                     }
+                    isResourceUpdated = true;
                 }
                 if (isResourceUpdated) {
                     registry.put(resourcePath, resource);
@@ -419,16 +418,12 @@ public class RegistryServiceImpl implements RegistryService {
                 if (SOAPOperationBindingUtils.isSOAPToRESTApi(artifact.getAttribute(Constants.API_OVERVIEW_NAME),
                         artifact.getAttribute(Constants.API_OVERVIEW_VERSION),
                         artifact.getAttribute(Constants.API_OVERVIEW_PROVIDER))) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("API at " + resourcePath + " is a SOAPTOREST API, hence adding the overview_type" +
-                                " as SOAPTOREST for that API resource.");
-                    }
+                    log.info("API at " + resourcePath + " is a SOAP to REST API, hence adding the overview_type" +
+                            " as SOAPTOREST for that API resource.");
                     overview_type = Constants.API_TYPE_SOAPTOREST;
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("API at " + resourcePath + " is a SOAP API, hence adding the overview_type"
+                    log.info("API at " + resourcePath + " is a SOAP API, hence adding the overview_type"
                                 + " as SOAP for that API resource.");
-                    }
                     overview_type = Constants.API_TYPE_SOAP;
                 }
                 artifact.setAttribute(Constants.API_OVERVIEW_TYPE, overview_type);
@@ -436,11 +431,10 @@ public class RegistryServiceImpl implements RegistryService {
             }
 
             if (overview_type == null || overview_type.trim().isEmpty() || "NULL".equalsIgnoreCase(overview_type)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("API at " + resourcePath + " did not have property : " + Constants.API_OVERVIEW_TYPE
-                            + ", hence adding the default value - HTTP for that API resource.");
-                }
-                artifact.setAttribute(Constants.API_OVERVIEW_TYPE, Constants.API_TYPE_HTTP);
+                log.info("API at " + resourcePath + " did not have property : " + Constants.API_OVERVIEW_TYPE
+                        + ", hence adding the default value - HTTP for that API resource.");
+                overview_type = Constants.API_TYPE_HTTP;
+                artifact.setAttribute(Constants.API_OVERVIEW_TYPE, overview_type);
                 isResourceUpdated = true;
             }
             if (isResourceUpdated) {
@@ -466,15 +460,13 @@ public class RegistryServiceImpl implements RegistryService {
             boolean isResourceUpdated = false;
             boolean enableStore = Boolean.parseBoolean(artifact.getAttribute(Constants.API_OVERVIEW_ENABLE_STORE));
             if (!enableStore) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Setting " + Constants.API_OVERVIEW_ENABLE_STORE + " property of API at " + resourcePath
-                            + "to true.");
-                }
                 artifact.setAttribute(Constants.API_OVERVIEW_ENABLE_STORE, "true");
                 isResourceUpdated = true;
             }
             if (isResourceUpdated) {
                 artifactManager.updateGenericArtifact(artifact);
+                log.info("Updated " + Constants.API_OVERVIEW_ENABLE_STORE + " property of API at " + resourcePath
+                        + "to true.");
             }
         } catch (UserStoreException | RegistryException e) {
             log.error("Error occurred when updating API Artifact in registry", e);
@@ -505,13 +497,12 @@ public class RegistryServiceImpl implements RegistryService {
                 }
             }
             if (isResourceUpdated) {
+                log.info("Updating properties for registry path: " + resourcePath);
                 for (String modifiableKey : modifiableKeys) {
                     String newKey = modifiableKey + "__display";
-                    if (log.isDebugEnabled()) {
-                        log.debug("Replacing property: " + modifiableKey + " with property: " + newKey);
-                    }
                     resource.addProperty(newKey, resource.getProperty(modifiableKey));
                     resource.removeProperty(modifiableKey);
+                    log.info("Updated property key : " + modifiableKey + " as : " + newKey);
                 }
                 registry.put(resourcePath, resource);
             }

@@ -57,9 +57,8 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
 
         boolean isTenantFlowStarted = false;
         for (Tenant tenant : tenants) {
-            if (log.isDebugEnabled()) {
-                log.debug("Start rxtMigration for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
-            }
+            log.info("Start registry data population for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+
             try {
                 PrivilegedCarbonContext.startTenantFlow();
                 isTenantFlowStarted = true;
@@ -91,11 +90,9 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                             }
                             API api = org.wso2.carbon.apimgt.migration.util.APIUtil.getAPI(artifact, registry);
                             if (StringUtils.isNotEmpty(api.getVersionTimestamp())) {
-                                if (log.isDebugEnabled()) {
-                                    log.debug(
+                                log.info(
                                             "VersionTimestamp already available in APIName: " + api.getId().getApiName()
                                                     + api.getId().getVersion());
-                                }
                             }
                             if (api == null) {
                                 log.error("Cannot find corresponding api for registry artifact " + artifact
@@ -105,13 +102,14 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                                 continue;
                             }
 
-                            if (log.isDebugEnabled()) {
-                                log.debug("Doing the RXT migration for API : " + artifact.getAttribute("overview_name")
-                                        + '-' + artifact.getAttribute("overview_version") + '-' + artifact
-                                        .getAttribute("overview_provider") + '-' + artifact
-                                        .getAttribute("overview_versionComparable") + '-' + " of tenant " + tenant.getId() + '('
-                                        + tenant.getDomain() + ")");
-                            }
+
+                            log.info("Doing the registry data migration for API : "
+                                    + artifact.getAttribute(Constants.API_OVERVIEW_PROVIDER)
+                                    + '-' + artifact.getAttribute(Constants.API_OVERVIEW_NAME) + '-'
+                                    + artifact.getAttribute(Constants.API_OVERVIEW_VERSION) + '-'
+                                    + artifact.getAttribute(Constants.API_OVERVIEW_VERSION_COMPARABLE) + " of tenant "
+                                    + tenant.getId() + '(' + tenant.getDomain() + ")");
+
                             if (!apisMap.containsKey(api.getId().getApiName())) {
                                 List<API> versionedAPIsList = new ArrayList<>();
                                 apisMap.put(api.getId().getApiName(), versionedAPIsList);
@@ -166,7 +164,7 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                                         + " version: " + apiN.getId().getVersion() + " versionComparable: " + api
                                         .getVersionTimestamp() + " at registry.");
                             } else {
-                                log.info("VersionTimestamp successfully updated API: " + apiN.getId().getApiName()
+                                log.info("VersionTimestamp successfully updated for API: " + apiN.getId().getApiName()
                                         + " version: " + apiN.getId().getVersion() + " versionComparable: " + api
                                         .getVersionTimestamp());
                             }
@@ -178,13 +176,12 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                                     + apiName + " tenant: " + tenant.getDomain() + "at database");
                         }
                     }
-                    log.info("Successfully migrated data for api rxts to include versionComparable.......... tenant:"
+                    log.info("Successfully migrated data for api rxts to include versionComparable of tenant:"
                             + tenant.getId() + '(' + tenant.getDomain() + ')');
                 } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("No api artifacts found in registry for tenant " + tenant.getId() + '(' + tenant
+                    log.info("No api artifacts found in registry for tenant " + tenant.getId() + '(' + tenant
                                 .getDomain() + ')');
-                    }
+
                 }
             } catch (APIManagementException e) {
                 throw new APIMigrationException("Error occurred while reading API from the artifact ", e);
@@ -195,10 +192,9 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                     PrivilegedCarbonContext.endTenantFlow();
                 }
             }
-            if (log.isDebugEnabled()) {
-                log.debug("End rxtMigration for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
-            }
+            log.info("Completed rxtMigration for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+
         }
-        log.info("Rxt resource migration done for all the tenants");
+        log.info("RXT resource migration done for all the tenants");
     }
 }

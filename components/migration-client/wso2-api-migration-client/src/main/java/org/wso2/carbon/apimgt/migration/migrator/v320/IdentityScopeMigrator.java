@@ -39,9 +39,9 @@ public class IdentityScopeMigrator extends Migrator {
 
     @Override
     public void migrate() throws APIMigrationException {
-        log.info("Starting identity scope migration...");
         boolean scopesMigrated = ApiMgtDAO.getInstance().isScopesMigrated();
         if (!scopesMigrated) {
+            log.info("WSO2 API-M Migration Task : Starting identity scope migration...");
             List<String> identityScopes = ApiMgtDAO.getInstance().retrieveIdentityScopes();
             Map<Integer, Map<String, Scope>> scopesMap = ApiMgtDAO.getInstance().migrateIdentityScopes(identityScopes);
 
@@ -54,7 +54,7 @@ public class IdentityScopeMigrator extends Migrator {
                         scopesDAO.addScopes(scopeSet, scopesMapEntry.getKey());
                     }
                 }
-                log.info("Successfully migrated identity scopes");
+                log.info("WSO2 API-M Migration Task : Successfully migrated identity scopes");
             } catch (APIManagementException e) {
                 throw new APIMigrationException("Error occurred while migrating identity scopes", e);
             }

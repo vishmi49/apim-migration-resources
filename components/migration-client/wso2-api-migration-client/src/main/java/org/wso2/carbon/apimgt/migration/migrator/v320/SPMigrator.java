@@ -46,10 +46,16 @@ public class SPMigrator extends Migrator {
         // overwhelm the amount of rows returned for each database call in systems with a large tenant count.
         for (Tenant tenant : tenantList) {
             ArrayList<String> consumerKeys = APIMgtDAO.getAppsOfTypeJWT(tenant.getId());
-            if (consumerKeys != null) {
+            if (!consumerKeys.isEmpty()) {
+                log.info("WSO2 API-M Migration Task : Updating tokenType property of service providers for JWT "
+                        + "typed applications in tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
                 for (String consumerKey : consumerKeys) {
                     APIMgtDAO.updateTokenTypeToJWT(consumerKey);
+                    log.info("WSO2 API-M Migration Task : Updated tokenType property of service provider identified "
+                            + "by consumer key " + consumerKey + " as JWT");
                 }
+                log.info("WSO2 API-M Migration Task : Completed updating tokenType property of service providers for"
+                        + " JWT typed applications in tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
             }
         }
     }

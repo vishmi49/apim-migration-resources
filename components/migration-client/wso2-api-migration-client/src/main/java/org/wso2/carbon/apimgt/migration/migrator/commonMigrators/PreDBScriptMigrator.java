@@ -36,7 +36,7 @@ public class PreDBScriptMigrator {
         try {
             AMDBUtil.runSQLScript(scriptPath, false);
         } catch (SQLException e) {
-            log.error("Error while running AM_DB pre migration SQL scripts", e);
+            log.error("Error while running AM_DB pre migration SQL script at " + scriptPath, e);
         }
     }
 }

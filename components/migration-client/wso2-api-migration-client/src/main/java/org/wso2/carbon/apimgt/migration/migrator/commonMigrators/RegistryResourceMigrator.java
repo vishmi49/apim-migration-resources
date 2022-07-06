@@ -54,7 +54,7 @@ public class RegistryResourceMigrator extends Migrator {
     }
 
     private void rxtMigration(RegistryService regService) {
-        log.info("Rxt migration for API Manager started.");
+        log.info("WSO2 API-M Migration Task : RXT migration for API Manager started.");
 
         String rxtPath = rxtDir + Constants.API_RXT_FILE;
 
@@ -62,12 +62,12 @@ public class RegistryResourceMigrator extends Migrator {
             try {
                 regService.startTenantFlow(tenant);
 
-                log.info("Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
-                log.info("Updating api.rxt for tenant with file: " + rxtPath);
+                log.info("WSO2 API-M Migration Task : Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                log.info("WSO2 API-M Migration Task : Updating api.rxt for tenant with file: " + rxtPath);
                 //Update api.rxt file
                 String rxt = FileUtil.readFileToString(rxtPath);
                 regService.updateRXTResource(Constants.API_RXT_FILE, rxt);
-                log.info("End Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                log.info("WSO2 API-M Migration Task : Successfully updated api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
             } catch (IOException e) {
                 log.error("Error when reading api.rxt from " + rxtPath + " for tenant " + tenant.getId() + '('
                         + tenant.getDomain() + ')', e);
@@ -78,36 +78,6 @@ public class RegistryResourceMigrator extends Migrator {
                 registryService.endTenantFlow();
             }
         }
-        log.info("Rxt resource migration done for all the tenants");
-    }
-
-    public void updateAPIPropertyVisibility() {
-        for (Tenant tenant : tenants) {
-            try {
-                registryService.startTenantFlow(tenant);
-                log.debug("Updating API properties for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
-                GenericArtifact[] artifacts = registryService.getGenericAPIArtifacts();
-                for (GenericArtifact artifact : artifacts) {
-                    String path = artifact.getPath();
-                    if (registryService.isGovernanceRegistryResourceExists(path)) {
-                        Object apiResource = registryService.getGovernanceRegistryResource(path);
-                        if (apiResource == null) {
-                            continue;
-                        }
-                        registryService.updateAPIPropertyVisibility(path);
-                    }
-                }
-                log.info("Completed Updating API properties for tenant ---- "
-                        + tenant.getId() + '(' + tenant.getDomain() + ')');
-            } catch (GovernanceException e) {
-                log.error("Error while accessing API artifact in registry for tenant " + tenant.getId() + '(' +
-                        tenant.getDomain() + ')', e);
-            } catch (RegistryException | UserStoreException e) {
-                log.error("Error while updating API artifact in the registry for tenant " + tenant.getId() + '(' +
-                        tenant.getDomain() + ')', e);
-            } finally {
-                registryService.endTenantFlow();
-            }
-        }
+        log.info("WSO2 API-M Migration Task : RXT resource migration done for all the tenants");
     }
 }

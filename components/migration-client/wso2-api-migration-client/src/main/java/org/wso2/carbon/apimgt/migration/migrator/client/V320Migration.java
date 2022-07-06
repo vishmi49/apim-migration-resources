@@ -45,21 +45,25 @@ public class V320Migration extends VersionMigrator {
 
     @Override
     public void migrate() throws APIMigrationException, UserStoreException {
-        log.info("Starting migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
+        log.info("--------------------------------------------------------------------------------------------------");
+        log.info("WSO2 API-M Migration Task : Starting migration from " + getPreviousVersion() + " to "
+                + getCurrentVersion() + "...");
+        log.info("--------------------------------------------------------------------------------------------------");
+        log.info("WSO2 API-M Migration Task : Starting AM_DB schema migration from 3.1.0 to 3.2.0");
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(Constants.V320_PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
+        log.info("WSO2 API-M Migration Task : Completed AM_DB schema migration from 3.1.0 to 3.2.0");
         V320DBDataMigrator dbDataMigrator = new V320DBDataMigrator();
         dbDataMigrator.migrate();
         RegistryResourceMigrator registryResourceMigrator= new V320RegistryResourceMigrator(Constants.V320_RXT_PATH);
         registryResourceMigrator.migrate();
-        registryResourceMigrator.updateAPIPropertyVisibility();
         ScopeMigrator scopeMigrator = new ScopeMigrator();
         scopeMigrator.migrate();
         SPMigrator spMigrator = new SPMigrator();
         spMigrator.migrate();
         IdentityScopeMigrator identityScopeMigrator = new IdentityScopeMigrator();
         identityScopeMigrator.migrate();
-        log.info("Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
+        log.info("WSO2 API-M Migration Task : Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 
 

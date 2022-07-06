@@ -55,9 +55,9 @@ public class V320DBDataMigrator extends Migrator {
 
     @Override
     public void migrate() throws APIMigrationException {
-        log.info("Starting updating API_TYPE of APIs...");
+        log.info("WSO2 API-M Migration Task : Starting API_TYPE update of APIs...");
         updateAPITypeInDb();
-        log.info("Successfully updated API_TYPE of APIs...");
+        log.info("WSO2 API-M Migration Task : Successfully updated API_TYPE of APIs...");
     }
 
     /**

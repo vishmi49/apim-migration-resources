@@ -203,7 +203,13 @@ public class ApiMgtDAO {
                 }
                 statement.executeBatch();
                 connection.commit();
-                log.info("Successfully updated API_TYPE for APIs in tenant:" + tenantId + '(' + tenantDomain + ')');
+                log.info("WSO2 API-M Migration Task : Successfully updated API_TYPE for APIs in tenant:" +
+                        tenantId + '(' + tenantDomain + ") " + "with below changes");
+
+                apiInfoDTOList.stream().forEach((apiInfoDTO) -> {
+                    log.info("WSO2 API-M Migration Task : API_TYPE of " + apiInfoDTO.getApiProvider() + "-"
+                            + apiInfoDTO.getApiName() + "-" + apiInfoDTO.getApiVersion() + " was updated as " + apiInfoDTO.getType());
+                });
             } catch (SQLException e) {
                 connection.rollback();
                 throw new APIMigrationException("SQLException while updating API_TYPE for APIs in tenant:"

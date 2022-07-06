@@ -106,9 +106,13 @@ public class V410DBDataMigrator extends Migrator {
                 if (StringUtils.isEmpty(tenantConfig)) {
                     systemConfigurationsDAO
                             .addSystemConfig(organization, APIConstants.ConfigType.TENANT.toString(), formattedTenantConf);
+                    log.info("Added tenant-conf.json content to DB for tenant " + tenant.getId() + '(' +
+                            tenant.getDomain() + ')');
                 } else {
                     systemConfigurationsDAO
                             .updateSystemConfig(organization, APIConstants.ConfigType.TENANT.toString(), formattedTenantConf);
+                    log.info("Updated tenant-conf.json content in DB for tenant " + tenant.getId() + '(' +
+                            tenant.getDomain() + ')');
                 }
             } catch (APIManagementException e) {
                 log.info("Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :"

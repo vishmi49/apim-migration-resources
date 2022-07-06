@@ -165,7 +165,7 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         log.info("Successfully migrated Endpoint Certificates.");
 
         log.info("Start replacing KM name by UUID  ..........");
-        replaceKMNamebyUUID();
+        replaceKMNameByUUID();
         log.info("Successfully replaced KM name by UUID.");
     }
 
@@ -807,14 +807,14 @@ public class MigrateFrom320 extends MigrationClientBase implements MigrationClie
         }
     }
 
-    public void replaceKMNamebyUUID() throws APIMigrationException {
+    public void replaceKMNameByUUID() throws APIMigrationException {
         APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
 
         for (Tenant tenant : getTenantsArray()) {
             //Add tenant specific resident key manager with uuids to the AM_KEY_MANAGER table
             addDefaultKM(apiMgtDAO, tenant.getDomain());
-            apiMgtDAO.replaceKeyMappingKMNamebyUUID(tenant);
-            apiMgtDAO.replaceRegistrationKMNamebyUUID(tenant);
+            apiMgtDAO.replaceKeyMappingKMNameByUUID(tenant);
+            apiMgtDAO.replaceRegistrationKMNameByUUID(tenant);
         }
     }
 
