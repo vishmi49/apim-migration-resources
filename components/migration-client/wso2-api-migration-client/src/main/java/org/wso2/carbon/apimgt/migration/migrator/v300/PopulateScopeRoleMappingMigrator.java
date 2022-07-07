@@ -109,17 +109,21 @@ public class PopulateScopeRoleMappingMigrator extends Migrator {
 
                 updateTenantConf(formattedTenantConf, tenant.getId());
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Updated tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
-                            + "\n" + formattedTenantConf);
-                }
-                log.info("WSO2 API-M Migration Task : End updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+
+                log.info("WSO2 API-M Migration Task : Updated tenant-conf.json for tenant " + tenant.getId() +
+                        '(' + tenant.getDomain() + ')' + "\n" + formattedTenantConf);
+
+                log.info("WSO2 API-M Migration Task : End updating user roles for tenant " + tenant.getId() +
+                        '(' + tenant.getDomain() + ')');
             } catch (APIMigrationException e) {
-                log.error("Error while retrieving role names based on existing permissions. ", e);
+                log.error("WSO2 API-M Migration Task : Error while retrieving role names based on "
+                        + "existing permissions. ", e);
             } catch (JsonProcessingException e) {
-                log.error("Error while formatting tenant-conf.json of tenant " + tenant.getId());
+                log.error("WSO2 API-M Migration Task :Error while formatting tenant-conf.json of tenant "
+                        + tenant.getId());
             } catch (IOException e) {
-                log.error("Error occurred while writing tenant-conf.json value to string." + tenant.getId(), e);
+                log.error("WSO2 API-M Migration Task : Error occurred while writing tenant-conf.json value to "
+                        + "string." + tenant.getId(), e);
             } finally {
                 registryService.endTenantFlow();
             }

@@ -277,7 +277,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get data from IDN_OAUTH2_RESOURCE_SCOPE", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get data from "
+                    + "IDN_OAUTH2_RESOURCE_SCOPE", ex);
         }
     }
 
@@ -307,7 +308,7 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get data from AM_API table", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get data from AM_API table", ex);
         }
     }
 
@@ -335,7 +336,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get data from AM_API_URL_MAPPING table", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get data from AM_API_URL_MAPPING "
+                    + "table", ex);
         }
     }
 
@@ -366,7 +368,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get data from AM_API_SCOPE, IDN_OAUTH2_SCOPE tables", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get data from "
+                    + "AM_API_SCOPE, IDN_OAUTH2_SCOPE tables", ex);
         }
     }
 
@@ -388,10 +391,12 @@ public class APIMgtDAO {
                 connection.commit();
             } catch (SQLException e) {
                 connection.rollback();
-                throw new APIMigrationException("SQLException when executing: ".concat(UPDATE_SCOPE_ID_IN_RESOURCE), e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                        .concat(UPDATE_SCOPE_ID_IN_RESOURCE), e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(UPDATE_SCOPE_ID_IN_RESOURCE), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                    .concat(UPDATE_SCOPE_ID_IN_RESOURCE), e);
         }
     }
 
@@ -417,7 +422,7 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get data from AM_API_SCOPE", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get data from AM_API_SCOPE", ex);
         }
     }
 
@@ -441,7 +446,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get API ID using context : " + context, ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get API ID using context : " +
+                    context, ex);
         }
         return apiId;
     }
@@ -466,7 +472,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get SCOPE ID using resource path : " + resourcePath, ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get SCOPE ID using resource path : "
+                    + resourcePath, ex);
         }
         return scopeId;
     }
@@ -495,7 +502,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to retrieve the scope details given the scopeId : " + scopeId, ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to retrieve the scope details given the"
+                    + " scopeId : " + scopeId, ex);
         }
         return scopeInfoDTO;
     }
@@ -523,10 +531,12 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException ex) {
                 conn.rollback();
-                throw new APIMigrationException("Failed to add data to AM_API_RESOURCE_SCOPE_MAPPING table : ", ex);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add data to "
+                        + "AM_API_RESOURCE_SCOPE_MAPPING table : ", ex);
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to add data to AM_API_RESOURCE_SCOPE_MAPPING table : ", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add data to "
+                    + "AM_API_RESOURCE_SCOPE_MAPPING table : ", ex);
         }
     }
 
@@ -552,12 +562,8 @@ public class APIMgtDAO {
                     preparedStatement.executeUpdate();
                 }
             }
-            if (!duplicateList.isEmpty()) {
-                log.info("Removed duplicate scope entries from IDN_OAUTH2_SCOPE, AM_API_SCOPE and "
-                        + "IDN_OAUTH2_SCOPE_BINDING tables");
-            }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to delete duplicate scope data : ", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to delete duplicate scope data : ", ex);
         }
     }
 
@@ -583,7 +589,8 @@ public class APIMgtDAO {
             }
 
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(GET_APPS_OF_TYPE_JWT), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                    .concat(GET_APPS_OF_TYPE_JWT), e);
         }
         return consumerKeys;
     }
@@ -604,10 +611,12 @@ public class APIMgtDAO {
                 connection.commit();
             } catch (SQLException e) {
                 connection.rollback();
-                throw new APIMigrationException("SQLException when executing: ".concat(UPDATE_TOKEN_TYPE_TO_JWT), e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                        .concat(UPDATE_TOKEN_TYPE_TO_JWT), e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(UPDATE_TOKEN_TYPE_TO_JWT), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                    .concat(UPDATE_TOKEN_TYPE_TO_JWT), e);
         }
     }
 
@@ -617,8 +626,8 @@ public class APIMgtDAO {
      * @throws APIMigrationException
      */
     public void replaceKeyMappingKMNameByUUID(Tenant tenant) throws APIMigrationException {
-        log.info("Replacing KMName with UUID in AM_APPLICATION_KEY_MAPPING table for tenant " + tenant.getId() +
-                '(' + tenant.getDomain() + ')');
+        log.info("WSO2 API-M Migration Task : Replacing KMName with UUID in AM_APPLICATION_KEY_MAPPING table for "
+                + "tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             connection.setAutoCommit(false);
             HashMap<String, String> results = new HashMap<>();
@@ -638,10 +647,12 @@ public class APIMgtDAO {
                 connection.commit();
             } catch (SQLException e) {
                 connection.rollback();
-                throw new APIMigrationException("SQLException when executing: ".concat(GET_KEY_MAPPING), e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                        .concat(GET_KEY_MAPPING), e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(GET_KEY_MAPPING), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                    .concat(GET_KEY_MAPPING), e);
         }
     }
 
@@ -662,7 +673,8 @@ public class APIMgtDAO {
                 preparedStatement.executeBatch();
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(UPDATE_KEY_MAPPINGS), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                    .concat(UPDATE_KEY_MAPPINGS), e);
         }
     }
 
@@ -673,8 +685,8 @@ public class APIMgtDAO {
      * @throws APIMigrationException
      */
     public void replaceRegistrationKMNameByUUID(Tenant tenant) throws APIMigrationException {
-        log.info("Replacing KMName with UUID in table AM_APPLICATION_REGISTRATION for tenant " + tenant.getId() +
-                '(' + tenant.getDomain() + ')');
+        log.info("WSO2 API-M Migration Task : Replacing KMName with UUID in table AM_APPLICATION_REGISTRATION for "
+                + "tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             try {
                 HashMap<Integer, String> results = new HashMap<>();
@@ -694,10 +706,12 @@ public class APIMgtDAO {
                 connection.commit();
             } catch (SQLException e) {
                 connection.rollback();
-                throw new APIMigrationException("SQLException when executing: ".concat(GET_APP_REG), e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                        .concat(GET_APP_REG), e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(GET_APP_REG), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: "
+                    .concat(GET_APP_REG), e);
         }
     }
 
@@ -721,7 +735,7 @@ public class APIMgtDAO {
                 preparedStatement.executeBatch();
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(UPDATE_APP_REG), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: ".concat(UPDATE_APP_REG), e);
         }
     }
 
@@ -736,26 +750,31 @@ public class APIMgtDAO {
         try (Connection connection = APIMgtDBUtil.getConnection()) {
             connection.setAutoCommit(false);
             try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_UUID_BY_THE_IDENTIFIER)) {
+                List<String> amAPIUpdates = new ArrayList<>();
                 for (APIInfoDTO apiInfoDTO : apiInfoDTOS) {
-                    log.info("Adding API uuid: " + apiInfoDTO.getUuid() + " and  status: "
-                            + apiInfoDTO.getStatus().toUpperCase() + " for API: " + apiInfoDTO.getApiProvider() + "-"
-                            + apiInfoDTO.getApiName() + "-" + apiInfoDTO.getApiVersion() + " to the batch.");
                     preparedStatement.setString(1, apiInfoDTO.getUuid());
                     preparedStatement.setString(2, apiInfoDTO.getStatus().toUpperCase());
                     preparedStatement.setString(3, apiInfoDTO.getApiProvider());
                     preparedStatement.setString(4, apiInfoDTO.getApiName());
                     preparedStatement.setString(5, apiInfoDTO.getApiVersion());
                     preparedStatement.addBatch();
+
+                    amAPIUpdates.add("API: " + apiInfoDTO.getApiProvider() + "-" + apiInfoDTO.getApiName() + "-"
+                            + apiInfoDTO.getApiVersion() + ", UUID: " + apiInfoDTO.getUuid() + " Status: "
+                            + apiInfoDTO.getStatus().toUpperCase());
                 }
                 preparedStatement.executeBatch();
                 connection.commit();
+
+                log.info("WSO2 API-M Migration Task : AM_API table was updated with below UUID and STATUS changes");
+                amAPIUpdates.stream().forEach((s) -> log.info("WSO2 API-M Migration Task : " + s));
             } catch (SQLException e) {
                 connection.rollback();
-                throw new APIMigrationException("SQLException when executing: ".concat(UPDATE_UUID_BY_THE_IDENTIFIER),
+                throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: ".concat(UPDATE_UUID_BY_THE_IDENTIFIER),
                         e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(UPDATE_UUID_BY_THE_IDENTIFIER), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: ".concat(UPDATE_UUID_BY_THE_IDENTIFIER), e);
         }
     }
 
@@ -772,7 +791,7 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(RETRIEVE_ENDPOINT_CERTIFICATE_ALIASES),
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: ".concat(RETRIEVE_ENDPOINT_CERTIFICATE_ALIASES),
                     e);
         }
         return aliasSet;
@@ -799,7 +818,7 @@ public class APIMgtDAO {
             }
 
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing: ".concat(RETRIEVE_ENDPOINT_CERTIFICATE_ALIASES),
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing: ".concat(RETRIEVE_ENDPOINT_CERTIFICATE_ALIASES),
                     e);
         }
     }
@@ -950,7 +969,7 @@ public class APIMgtDAO {
             }
             removeURLMappingsStatement.executeBatch();
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException when executing updateProductMappings", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException when executing updateProductMappings", e);
         }
     }
 
@@ -966,7 +985,7 @@ public class APIMgtDAO {
         try {
             str = IOUtils.toString(is, "UTF-8");
         } catch (IOException e) {
-            throw new APIMigrationException("Error occurred while converting input stream to string.", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error occurred while converting input stream to string.", e);
         }
         return str;
     }
@@ -998,7 +1017,7 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get data from AM_LABELS and AM_LABEL_URLS", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get data from AM_LABELS and AM_LABEL_URLS", ex);
         }
     }
 
@@ -1033,10 +1052,10 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException ex) {
                 conn.rollback();
-                throw new APIMigrationException("Failed to add data to AM_GATEWAY_ENVIRONMENT table : ", ex);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add data to AM_GATEWAY_ENVIRONMENT table : ", ex);
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to add data to AM_GATEWAY_ENVIRONMENT table : ", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add data to AM_GATEWAY_ENVIRONMENT table : ", ex);
         }
     }
 
@@ -1063,7 +1082,7 @@ public class APIMgtDAO {
             }
             prepStmt.executeBatch();
         } catch (SQLException e) {
-            throw new APIMigrationException("Failed to add data to AM_GW_VHOST table : ", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add data to AM_GW_VHOST table : ", e);
         }
     }
 
@@ -1082,10 +1101,10 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException ex) {
                 conn.rollback();
-                throw new APIMigrationException("Failed to drop tables AM_LABELS and AM_LABEL_URLS : ", ex);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Failed to drop tables AM_LABELS and AM_LABEL_URLS : ", ex);
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to drop tables AM_LABELS and AM_LABEL_URLS : ", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to drop tables AM_LABELS and AM_LABEL_URLS : ", ex);
         }
     }
 
@@ -1102,7 +1121,7 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException ex) {
-            throw new APIMigrationException("Failed to get data from AM_API table", ex);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get data from AM_API table", ex);
         }
     }
 
@@ -1127,10 +1146,12 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException("Error while adding URL template(s) to the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while adding URL template(s) to the "
+                        + "database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while adding URL template(s) to the database " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while adding URL template(s) to the"
+                    + " database " + e);
         }
     }
 
@@ -1153,10 +1174,12 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException("Error while adding URL template(s) to the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while adding URL template(s) to "
+                        + "the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while adding URL template(s) to the database " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while adding URL template(s) to the "
+                    + "database " + e);
         }
     }
 
@@ -1178,10 +1201,12 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException("Error while removing URL template(s) from the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while removing URL template(s) from "
+                        + "the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while removing URL template(s) from the database " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while removing URL template(s) from "
+                    + "the database " + e);
         }
     }
 
@@ -1200,10 +1225,12 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException("Error while removing URL template(s) from the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while removing URL template(s) "
+                        + "from the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while removing URL template(s) from the database " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while removing URL template(s) from "
+                    + "the database " + e);
         }
     }
 
@@ -1222,8 +1249,8 @@ public class APIMgtDAO {
                 for (Map.Entry<Integer, String> tenantIdAndOrganization : tenantIdsAndOrganizations.entrySet()) {
                     String organization = tenantIdAndOrganization.getValue();
                     int tenantId = tenantIdAndOrganization.getKey();
-                    log.info("Updating Organization column of AM_API_CATEGORY table as " + organization + " where "
-                            + "TENANT_ID is " + tenantId);
+                    log.info("WSO2 API-M Migration Task : Updating Organization column of AM_API_CATEGORY table as "
+                            + organization + " where " + "TENANT_ID is " + tenantId);
                     ps.setString(1, organization);
                     ps.setInt(2, tenantId);
                     ps.addBatch();
@@ -1232,12 +1259,12 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException(
-                        "Error while updating organizations for API Categories in the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "
+                        + "API Categories in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException(
-                    "Error while deriving the database connection " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while deriving the database connection "
+                    + e);
         }
     }
 
@@ -1256,8 +1283,8 @@ public class APIMgtDAO {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(UPDATE_GATEWAY_ENVIRONMENT_ORGANIZATION)) {
                 for (String tenantDomain : tenantDomains) {
-                    log.info("Updated ORGANIZATION column of AM_GATEWAY_ENVIRONMENT as " + tenantDomain + " where "
-                            + "TENANT_DOMAIN was " + tenantDomain);
+                    log.info("WSO2 API-M Migration Task : Updated ORGANIZATION column of AM_GATEWAY_ENVIRONMENT as "
+                            + tenantDomain + " where " + "TENANT_DOMAIN was " + tenantDomain);
                     ps.setString(1, tenantDomain);
                     ps.setString(2, tenantDomain);
                     ps.addBatch();
@@ -1266,15 +1293,16 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException("Error while updating organizations for APIs/APIs default version"
-                        + " in the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "
+                        + "APIs/APIs default version" + " in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while deriving the database connection" + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while deriving the database connection"
+                    + e);
         }
         if (!tenantDomainsList.isEmpty()) {
-            log.info("successfully persisted organization data in AM_GATEWAY_ENVIRONMENT tenantDomains: "
-                    + tenantDomainsList);
+            log.info("WSO2 API-M Migration Task : Successfully persisted organization data in AM_GATEWAY_ENVIRONMENT"
+                    + " tenantDomains: " + tenantDomainsList);
         }
     }
 
@@ -1289,7 +1317,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while getting tenantDomains from the database " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while getting tenantDomains from the "
+                    + "database " + e);
         }
         return tenantDomains;
     }
@@ -1304,11 +1333,12 @@ public class APIMgtDAO {
         String providerList = String.join(",", apiProviders);
 
         updateAPIOrganizations(apiProviders, UPDATE_API_ORGANIZATION);
-        log.info("successfully persisted organization data in AM_API table for apis created by " + providerList);
+        log.info("WSO2 API-M Migration Task : Successfully persisted organization data in AM_API table for apis "
+                + "created by " + providerList);
 
         updateAPIOrganizations(apiProviders, UPDATE_API_DEFAULT_VERSION_ORGANIZATION);
-        log.info("successfully persisted organization data in AM_API_DEFAULT_VERSION for apis "
-                + "created by " + providerList);
+        log.info("WSO2 API-M Migration Task : Successfully persisted organization data in AM_API_DEFAULT_VERSION for"
+                + " apis " + "created by " + providerList);
     }
 
     private List<String> getAPIProviders() throws APIMigrationException {
@@ -1322,7 +1352,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while getting API providers from the database " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while getting API providers from the "
+                    + "database " + e);
         }
         return apiProviders;
     }
@@ -1333,8 +1364,9 @@ public class APIMgtDAO {
             try (PreparedStatement ps = conn.prepareStatement(query)) {
                 for (String apiProvider : apiProviders) {
                     String organization = MultitenantUtils.getTenantDomain(APIUtil.replaceEmailDomainBack(apiProvider));
-                    log.info("Updating ORGANIZATION column of " + query.split(" ")[1] + " table as " +
-                            organization + " where API_PROVIDER was " + apiProvider);
+                    log.info("WSO2 API-M Migration Task : Updating ORGANIZATION column of "
+                            + query.split(" ")[1] + " table as " + organization + " where API_PROVIDER was "
+                            + apiProvider);
                     ps.setString(1, organization);
                     ps.setString(2, apiProvider);
                     ps.addBatch();
@@ -1343,11 +1375,11 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException("Error while updating organizations for APIs/APIs default version"
-                        + " in the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "
+                        + "APIs/APIs default version in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while deriving the database connection" + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while deriving the database connection" + e);
         }
     }
 
@@ -1365,20 +1397,20 @@ public class APIMgtDAO {
                     ps.setString(1, api.getVersionTimestamp());
                     ps.setString(2, api.getUuid());
                     ps.addBatch();
-                    log.info("Persisting version timestamp: " + api.getVersionTimestamp() + " of "
-                            + api.getId().getApiName() + " version: " + api.getId().getVersion() + " in "
+                    log.info("WSO2 API-M Migration Task : Persisting version timestamp: " + api.getVersionTimestamp()
+                            + " of " + api.getId().getApiName() + " version: " + api.getId().getVersion() + " in "
                             + tenantId + '(' + tenantDomain + ')');
                 }
                 ps.executeBatch();
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException(
-                        "Error while updating version timestamps for APIs in the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating version timestamps "
+                        + "for APIs in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException(
-                    "Error while deriving the database connection" + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while deriving the database connection"
+                    + e);
         }
     }
 
@@ -1400,7 +1432,8 @@ public class APIMgtDAO {
             }
             return subscriberIdsTenantIds;
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while getting subscriber IDs and tenant IDs from the database " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while getting subscriber IDs and tenant"
+                    + " IDs from the database " + e);
         }
     }
 
@@ -1418,8 +1451,8 @@ public class APIMgtDAO {
                 for (Map.Entry<Integer, String> subscriberOrganization : subscriberIdsAndOrganizations.entrySet()) {
                     String organization = subscriberOrganization.getValue();
                     int subscriberId = subscriberOrganization.getKey();
-                    log.info("Updating AM_APPLICATION ORGANIZATION as " + organization + " where SUBSCRIBER_ID is " +
-                            subscriberId);
+                    log.info("WSO2 API-M Migration Task : Updating AM_APPLICATION ORGANIZATION as " + organization
+                            + " where SUBSCRIBER_ID is " + subscriberId);
                     ps.setString(1, organization);
                     ps.setInt(2, subscriberId);
                     ps.addBatch();
@@ -1428,11 +1461,12 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException(
-                        "Error while updating organizations for applications in the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "
+                        + "applications in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while deriving the database connection " + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while deriving the database connection "
+                    + e);
         }
     }
 
@@ -1457,11 +1491,11 @@ public class APIMgtDAO {
                 conn.commit();
             } catch (SQLException e) {
                 conn.rollback();
-                throw new APIMigrationException("Error while updating organizations for application default versions "
-                        + "in the database " + e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "
+                        + "application default versions " + "in the database " + e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while deriving database connection" + e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while deriving database connection" + e);
         }
     }
 
@@ -1488,23 +1522,23 @@ public class APIMgtDAO {
                 if (e instanceof SQLIntegrityConstraintViolationException) {
                     if (getKeyManagerConfigurationByName(conn, keyManagerConfigurationDTO.getTenantDomain(),
                             keyManagerConfigurationDTO.getName()) != null) {
-                        log.warn(keyManagerConfigurationDTO.getName() + " Key Manager Already Registered in tenant" +
-                                keyManagerConfigurationDTO.getTenantDomain());
+                        log.warn("WSO2 API-M Migration Task : " + keyManagerConfigurationDTO.getName()
+                                + " Key Manager Already Registered in tenant"
+                                + keyManagerConfigurationDTO.getTenantDomain());
                     } else {
-                        throw new APIMigrationException("Error while Storing key manager configuration with name " +
-                                keyManagerConfigurationDTO.getName() + " in tenant " +
+                        throw new APIMigrationException("WSO2 API-M Migration Task : Error while Storing key manager "
+                                + "configuration with name " + keyManagerConfigurationDTO.getName() + " in tenant " +
                                 keyManagerConfigurationDTO.getTenantDomain(), e);
                     }
                 } else {
-                    throw new APIMigrationException("Error while Storing key manager configuration with name " +
-                            keyManagerConfigurationDTO.getName() + " in tenant " +
+                    throw new APIMigrationException("WSO2 API-M Migration Task : Error while Storing key manager "
+                            + "configuration with name " + keyManagerConfigurationDTO.getName() + " in tenant " +
                             keyManagerConfigurationDTO.getTenantDomain(), e);
                 }
             }
         } catch (SQLException | IOException e) {
-            throw new APIMigrationException(
-                    "Error while Storing key manager configuration with name " + keyManagerConfigurationDTO.getName() +
-                            " in tenant " + keyManagerConfigurationDTO.getTenantDomain(), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while Storing key manager configuration "
+                    + "with name " + keyManagerConfigurationDTO.getName() + " in tenant " + keyManagerConfigurationDTO.getTenantDomain(), e);
         }
     }
 
@@ -1539,8 +1573,8 @@ public class APIMgtDAO {
         try (Connection conn = APIMgtDBUtil.getConnection()) {
             return getKeyManagerConfigurationByName(conn, tenantDomain, name);
         } catch (SQLException | IOException e) {
-            throw new APIMigrationException(
-                    "Error while retrieving key manager configuration for " + name + " in tenant " + tenantDomain, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while retrieving key manager "
+                    + "configuration for " + name + " in tenant " + tenantDomain, e);
         }
     }
 
@@ -1565,7 +1599,8 @@ public class APIMgtDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Failed to search UUID: " + apiUUID + " in the revision db table", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to search UUID: " + apiUUID +
+                    " in the revision db table", e);
         }
         return null;
     }

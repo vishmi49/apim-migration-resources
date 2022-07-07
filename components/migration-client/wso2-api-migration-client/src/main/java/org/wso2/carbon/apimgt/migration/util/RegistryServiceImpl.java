@@ -61,8 +61,8 @@ public class RegistryServiceImpl implements RegistryService {
     @Override
     public void startTenantFlow(Tenant tenant) {
         if (this.tenant != null) {
-            log.error("Start tenant flow called without ending previous tenant flow");
-            throw new IllegalStateException("Previous tenant flow has not been ended, " +
+            log.error("WSO2 API-M Migration Task : Start tenant flow called without ending previous tenant flow");
+            throw new IllegalStateException("WSO2 API-M Migration Task : Previous tenant flow has not been ended, " +
                                                 "'RegistryService.endTenantFlow()' needs to be called");
         } else {
             PrivilegedCarbonContext.startTenantFlow();
@@ -71,8 +71,8 @@ public class RegistryServiceImpl implements RegistryService {
             try {
                 APIUtil.loadTenantRegistry(tenant.getId());
             } catch (RegistryException e) {
-                log.error("Could not load tenant registry for tenant " + tenant.getId() + '('
-                        + tenant.getDomain() + ')', e);
+                log.error("WSO2 API-M Migration Task : Could not load tenant registry for tenant " + tenant.getId()
+                        + '(' + tenant.getDomain() + ')', e);
             }
             this.tenant = tenant;
         }
@@ -81,8 +81,8 @@ public class RegistryServiceImpl implements RegistryService {
     @Override
     public void endTenantFlow() {
         if (this.tenant == null) {
-            log.error("End tenant flow called even though tenant flow has already been ended or was not started");
-            throw new IllegalStateException("Previous tenant flow has already been ended, " +
+            log.error("WSO2 API-M Migration Task : End tenant flow called even though tenant flow has already been ended or was not started");
+            throw new IllegalStateException("WSO2 API-M Migration Task : Previous tenant flow has already been ended, " +
                     "unnecessary additional RegistryService.endTenantFlow()' call has been detected");
         } else {
             PrivilegedCarbonContext.endTenantFlow();
@@ -108,7 +108,7 @@ public class RegistryServiceImpl implements RegistryService {
 
     @Override
     public GenericArtifact[] getGenericAPIArtifacts() {
-        log.debug("Calling getGenericAPIArtifacts");
+        log.debug("WSO2 API-M Migration Task : Calling getGenericAPIArtifacts");
         GenericArtifact[] artifacts = {};
 
         try {
@@ -118,17 +118,18 @@ public class RegistryServiceImpl implements RegistryService {
             if (artifactManager != null) {
                 artifacts = artifactManager.getAllGenericArtifacts();
 
-                log.debug("Total number of api artifacts : " + artifacts.length);
+                log.info("WSO2 API-M Migration Task : Total number of api artifacts : " + artifacts.length);
             } else {
-                log.debug("No api artifacts found in registry for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                log.info("WSO2 API-M Migration Task : No API artifacts found in registry for tenant "
+                        + tenant.getId() + '(' + tenant.getDomain() + ')');
             }
 
         } catch (RegistryException e) {
-            log.error("Error occurred when getting GenericArtifacts from registry", e);
+            log.error("WSO2 API-M Migration Task : Error occurred when getting GenericArtifacts from registry", e);
         } catch (UserStoreException e) {
-            log.error("Error occurred while reading tenant information of tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
+            log.error("WSO2 API-M Migration Task : Error occurred while reading tenant information of tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
         } catch (APIManagementException e) {
-            log.error("Failed to initialize GenericArtifactManager", e);
+            log.error("WSO2 API-M Migration Task : Failed to initialize GenericArtifactManager", e);
         }
 
         return artifacts;
@@ -136,7 +137,7 @@ public class RegistryServiceImpl implements RegistryService {
 
     @Override
     public void updateGenericAPIArtifacts(GenericArtifact[] artifacts) {
-        log.debug("Calling updateGenericAPIArtifacts");
+        log.debug("WSO2 API-M Migration Task : Calling updateGenericAPIArtifacts");
 
         try {
             Registry registry = getGovernanceRegistry();
@@ -147,27 +148,29 @@ public class RegistryServiceImpl implements RegistryService {
                     artifactManager.updateGenericArtifact(artifact);
                 } catch (GovernanceException e) {
                     // This is to avoid the loop from exiting if one artifact fails.
-                    log.error("Unable to update governance artifact", e);
+                    log.error("WSO2 API-M Migration Task : Unable to update governance artifact", e);
                 }
             }
         } catch (UserStoreException e) {
-            log.error("Error occurred while reading tenant information of tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
+            log.error("WSO2 API-M Migration Task : Error occurred while reading tenant information of tenant "
+                    + tenant.getId() + '(' + tenant.getDomain() + ')', e);
         } catch (RegistryException e) {
-            log.error("Error occurred when updating GenericArtifacts in registry", e);
+            log.error("WSO2 API-M Migration Task : Error occurred when updating GenericArtifacts in registry", e);
         } catch (APIManagementException e) {
-            log.error("Failed to initialize GenericArtifactManager", e);
+            log.error("WSO2 API-M Migration Task : Failed to initialize GenericArtifactManager", e);
         }
     }
 
     @Override
     public API getAPI(GenericArtifact artifact) {
-        log.debug("Calling getAPI");
+        log.debug("WSO2 API-M Migration Task : Calling getAPI");
         API api = null;
 
         try {
             api = APIUtil.getAPI(artifact);
         } catch (APIManagementException e) {
-            log.error("Error when getting api artifact " + artifact.getId() + " from registry", e);
+            log.error("WSO2 API-M Migration Task : Error when getting api artifact " + artifact.getId() + " from "
+                    + "registry", e);
         }
         return api;
     }
@@ -274,7 +277,7 @@ public class RegistryServiceImpl implements RegistryService {
 
     private Registry getConfigRegistry() throws UserStoreException, RegistryException {
         if (tenant == null) {
-            throw new IllegalStateException("The tenant flow has not been started, " +
+            throw new IllegalStateException("WSO2 API-M Migration Task : The tenant flow has not been started, " +
                         "'RegistryService.startTenantFlow(Tenant tenant)' needs to be called");
         }
 
@@ -288,13 +291,13 @@ public class RegistryServiceImpl implements RegistryService {
 
     public Registry getGovernanceRegistry() throws UserStoreException, RegistryException {
         if (tenant == null) {
-            throw new IllegalStateException("The tenant flow has not been started, " +
+            throw new IllegalStateException("WSO2 API-M Migration Task : The tenant flow has not been started, " +
                     "'RegistryService.startTenantFlow(Tenant tenant)' needs to be called");
         }
 
         String adminName = ServiceHolder.getRealmService().getTenantUserRealm(tenant.getId()).
                 getRealmConfiguration().getAdminUserName();
-        log.debug("Tenant admin username : " + adminName);
+        log.debug("WSO2 API-M Migration Task : Tenant admin username : " + adminName);
         ServiceHolder.getTenantRegLoader().loadTenantRegistry(tenant.getId());
         return ServiceHolder.getRegistryService().getGovernanceUserRegistry(adminName, tenant.getId());
     }
@@ -306,7 +309,7 @@ public class RegistryServiceImpl implements RegistryService {
     @Override
     public void updateRXTResource(String rxtName, final String rxtPayload) throws UserStoreException, RegistryException {
         if (tenant == null) {
-            throw new IllegalStateException("The tenant flow has not been started, "
+            throw new IllegalStateException("WSO2 API-M Migration Task : The tenant flow has not been started, "
                                             + "'RegistryService.startTenantFlow(Tenant tenant)' needs to be called");
         }
         ServiceHolder.getTenantRegLoader().loadTenantRegistry(tenant.getId());
@@ -362,8 +365,9 @@ public class RegistryServiceImpl implements RegistryService {
             if (resource != null) {
                 String publisherAccessControl = resource.getProperty(Constants.PUBLISHER_ROLES);
                 if (publisherAccessControl == null || publisherAccessControl.trim().isEmpty()) {
-                    log.info("API at " + resourcePath + "did not have property : " + Constants.PUBLISHER_ROLES
-                                + ", hence adding the null value for that API resource.");
+                    log.info("WSO2 API-M Migration Task : API at " + resourcePath + " did not have "
+                         + Constants.PUBLISHER_ROLES + " property, hence setting " + Constants.PUBLISHER_ROLES +
+                         " as null");
                     resource.setProperty(Constants.PUBLISHER_ROLES, Constants.NULL_USER_ROLE_LIST);
                     resource.setProperty(Constants.ACCESS_CONTROL, Constants.NO_ACCESS_CONTROL);
                     isResourceUpdated = true;
@@ -374,10 +378,9 @@ public class RegistryServiceImpl implements RegistryService {
                 if (storeViewRoles == null) {
                     if (Constants.PUBLIC_STORE_VISIBILITY.equals(storeVisibility) || publisherAccessControl == null ||
                             publisherAccessControl.trim().isEmpty() || publisherAccessControl.equals(Constants.NULL_USER_ROLE_LIST)) {
-                        log.info("API at " + resourcePath + " has the public visibility, but  : "
-                                + Constants.STORE_VIEW_ROLES + " property is not set to "
+                        log.info("WSO2 API-M Migration Task : API at " + resourcePath + " has the public visibility, "
+                                + "but  : " + Constants.STORE_VIEW_ROLES + " property is not set to "
                                 + Constants.NULL_USER_ROLE_LIST + ". Hence setting the correct value.");
-
                         resource.setProperty(Constants.STORE_VIEW_ROLES, Constants.NULL_USER_ROLE_LIST);
                     } else {
                         StringBuilder combinedRoles = new StringBuilder(publisherAccessControl);
@@ -385,9 +388,9 @@ public class RegistryServiceImpl implements RegistryService {
                         for (String role : roles) {
                             combinedRoles.append(",").append(role.trim().toLowerCase());
                         }
-
-                        log.info("API at " + resourcePath + " does not have public visibility. Hence updated "
-                                + Constants.STORE_VIEW_ROLES + " property as " + combinedRoles);
+                        log.info("WSO2 API-M Migration Task : Store visibility of API at " + resourcePath + " is "
+                                + "restricted to " + combinedRoles + ". Hence, setting " + Constants.STORE_VIEW_ROLES +
+                                " property as " + combinedRoles);
                         resource.setProperty(Constants.STORE_VIEW_ROLES, String.valueOf(combinedRoles));
                     }
                     isResourceUpdated = true;
@@ -397,14 +400,20 @@ public class RegistryServiceImpl implements RegistryService {
                 }
             }
         } catch (RegistryException e) {
-            log.error("Error occurred when updating GenericArtifacts in registry for the Publisher Access Control " +
-                    "feature", e);
+            log.error("WSO2 API-M Migration Task : Error occurred when updating GenericArtifacts in registry for "
+                    + "the Publisher Access Control feature", e);
         } catch (UserStoreException e) {
-            log.error("Error occurred while reading tenant information of tenant " + tenant.getId() + '('
-                    + tenant.getDomain() + ')', e);
+            log.error("WSO2 API-M Migration Task : Error occurred while reading tenant information of tenant "
+                    + tenant.getId() + '(' + tenant.getDomain() + ')', e);
         }
     }
 
+    /**
+     * Updates overview_type field of APIs
+     *
+     * @param resourcePath resource path
+     * @param artifact generic artifact
+     */
     @Override
     public void updateGenericAPIArtifact(String resourcePath, GenericArtifact artifact) {
         try {
@@ -418,12 +427,12 @@ public class RegistryServiceImpl implements RegistryService {
                 if (SOAPOperationBindingUtils.isSOAPToRESTApi(artifact.getAttribute(Constants.API_OVERVIEW_NAME),
                         artifact.getAttribute(Constants.API_OVERVIEW_VERSION),
                         artifact.getAttribute(Constants.API_OVERVIEW_PROVIDER))) {
-                    log.info("API at " + resourcePath + " is a SOAP to REST API, hence adding the overview_type" +
-                            " as SOAPTOREST for that API resource.");
+                    log.info("WSO2 API-M Migration Task : API at " + resourcePath + " is a SOAP to REST API, "
+                            + "hence adding the overview_type as SOAPTOREST for that API resource.");
                     overview_type = Constants.API_TYPE_SOAPTOREST;
                 } else {
-                    log.info("API at " + resourcePath + " is a SOAP API, hence adding the overview_type"
-                                + " as SOAP for that API resource.");
+                    log.info("WSO2 API-M Migration Task : API at " + resourcePath + " is a SOAP API, hence adding "
+                            + "the overview_type as SOAP for that API resource.");
                     overview_type = Constants.API_TYPE_SOAP;
                 }
                 artifact.setAttribute(Constants.API_OVERVIEW_TYPE, overview_type);
@@ -431,8 +440,8 @@ public class RegistryServiceImpl implements RegistryService {
             }
 
             if (overview_type == null || overview_type.trim().isEmpty() || "NULL".equalsIgnoreCase(overview_type)) {
-                log.info("API at " + resourcePath + " did not have property : " + Constants.API_OVERVIEW_TYPE
-                        + ", hence adding the default value - HTTP for that API resource.");
+                log.info("WSO2 API-M Migration Task : API at " + resourcePath + " did not have property: "
+                        + Constants.API_OVERVIEW_TYPE + ", hence adding the default value - HTTP for that API resource.");
                 overview_type = Constants.API_TYPE_HTTP;
                 artifact.setAttribute(Constants.API_OVERVIEW_TYPE, overview_type);
                 isResourceUpdated = true;
@@ -441,16 +450,16 @@ public class RegistryServiceImpl implements RegistryService {
                 artifactManager.updateGenericArtifact(artifact);
             }
         } catch (UserStoreException | RegistryException e) {
-            log.error("Error occurred when updating GenericArtifacts in registry", e);
+            log.error("WSO2 API-M Migration Task : Error occurred when updating GenericArtifacts in registry", e);
         } catch (APIManagementException e) {
-            log.error("Error occurred when getting artifact manager", e);
+            log.error("WSO2 API-M Migration Task : Error occurred when getting artifact manager", e);
         }
     }
 
     /**
      * This method updates the 'enableStore' rxt field in migrated APIs as it has been mandated in devportal api's listing
-     * @param resourcePath
-     * @param artifact
+     * @param resourcePath  API registry resource path
+     * @param artifact      API artifact
      */
     @Override
     public void updateEnableStoreInRxt(String resourcePath, GenericArtifact artifact) {
@@ -465,13 +474,13 @@ public class RegistryServiceImpl implements RegistryService {
             }
             if (isResourceUpdated) {
                 artifactManager.updateGenericArtifact(artifact);
-                log.info("Updated " + Constants.API_OVERVIEW_ENABLE_STORE + " property of API at " + resourcePath
-                        + "to true.");
+                log.info("WSO2 API-M Migration Task : Updated " + Constants.API_OVERVIEW_ENABLE_STORE + " property"
+                        + " of API at " + resourcePath + " to true.");
             }
         } catch (UserStoreException | RegistryException e) {
-            log.error("Error occurred when updating API Artifact in registry", e);
+            log.error("WSO2 API-M Migration Task : Error occurred when updating API Artifact in registry", e);
         } catch (APIManagementException e) {
-            log.error("Error occurred when getting artifact manager", e);
+            log.error("WSO2 API-M Migration Task : Error occurred when getting artifact manager", e);
         }
     }
 
@@ -484,9 +493,6 @@ public class RegistryServiceImpl implements RegistryService {
             Registry registry = getGovernanceRegistry();
             Resource resource = registry.get(resourcePath);
             boolean isResourceUpdated = false;
-            if (log.isDebugEnabled()) {
-                log.debug("Updating properties for registry path: " + resourcePath);
-            }
             Properties map = resource.getProperties();
             List<String> modifiableKeys= new ArrayList<>();
             for (Object entry : map.keySet()) {
@@ -497,17 +503,17 @@ public class RegistryServiceImpl implements RegistryService {
                 }
             }
             if (isResourceUpdated) {
-                log.info("Updating properties for registry path: " + resourcePath);
+                log.info("WSO2 API-M Migration Task : Updating API properties for registry path: " + resourcePath);
                 for (String modifiableKey : modifiableKeys) {
                     String newKey = modifiableKey + "__display";
                     resource.addProperty(newKey, resource.getProperty(modifiableKey));
                     resource.removeProperty(modifiableKey);
-                    log.info("Updated property key : " + modifiableKey + " as : " + newKey);
+                    log.info("WSO2 API-M Migration Task : Updated property key : " + modifiableKey + " as : " + newKey);
                 }
                 registry.put(resourcePath, resource);
             }
         } catch (UserStoreException | RegistryException e) {
-            log.error("Error occurred when updating API Artifact in registry", e);
+            log.error("WSO2 API-M Migration Task : Error occurred when updating API Artifact in registry", e);
         }
     }
 }

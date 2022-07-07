@@ -28,10 +28,12 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
     public void addTenantConfig(String organization, String tenantConfig) throws APIManagementException {
 
         if (APIUtil.isDisabledExtendedAPIMConfigService()) {
-            log.info("ExtendedAPIMConfigService is disabled. Hence, executing super method logic.");
+            log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is disabled. Hence, executing super "
+                    + "method logic.");
             super.addTenantConfig(organization,tenantConfig);
         } else {
-            log.info("ExtendedAPIMConfigService is enabled. Hence, executing overridden implementation");
+            log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is enabled. Hence, executing overridden "
+                    + "implementation");
             if (organization == null) {
                 organization = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
             }
@@ -52,8 +54,8 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
                 }
 
             } catch (RegistryException | IOException e) {
-                throw new APIManagementException("Error while adding tenant config to registry for organization: "
-                        + organization, e);
+                throw new APIManagementException("WSO2 API-M Migration Task : Error while adding tenant config to "
+                        + "registry for organization: " + organization, e);
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();
             }
@@ -64,10 +66,12 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
     public String getTenantConfig(String organization) throws APIManagementException {
 
         if (APIUtil.isDisabledExtendedAPIMConfigService()) {
-            log.info("ExtendedAPIMConfigService is disabled. Hence, executing super method logic.");
+            log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is disabled. Hence, executing super "
+                    + "method logic.");
             super.getTenantConfig(organization);
         } else {
-            log.info("ExtendedAPIMConfigService is enabled. Hence, executing overridden implementation");
+            log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is enabled. Hence, executing overridden "
+                    + "implementation");
             if (organization == null) {
                 organization = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
             }
@@ -88,7 +92,8 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
                 }
 
             } catch (RegistryException e) {
-                throw new APIManagementException("Error while getting tenant config from registry for organization: "
+                throw new APIManagementException("WSO2 API-M Migration Task : Error while getting tenant config from "
+                        + "registry for organization: "
                         + organization, e);
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();
@@ -101,10 +106,12 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
     public void updateTenantConfig(String organization, String tenantConfig) throws APIManagementException {
 
         if (APIUtil.isDisabledExtendedAPIMConfigService()) {
-            log.info("ExtendedAPIMConfigService is disabled. Hence, executing super method logic.");
+            log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is disabled. Hence, executing super "
+                    + "method logic.");
             super.updateTenantConfig(organization,tenantConfig);
         } else {
-            log.info("ExtendedAPIMConfigService is enabled. Hence, executing overridden implementation");
+            log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is enabled. Hence, executing overridden"
+                    + " implementation");
             if (organization == null) {
                 organization = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
             }
@@ -127,7 +134,8 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
                     registry.put(APIConstants.API_TENANT_CONF_LOCATION, resource);
                 }
             } catch (RegistryException | IOException e) {
-                throw new APIManagementException("Error while updating tenant config to registry for organization: "
+                throw new APIManagementException("WSO2 API-M Migration Task : Error while updating tenant config to "
+                        + "registry for organization: "
                         + organization, e);
             } finally {
                 PrivilegedCarbonContext.endTenantFlow();

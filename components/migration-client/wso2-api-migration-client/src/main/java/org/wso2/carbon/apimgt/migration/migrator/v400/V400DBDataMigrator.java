@@ -136,9 +136,9 @@ public class V400DBDataMigrator extends Migrator {
             apiMgtDAO.dropLabelTable();
             log.info("WSO2 API-M Migration Task : Dropped AM_LABELS and AM_LABEL_URLS tables");
         } catch (APIMigrationException e) {
-            throw new APIMigrationException("Error while Reading Labels", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while Reading Labels", e);
         } catch (APIManagementException e) {
-            throw new APIMigrationException("Error while Converting Endpoint URLs to VHost", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while Converting Endpoint URLs to VHost", e);
         }
     }
 
@@ -176,7 +176,7 @@ public class V400DBDataMigrator extends Migrator {
             APIMgtDAO.getInstance().updateEndpointCertificates(certificateMap);
         } catch (NoSuchAlgorithmException | IOException | CertificateException
                 | KeyStoreException | APIMigrationException e) {
-            throw new APIMigrationException("Error while Migrating Endpoint Certificates", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while Migrating Endpoint Certificates", e);
         }
     }
 
@@ -222,14 +222,12 @@ public class V400DBDataMigrator extends Migrator {
      * @throws APIMigrationException APIMigrationException
      */
     protected void moveUUIDToDBFromRegistry() throws APIMigrationException {
-
+        log.info("WSO2 API-M Migration Task : Adding API UUID and STATUS to AM_API table for all tenants");
         List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
         tenantManager = ServiceHolder.getRealmService().getTenantManager();
         try {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {
-                log.info("WSO2 API-M Migration Task : Adding API UUIDs to AM_API table for tenant " + tenant.getId()
-                        + '(' + tenant.getDomain() + ')');
                 try {
                     int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
                     APIUtil.loadTenantRegistry(apiTenantId);
@@ -253,28 +251,21 @@ public class V400DBDataMigrator extends Migrator {
                             apiInfoDTO.setApiVersion(artifact.getAttribute("overview_version"));
                             apiInfoDTO.setStatus(((GenericArtifactImpl) artifact).getLcState());
                             apiInfoDTOList.add(apiInfoDTO);
-                            log.info("Adding UUID: " + artifact.getId() + " as UUID of API: " +
-                                    apiInfoDTO.getApiProvider() + "-" + apiInfoDTO.getApiName() + "-" +
-                                    apiInfoDTO.getApiVersion());
-                            log.info("Adding API Status: " + ((GenericArtifactImpl) artifact).getLcState() + " as "
-                                    + "status of API: " + apiInfoDTO.getApiProvider() + "-" +
-                                    apiInfoDTO.getApiName() + "-" + apiInfoDTO.getApiVersion());
                         }
                     }
-                    log.info("WSO2 API-M Migration Task : Added API UUIDs to AM_API table for tenant " + tenant.getId()
-                            + '(' + tenant.getDomain() + ')');
                 } finally {
                     PrivilegedCarbonContext.endTenantFlow();
                 }
             }
             apiMgtDAO.updateUUIDAndStatus(apiInfoDTOList);
+            log.info("WSO2 API-M Migration Task : Added API UUID and STATUS to AM_API table for all tenants");
 
         } catch (RegistryException e) {
-            throw new APIMigrationException("Error while initiation the registry", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while initiation the registry", e);
         } catch (UserStoreException e) {
-            throw new APIMigrationException("Error while retrieving the tenants", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while retrieving the tenants", e);
         } catch (APIManagementException e) {
-            throw new APIMigrationException("Error while Retrieving API artifact from the registry", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while Retrieving API artifact from the registry", e);
         }
     }
 }

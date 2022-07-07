@@ -70,7 +70,7 @@ public class AMDBUtil {
         }  catch (Exception e) {
             /* MigrationDBCreator extends from org.wso2.carbon.utils.dbcreator.DatabaseCreator and in the super class
             method getDatabaseType throws generic Exception */
-            log.error("Error occurred while migrating databases", e);
+            log.error("WSO2 API-M Migration Task : Error occurred while migrating databases", e);
             if (connection != null) {
                 connection.rollback();
             }

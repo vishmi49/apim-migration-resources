@@ -50,8 +50,12 @@ public class V310Migration extends VersionMigrator {
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(Constants.V310_PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
         log.info("WSO2 API-M Migration Task : Completed AM_DB schema migration from 3.0.0 to 3.1.0");
+
+        log.info("WSO2 API-M Migration Task : Starting registry resource migration from 3.0.0 to 3.1.0");
         RegistryResourceMigrator registryResourceMigrator = new RegistryResourceMigrator(Constants.V310_RXT_PATH);
         registryResourceMigrator.migrate();
+        log.info("WSO2 API-M Migration Task : Completed registry resource migration from 3.0.0 to 3.1.0");
+
         log.info("WSO2 API-M Migration Task : Completed migration from " + getPreviousVersion() + " to "
                 + getCurrentVersion() + "...");
     }

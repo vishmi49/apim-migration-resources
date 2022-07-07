@@ -51,9 +51,9 @@ public class SPMigrator extends Migrator {
                         + "typed applications in tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
                 for (String consumerKey : consumerKeys) {
                     APIMgtDAO.updateTokenTypeToJWT(consumerKey);
-                    log.info("WSO2 API-M Migration Task : Updated tokenType property of service provider identified "
-                            + "by consumer key " + consumerKey + " as JWT");
                 }
+                log.info("WSO2 API-M Migration Task : Updated tokenType property of service providers identified "
+                        + "by consumer keys " + String.join(",", consumerKeys) + " as JWT");
                 log.info("WSO2 API-M Migration Task : Completed updating tokenType property of service providers for"
                         + " JWT typed applications in tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
             }

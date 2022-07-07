@@ -36,7 +36,7 @@ public class PostDBScriptMigrator {
         try {
             AMDBUtil.runSQLScript(scriptPath, false);
         } catch (SQLException e) {
-            log.error("Error while running AM_DB post migration SQL scripts ", e);
+            log.error("WSO2 API-M Migration Task : Error while running AM_DB post migration SQL scripts ", e);
         }
     }
 }

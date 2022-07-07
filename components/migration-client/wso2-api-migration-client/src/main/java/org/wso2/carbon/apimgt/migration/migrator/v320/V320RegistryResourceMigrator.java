@@ -46,6 +46,10 @@ public class V320RegistryResourceMigrator extends RegistryResourceMigrator {
         updateAPIPropertyVisibility();
     }
 
+    /**
+     * This method updates the 'enableStore' rxt field in migrated APIs as it has been mandated in devportal api's
+     * listing
+     */
     private void updateEnableStoreInRxt() {
         for (Tenant tenant : tenants) {
             try {
@@ -67,10 +71,10 @@ public class V320RegistryResourceMigrator extends RegistryResourceMigrator {
                 log.info("WSO2 API-M Migration Task : Completed updating enableStore property of API artifacts "
                         + "for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
             } catch (GovernanceException e) {
-                log.error("Error while accessing API artifact in registry for tenant " + tenant.getId() + '(' +
-                        tenant.getDomain() + ')', e);
+                log.error("WSO2 API-M Migration Task : Error while accessing API artifact in registry for tenant "
+                        + tenant.getId() + '(' + tenant.getDomain() + ')', e);
             } catch (RegistryException | UserStoreException e) {
-                log.error("Error while updating API artifact in the registry for tenant " + tenant.getId() + '(' +
+                log.error("WSO2 API-M Migration Task : Error while updating API artifact in the registry for tenant " + tenant.getId() + '(' +
                         tenant.getDomain() + ')', e);
             } finally {
                 registryService.endTenantFlow();
@@ -78,12 +82,16 @@ public class V320RegistryResourceMigrator extends RegistryResourceMigrator {
         }
     }
 
+    /**
+     * This method updates the existing API properties so that they will be visible in the store by default
+     * after migration
+     */
     private void updateAPIPropertyVisibility() {
         for (Tenant tenant : tenants) {
             try {
                 registryService.startTenantFlow(tenant);
-                log.debug("WSO2 API-M Migration Task : Updating API property visibility for tenant " +
-                        tenant.getId() + '(' + tenant.getDomain() + ") - All existing properties are marked as "
+                log.info("WSO2 API-M Migration Task : Updating API property visibility for tenant " +
+                        tenant.getId() + '(' + tenant.getDomain() + ") - All existing properties will be marked as "
                         + "'visible on developer portal'");
                 GenericArtifact[] artifacts = registryService.getGenericAPIArtifacts();
                 for (GenericArtifact artifact : artifacts) {
@@ -99,10 +107,10 @@ public class V320RegistryResourceMigrator extends RegistryResourceMigrator {
                 log.info("WSO2 API-M Migration Task : Completed updating API property visibilities for tenant  "
                         + tenant.getId() + '(' + tenant.getDomain() + ')');
             } catch (GovernanceException e) {
-                log.error("Error while accessing API artifact in registry for tenant " + tenant.getId() + '(' +
+                log.error("WSO2 API-M Migration Task : Error while accessing API artifact in registry for tenant " + tenant.getId() + '(' +
                         tenant.getDomain() + ')', e);
             } catch (RegistryException | UserStoreException e) {
-                log.error("Error while updating API artifact in the registry for tenant " + tenant.getId() + '(' +
+                log.error("WSO2 API-M Migration Task : Error while updating API artifact in the registry for tenant " + tenant.getId() + '(' +
                         tenant.getDomain() + ')', e);
             } finally {
                 registryService.endTenantFlow();

@@ -53,16 +53,32 @@ public class V320Migration extends VersionMigrator {
         PreDBScriptMigrator preDBScriptMigrator = new PreDBScriptMigrator(Constants.V320_PRE_MIGRATION_SCRIPTS_PATH);
         preDBScriptMigrator.run();
         log.info("WSO2 API-M Migration Task : Completed AM_DB schema migration from 3.1.0 to 3.2.0");
+
+        log.info("WSO2 API-M Migration Task : Starting AM_DB data migration from 3.1.0 to 3.2.0");
         V320DBDataMigrator dbDataMigrator = new V320DBDataMigrator();
         dbDataMigrator.migrate();
-        RegistryResourceMigrator registryResourceMigrator= new V320RegistryResourceMigrator(Constants.V320_RXT_PATH);
+        log.info("WSO2 API-M Migration Task : Completed AM_DB data migration from 3.1.0 to 3.2.0");
+
+        log.info("WSO2 API-M Migration Task : Starting registry resource migration from 3.1.0 to 3.2.0");
+        RegistryResourceMigrator registryResourceMigrator = new V320RegistryResourceMigrator(Constants.V320_RXT_PATH);
         registryResourceMigrator.migrate();
+        log.info("WSO2 API-M Migration Task : Completed registry resource migration from 3.1.0 to 3.2.0");
+
+        log.info("WSO2 API-M Migration Task : Starting scope migration from 3.1.0 to 3.2.0");
         ScopeMigrator scopeMigrator = new ScopeMigrator();
         scopeMigrator.migrate();
+        log.info("WSO2 API-M Migration Task : Completed scope migration from 3.1.0 to 3.2.0");
+
+        log.info("WSO2 API-M Migration Task : Starting service provider migration from 3.1.0 to 3.2.0");
         SPMigrator spMigrator = new SPMigrator();
         spMigrator.migrate();
+        log.info("WSO2 API-M Migration Task : Completed service provider migration from 3.1.0 to 3.2.0");
+
+        log.info("WSO2 API-M Migration Task : Starting identity scope migration from 3.1.0 to 3.2.0");
         IdentityScopeMigrator identityScopeMigrator = new IdentityScopeMigrator();
         identityScopeMigrator.migrate();
+        log.info("WSO2 API-M Migration Task : Completed identity scope migration from 3.1.0 to 3.2.0");
+
         log.info("WSO2 API-M Migration Task : Completed migration from " + getPreviousVersion() + " to " + getCurrentVersion() + "...");
     }
 

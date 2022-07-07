@@ -54,26 +54,26 @@ public class RegistryResourceMigrator extends Migrator {
     }
 
     private void rxtMigration(RegistryService regService) {
-        log.info("WSO2 API-M Migration Task : RXT migration for API Manager started.");
-
         String rxtPath = rxtDir + Constants.API_RXT_FILE;
+        log.info("WSO2 API-M Migration Task : Starting RXT migration using api.rxt at " + rxtPath);
 
         for (Tenant tenant : tenants) {
             try {
                 regService.startTenantFlow(tenant);
 
-                log.info("WSO2 API-M Migration Task : Updating api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
-                log.info("WSO2 API-M Migration Task : Updating api.rxt for tenant with file: " + rxtPath);
+                log.info("WSO2 API-M Migration Task : Updating api.rxt of tenant " + tenant.getId() + '('
+                        + tenant.getDomain() + ")" );
                 //Update api.rxt file
                 String rxt = FileUtil.readFileToString(rxtPath);
                 regService.updateRXTResource(Constants.API_RXT_FILE, rxt);
-                log.info("WSO2 API-M Migration Task : Successfully updated api.rxt for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                log.info("WSO2 API-M Migration Task : Successfully updated api.rxt of tenant " + tenant.getId()
+                        + '(' + tenant.getDomain() + ')');
             } catch (IOException e) {
                 log.error("Error when reading api.rxt from " + rxtPath + " for tenant " + tenant.getId() + '('
                         + tenant.getDomain() + ')', e);
             } catch (RegistryException | UserStoreException e) {
-                log.error("Error while updating api.rxt in the registry for tenant " + tenant.getId() + '('
-                        + tenant.getDomain() + ')', e);
+                log.error("WSO2 API-M Migration Task : Error while updating api.rxt in the registry for tenant " +
+                        tenant.getId() + '(' + tenant.getDomain() + ')', e);
             } finally {
                 registryService.endTenantFlow();
             }
