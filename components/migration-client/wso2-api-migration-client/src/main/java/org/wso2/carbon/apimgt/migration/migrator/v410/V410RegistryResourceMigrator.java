@@ -73,10 +73,7 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                 PrivilegedCarbonContext.getThreadLocalCarbonContext().setTenantId(tenant.getId(), true);
 
                 String adminName = getTenantAwareUsername(APIUtil.replaceEmailDomainBack(tenant.getAdminName()));
-
-                if (log.isDebugEnabled()) {
-                    log.debug("WSO2 API-M Migration Task : Tenant admin username : " + adminName);
-                }
+                log.info("WSO2 API-M Migration Task : Tenant admin username : " + adminName);
 
                 ServiceHolder.getTenantRegLoader().loadTenantRegistry(tenant.getId());
                 UserRegistry registry = ServiceHolder.getRegistryService().getGovernanceSystemRegistry(tenant.getId());

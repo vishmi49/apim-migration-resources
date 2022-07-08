@@ -718,11 +718,11 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                     registry.copy(apiSourcePath, revisionTargetPath);
                     registry.commitTransaction();
                     transactionCommitted = true;
-                    if (log.isDebugEnabled()) {
-                        String logMessage = "WSO2 API-M Migration Task : Revision for API Name: " + apiId.getApiName()
-                                + ", " + "API Version " + apiId.getVersion() + " created";
-                        log.debug(logMessage);
-                    }
+
+                    String logMessage = "WSO2 API-M Migration Task : Revision for API Name: " + apiId.getApiName()
+                            + ", " + "API Version " + apiId.getVersion() + " created";
+                    log.info(logMessage);
+
                 }
                 Resource apiRevisionArtifact = registry.get(revisionTargetPath + "api");
                 revisionUUID = apiRevisionArtifact.getUUID();
@@ -809,9 +809,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 Boolean.TRUE, preserveDocs, preserveCredentials, organization);
 
         // Export mTLS authentication related certificates
-        if (log.isDebugEnabled()) {
-            log.debug("WSO2 API-M Migration Task : Mutual SSL enabled. Exporting client certificates.");
-        }
+
+        log.info("WSO2 API-M Migration Task : Exporting client certificates.");
         addClientCertificatesToArchive(archivePath, apiProductIdentifier, tenant.getId(), apiProvider, exportFormat,
                 organization);
 
@@ -831,10 +830,9 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
             CommonUtil.writeToYamlOrJson(archivePath + ImportExportConstants.SWAGGER_DEFINITION_LOCATION, exportFormat,
                     formattedSwaggerJson);
 
-            if (log.isDebugEnabled()) {
-                log.debug("WSO2 API-M Migration Task : Meta information retrieved successfully for API Product: "
+            log.info("WSO2 API-M Migration Task : Successfully retrieved meta information for API Product: "
                                 + apiProductDtoToReturn.getName());
-            }
+
             CommonUtil.writeDtoToFile(archivePath + ImportExportConstants.API_PRODUCT_FILE_LOCATION, exportFormat,
                     ImportExportConstants.TYPE_API_PRODUCT, apiProductDtoToReturn);
         } catch (APIManagementException | APIMigrationException e) {
@@ -860,11 +858,9 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 apiDocContent = new String((byte[]) apiDocResource.getContent(), Charset.defaultCharset());
                 parser.parse(apiDocContent);
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("WSO2 API-M Migration Task : Resource " +
+                log.info("WSO2 API-M Migration Task : Resource " +
                             org.wso2.carbon.apimgt.impl.APIConstants.API_OAS_DEFINITION_RESOURCE_NAME +
                             " not found at " + resourcePath);
-                }
             }
         } catch (RegistryException | ParseException e) {
             throw new APIMigrationException ("WSO2 API-M Migration Task : Error while retrieving OpenAPI v2.0 or v3.0.0"

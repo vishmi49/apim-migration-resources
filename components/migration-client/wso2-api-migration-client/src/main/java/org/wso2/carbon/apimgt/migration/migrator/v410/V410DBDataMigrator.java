@@ -121,9 +121,8 @@ public class V410DBDataMigrator extends Migrator {
                         + tenantId + "with Error :" + e);
             }
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("WSO2 API-M Migration Task : tenant-conf content is empty.");
-            }
+            log.info("WSO2 API-M Migration Task : tenant-conf content is empty.");
+
         }
     }
 }

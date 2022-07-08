@@ -108,7 +108,7 @@ public class RegistryServiceImpl implements RegistryService {
 
     @Override
     public GenericArtifact[] getGenericAPIArtifacts() {
-        log.debug("WSO2 API-M Migration Task : Calling getGenericAPIArtifacts");
+        log.info("WSO2 API-M Migration Task : Calling getGenericAPIArtifacts");
         GenericArtifact[] artifacts = {};
 
         try {
@@ -137,7 +137,7 @@ public class RegistryServiceImpl implements RegistryService {
 
     @Override
     public void updateGenericAPIArtifacts(GenericArtifact[] artifacts) {
-        log.debug("WSO2 API-M Migration Task : Calling updateGenericAPIArtifacts");
+        log.info("WSO2 API-M Migration Task : Calling updateGenericAPIArtifacts");
 
         try {
             Registry registry = getGovernanceRegistry();
@@ -163,7 +163,7 @@ public class RegistryServiceImpl implements RegistryService {
 
     @Override
     public API getAPI(GenericArtifact artifact) {
-        log.debug("WSO2 API-M Migration Task : Calling getAPI");
+        log.info("WSO2 API-M Migration Task : Calling getAPI");
         API api = null;
 
         try {
@@ -283,7 +283,7 @@ public class RegistryServiceImpl implements RegistryService {
 
         String adminName = ServiceHolder.getRealmService().getTenantUserRealm(tenant.getId()).
                 getRealmConfiguration().getAdminUserName();
-        log.debug("Tenant admin username : " + adminName);
+        log.info("WSO2 API-M Migration Task : Tenant admin username : " + adminName);
         ServiceHolder.getTenantRegLoader().loadTenantRegistry(tenant.getId());
         return ServiceHolder.getRegistryService().getConfigUserRegistry(adminName, tenant.getId());
     }
@@ -297,7 +297,7 @@ public class RegistryServiceImpl implements RegistryService {
 
         String adminName = ServiceHolder.getRealmService().getTenantUserRealm(tenant.getId()).
                 getRealmConfiguration().getAdminUserName();
-        log.debug("WSO2 API-M Migration Task : Tenant admin username : " + adminName);
+        log.info("WSO2 API-M Migration Task : Tenant admin username : " + adminName);
         ServiceHolder.getTenantRegLoader().loadTenantRegistry(tenant.getId());
         return ServiceHolder.getRegistryService().getGovernanceUserRegistry(adminName, tenant.getId());
     }

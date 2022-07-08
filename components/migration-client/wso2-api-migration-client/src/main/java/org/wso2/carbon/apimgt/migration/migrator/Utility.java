@@ -91,25 +91,33 @@ public class Utility {
             UserRegistry registry = registryService.getConfigSystemRegistry(tenantID);
             byte[] data = getTenantConfFromFile();
             if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
-                log.debug("tenant-conf of tenant " + tenantID + " is  already uploaded to the registry");
+                log.info("WSO2 API-M Migration Task : tenant-conf of tenant " + tenantID + " is  already uploaded "
+                        + "to the registry");
                 Optional<Byte[]> migratedTenantConf = migrateTenantConf(tenantID);
                 if (migratedTenantConf.isPresent()) {
-                    log.debug("Detected new additions to tenant-conf of tenant " + tenantID);
+                    log.info("WSO2 API-M Migration Task : Detected new additions to tenant-conf of tenant " +
+                            tenantID);
                     data = ArrayUtils.toPrimitive(migratedTenantConf.get());
                 } else {
-                    log.debug("No changes required in tenant-conf.json of tenant " + tenantID);
+                    log.info("WSO2 API-M Migration Task : No changes required in tenant-conf.json of tenant " +
+                            tenantID);
                     return;
                 }
             }
-            log.debug("Adding/updating tenant-conf.json to the registry of tenant " + tenantID);
+            log.info("WSO2 API-M Migration Task : Adding/updating tenant-conf.json to the registry of tenant " +
+                    tenantID);
             updateTenantConf(registry, data);
-            log.debug("Successfully added/updated tenant-conf.json of tenant  " + tenantID);
+            log.info("WSO2 API-M Migration Task : Successfully added/updated tenant-conf.json of tenant  " +
+                    tenantID);
         } catch (RegistryException e) {
-            throw new APIMigrationException("Error while saving tenant conf to the registry of tenant " + tenantID, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while saving tenant conf to the registry"
+                    + " of tenant " + tenantID, e);
         } catch (IOException e) {
-            throw new APIMigrationException("Error while reading tenant conf file content of tenant " + tenantID, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while reading tenant conf file content "
+                    + "of tenant " + tenantID, e);
         } catch (APIMigrationException e) {
-            e.printStackTrace();
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while loading tenant-conf.json "
+                    + "of tenant " + tenantID, e);
         }
     }
 
@@ -154,12 +162,15 @@ public class Utility {
             JSONParser parser = new JSONParser();
             tenantConfJson = (JSONObject) parser.parse(tenantConfDataStr);
             if (tenantConfJson == null) {
-                throw new APIMigrationException("tenant-conf.json (in file system) content cannot be null");
+                throw new APIMigrationException("WSO2 API-M Migration Task : tenant-conf.json (in file system) content"
+                        + " cannot be null");
             }
         } catch (IOException e) {
-            throw new APIMigrationException("Error while reading tenant-conf.json from file system", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while reading tenant-conf.json from file"
+                    + " system", e);
         } catch (ParseException e) {
-            throw new APIMigrationException("Error while parsing tenant-conf.json read from file system", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while parsing tenant-conf.json read "
+                    + "from file system", e);
         }
         return tenantConfJson;
     }
@@ -232,7 +243,7 @@ public class Utility {
             }
         } catch (UserStoreException e) {
             String tenantDomain = getTenantDomainFromTenantId(tenantId);
-            String errorMessage = "Error while retrieving admin role name of " + tenantDomain;
+            String errorMessage = "WSO2 API-M Migration Task : Error while retrieving admin role name of " + tenantDomain;
             log.error(errorMessage, e);
             throw new APIMigrationException(errorMessage, e);
         }
@@ -244,38 +255,31 @@ public class Utility {
                 JSONObject scopeJson = new JSONObject();
                 scopeJson.put(APIConstants.REST_API_SCOPE_NAME, scope);
                 scopeJson.put(APIConstants.REST_API_SCOPE_ROLE, scopesLocal.get(scope));
-                if (log.isDebugEnabled()) {
-                    log.debug("Found scope that is not added to tenant-conf.json in tenant " + tenantId + ": "
-                            + scopeJson);
-                }
+                log.info("WSO2 API-M Migration Task : Found scope that is not added to tenant-conf.json in tenant "
+                        + tenantId + ": " + scopeJson);
                 tenantScopesArray.add(scopeJson);
             }
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 String formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
-                if (log.isDebugEnabled()) {
-                    log.debug("Finalized tenant-conf.json: " + formattedTenantConf);
-                }
+                log.info("WSO2 API-M Migration Task : Finalized tenant-conf.json: " + formattedTenantConf);
+
                 return Optional.of(ArrayUtils.toObject(formattedTenantConf.getBytes()));
             } catch (JsonProcessingException e) {
-                throw new APIMigrationException("Error while formatting tenant-conf.json of tenant " + tenantId);
-            } catch (IOException e) {
-                e.printStackTrace();
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error while formatting tenant-conf.json "
+                        + "of tenant " + tenantId);
             }
         } else {
-            log.debug("Scopes in tenant-conf.json in tenant " + tenantId + " are already migrated.");
+            log.info("WSO2 API-M Migration Task : Scopes in tenant-conf.json in tenant " + tenantId +
+                    " are already migrated.");
             return Optional.empty();
         }
-
-        return Optional.empty();
     }
 
     private static void populateTenants(TenantManager tenantManager, List<Tenant> tenantList, String argument)
             throws UserStoreException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("Argument provided : " + argument);
-        }
+        log.info("WSO2 API-M Migration Task : Argument provided : " + argument);
 
         if (argument.contains("@")) { // Username provided as argument
             int tenantID = tenantManager.getTenantId(argument);
@@ -283,7 +287,7 @@ public class Utility {
             if (tenantID != -1) {
                 tenantList.add(tenantManager.getTenant(tenantID));
             } else {
-                log.error("Tenant does not exist for username " + argument);
+                log.error("WSO2 API-M Migration Task : Tenant does not exist for username " + argument);
             }
         } else { // Domain name provided as argument
             if (MultitenantConstants.SUPER_TENANT_DOMAIN_NAME.equalsIgnoreCase(argument)) {
@@ -298,7 +302,7 @@ public class Utility {
                 if (tenants.length > 0) {
                     tenantList.addAll(Arrays.asList(tenants));
                 } else {
-                    log.error("Tenant does not exist for domain " + argument);
+                    log.error("WSO2 API-M Migration Task : Tenant does not exist for domain " + argument);
                 }
             }
         }
@@ -358,8 +362,8 @@ public class Utility {
                 return null;
             }
         } catch (RegistryException | ParseException e) {
-            throw new APIMigrationException("Error while getting tenant config from registry for tenant: "
-                    + tenantId, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while getting tenant config from "
+                    + "registry for tenant: " + tenantId, e);
         }
     }
 
@@ -370,8 +374,8 @@ public class Utility {
             UserRegistry registry = registryService.getConfigSystemRegistry(tenantId);
             updateTenantConf(registry, tenantConfString.getBytes());
         } catch (RegistryException e) {
-            throw new APIMigrationException("Error while saving tenant conf to the registry of tenant "
-                    + tenantId, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while saving tenant conf to the registry"
+                    + " of tenant " + tenantId, e);
         }
     }
 

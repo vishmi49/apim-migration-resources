@@ -58,7 +58,7 @@ public class V300RegistryResourceMigrator extends RegistryResourceMigrator {
         for (Tenant tenant : tenants) {
             try {
                 registryService.startTenantFlow(tenant);
-                log.debug("WSO2 API-M Migration Task : Updating APIs of tenant " + tenant.getId() +
+                log.info("WSO2 API-M Migration Task : Updating APIs of tenant " + tenant.getId() +
                         '(' + tenant.getDomain() + ')');
                 GenericArtifact[] artifacts = registryService.getGenericAPIArtifacts();
                 for (GenericArtifact artifact : artifacts) {
