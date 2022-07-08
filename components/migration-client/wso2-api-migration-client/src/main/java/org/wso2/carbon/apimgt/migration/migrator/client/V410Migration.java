@@ -63,9 +63,11 @@ public class V410Migration extends VersionMigrator {
         v410RegistryResourceMigrator.migrate();
         log.info("WSO2 API-M Migration Task : Completed registry resource migration from 4.0.0 to 4.1.0");
 
+        log.info("WSO2 API-M Migration Task : Running post migration DB scripts");
         PostDBScriptMigrator postDBScriptMigratorForAmDb =
                 new PostDBScriptMigrator(Constants.V410_POST_MIGRATION_SCRIPT_AMDB_PATH);
         postDBScriptMigratorForAmDb.run();
+        log.info("WSO2 API-M Migration Task : Successfully executed post migration DB scripts");
 
         // Setting ExtendedAPIMConfigService as disabled. This extended implementation is only needed and enabled for migrations
         // which are from before APIM 4.1. Also need to disable this for future migrations such as from APIM 4.2 to APIM 4.3.

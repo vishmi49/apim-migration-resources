@@ -51,14 +51,18 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
         registryDataPopulation();
     }
 
+    /**
+     * Updates versionComparable field of APIs in registry() and AM_DB
+     * @throws APIMigrationException
+     */
     private void registryDataPopulation() throws APIMigrationException {
 
-        log.info("WSO2 API-M Migration Task : Registry data population for API Manager " + Constants.VERSION_4_0_0
-                + " started.");
+        log.info("WSO2 API-M Migration Task : Starting registry data migration for API Manager " +
+                Constants.VERSION_4_1_0);
 
         boolean isTenantFlowStarted = false;
         for (Tenant tenant : tenants) {
-            log.info("WSO2 API-M Migration Task : Start registry data population for tenant " + tenant.getId()
+            log.info("WSO2 API-M Migration Task : Starting registry data migration for tenant " + tenant.getId()
                     + '(' + tenant.getDomain() + ')');
 
             try {
@@ -85,6 +89,9 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                     Map<API, GenericArtifact> apiToArtifactMapping = new HashMap<>();
 
                     for (GenericArtifact artifact : artifacts) {
+                        String apiIdentifier = artifact.getAttribute(Constants.API_OVERVIEW_PROVIDER)
+                                + '-' + artifact.getAttribute(Constants.API_OVERVIEW_NAME) + '-'
+                                + artifact.getAttribute(Constants.API_OVERVIEW_VERSION);
                         try {
                             String artifactPath = ((GenericArtifactImpl) artifact).getArtifactPath();
                             if (artifactPath.contains("/apimgt/applicationdata/apis/")) {
@@ -97,24 +104,14 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                             }
                             if (api == null) {
                                 log.error("WSO2 API-M Migration Task : Cannot find corresponding api for registry "
-                                        + "artifact " + artifact.getAttribute("overview_name") + '-'
-                                        + artifact.getAttribute("overview_version") + '-'
-                                        + artifact.getAttribute("overview_provider") + " of tenant "
+                                        + "artifact " + apiIdentifier + " of tenant "
                                         + tenant.getId() + '(' + tenant.getDomain() + ") in AM_DB");
                                 continue;
                             }
 
-                            log.info("WSO2 API-M Migration Task : Doing the registry data migration for API : "
-                                    + artifact.getAttribute(Constants.API_OVERVIEW_PROVIDER)
-                                    + '-' + artifact.getAttribute(Constants.API_OVERVIEW_NAME) + '-'
-                                    + artifact.getAttribute(Constants.API_OVERVIEW_VERSION) + '-'
-                                    + artifact.getAttribute(Constants.API_OVERVIEW_VERSION_COMPARABLE) + " of tenant "
-                                    + tenant.getId() + '(' + tenant.getDomain() + ")");
-
                             if (!apisMap.containsKey(api.getId().getApiName())) {
                                 List<API> versionedAPIsList = new ArrayList<>();
                                 apisMap.put(api.getId().getApiName(), versionedAPIsList);
-
                             }
                             apisMap.get(api.getId().getApiName()).add(api);
                             if (!apiToArtifactMapping.containsKey(api)) {
@@ -123,9 +120,7 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                         } catch (Exception e) {
                             // we log the error and continue to the next resource.
                             throw new APIMigrationException("WSO2 API-M Migration Task : Unable to migrate api metadata"
-                                    + " definition of API : " + artifact.getAttribute("overview_name") + '-'
-                                    + artifact.getAttribute("overview_version") + '-'
-                                    + artifact.getAttribute("overview_provider"), e);
+                                    + " definition of API : " + apiIdentifier, e);
                         }
                     }
 
@@ -135,13 +130,19 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                         versionedAPIList.sort(new APIVersionComparator());
                         long versionTimestamp = System.currentTimeMillis();
                         long oneDay = 86400;
+
+                        log.info("WSO2 API-M Migration Task : Starting the registry data migration for versioned"
+                                + " APIs by name: " + apiName + " of tenant " + tenant.getId() + '('
+                                + tenant.getDomain() + ")");
+                        log.info("WSO2 API-M Migration Task : Versioned APIs count: " + versionedAPIList.size());
+
                         for (int i = versionedAPIList.size(); i > 0; i--) {
                             API apiN = versionedAPIList.get(i - 1);
                             apiN.setVersionTimestamp(versionTimestamp + "");
-                            apiToArtifactMapping.get(apiN)
-                                    .setAttribute("overview_versionComparable", String.valueOf(versionTimestamp));
-                            log.info("WSO2 API-M Migration Task : Setting Version Comparable for API "
-                                    + apiN.getUuid());
+                            apiToArtifactMapping.get(apiN).setAttribute(Constants.API_OVERVIEW_VERSION_COMPARABLE,
+                                    String.valueOf(versionTimestamp));
+                            log.info("WSO2 API-M Migration Task : Setting Version Comparable for API: "
+                                    + apiN.getId() + ", UUID: " + apiN.getUuid());
                             try {
                                 artifactManager.updateGenericArtifact(apiToArtifactMapping.get(apiN));
                             } catch (GovernanceException e) {
@@ -190,16 +191,17 @@ public class V410RegistryResourceMigrator extends RegistryResourceMigrator {
                 throw new APIMigrationException("WSO2 API-M Migration Task : Error occurred while reading API from the"
                         + " artifact ", e);
             } catch (RegistryException e) {
-                throw new APIMigrationException("WSO2 API-M Migration Task : Error occurred while accessing the registry ", e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error occurred while accessing the "
+                        + "registry ", e);
             } finally {
                 if (isTenantFlowStarted) {
                     PrivilegedCarbonContext.endTenantFlow();
                 }
             }
-            log.info("WSO2 API-M Migration Task : Completed rxtMigration for tenant " + tenant.getId() + '('
-                    + tenant.getDomain() + ')');
+            log.info("WSO2 API-M Migration Task : Completed registry data migration for tenant " + tenant.getId()
+                    + '(' + tenant.getDomain() + ')');
 
         }
-        log.info("WSO2 API-M Migration Task : RXT resource migration done for all the tenants");
+        log.info("WSO2 API-M Migration Task : API registry data migration done for all the tenants");
     }
 }

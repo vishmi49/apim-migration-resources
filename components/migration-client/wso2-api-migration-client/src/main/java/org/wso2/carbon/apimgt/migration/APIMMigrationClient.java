@@ -44,7 +44,7 @@ public class APIMMigrationClient implements ServerStartupObserver {
             APIMgtDBUtil.initialize();
             SharedDBUtil.initialize();
         } catch (Exception e) {
-            log.error("Error occurred while initializing DB Util ", e);
+            log.error("WSO2 API-M Migration Task : Error occurred while initializing DB Util ", e);
         }
 
         String migrateFromVersion = System.getProperty(Constants.ARG_MIGRATE_FROM_VERSION);
@@ -56,33 +56,38 @@ public class APIMMigrationClient implements ServerStartupObserver {
             try {
                 validationHandler.doValidation();
             } catch (UserStoreException | APIMigrationException e) {
-                log.error("Error while running the pre-migration validation", e);
+                log.error("WSO2 API-M Migration Task : Error while running the pre-migration validation", e);
             }
         } else {
+            String originalMigrateFromVersion = migrateFromVersion;
             try {
                 executeMigration(migrateFromVersion, migratedVersion);
             } catch (APIMigrationException e) {
-                log.error("API Migration exception occurred while migrating", e);
+                log.error("WSO2 API-M Migration Task : API Migration exception occurred while migrating", e);
             }
             ArtifactReIndexingMigrator artifactReIndexingMigrator = new ArtifactReIndexingMigrator();
             try {
                 artifactReIndexingMigrator.migrate();
             } catch (APIMigrationException e) {
-                log.error("Error running the artifact re-indexing script", e);
+                log.error("WSO2 API-M Migration Task : Error running the artifact re-indexing script", e);
             }
+            log.info("WSO2 API-M Migration Task : Successfully completed API-M migration from " +
+                    originalMigrateFromVersion + " to " + migratedVersion);
         }
     }
 
     private void executeMigration(String migrateFromVersion, String migratedVersion) throws APIMigrationException {
         VersionMigrationHolder versionMigrationHolder = VersionMigrationHolder.getInstance();
         List<VersionMigrator> versionMigrationList = versionMigrationHolder.getVersionMigrationList();
+        log.info("WSO2 API-M Migration Task : Starting API-M migration from " + migrateFromVersion + " to " +
+                migrateFromVersion);
         for (VersionMigrator versionMigration : versionMigrationList) {
             if (versionMigration.getPreviousVersion().equals(migrateFromVersion)) {
                 try {
                     versionMigration.migrate();
                 } catch (APIMigrationException | UserStoreException e) {
-                    throw new APIMigrationException("Error while executing migration from API-Manager " +
-                            migrateFromVersion + ". ", e);
+                    throw new APIMigrationException("WSO2 API-M Migration Task : Error while executing migration from "
+                            + "API-Manager " + migrateFromVersion + ". ", e);
                 }
                 migrateFromVersion = versionMigration.getCurrentVersion();
                 if (versionMigration.getCurrentVersion().equals(migratedVersion)) {
