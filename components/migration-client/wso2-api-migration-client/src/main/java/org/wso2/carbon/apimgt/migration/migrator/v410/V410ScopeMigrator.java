@@ -48,15 +48,14 @@ public class V410ScopeMigrator extends Migrator {
             UserRegistry registry = registryService.getConfigSystemRegistry(tenantID);
             byte[] data = Utility.getTenantConfFromFile();
             if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
-                log.info("WSO2 API-M Migration Task : tenant-conf of tenant " + tenantID + " is  already uploaded "
-                        + "to the registry");
                 Optional<Byte[]> migratedTenantConf = Utility.migrateTenantConf(tenantID);
                 if (migratedTenantConf.isPresent()) {
                     log.info("WSO2 API-M Migration Task : Detected new additions to tenant-conf of tenant "
                             + tenantID);
                     data = ArrayUtils.toPrimitive(migratedTenantConf.get());
                 } else {
-                    log.info("No changes required in tenant-conf.json of tenant " + tenantID);
+                    log.info("WSO2 API-M Migration Task : No changes required in tenant-conf.json of tenant " +
+                            tenantID);
                     return;
                 }
             }

@@ -1249,14 +1249,14 @@ public class APIMgtDAO {
                 for (Map.Entry<Integer, String> tenantIdAndOrganization : tenantIdsAndOrganizations.entrySet()) {
                     String organization = tenantIdAndOrganization.getValue();
                     int tenantId = tenantIdAndOrganization.getKey();
-                    log.info("WSO2 API-M Migration Task : Updating Organization column of AM_API_CATEGORY table as "
-                            + organization + " where " + "TENANT_ID is " + tenantId);
                     ps.setString(1, organization);
                     ps.setInt(2, tenantId);
                     ps.addBatch();
                 }
                 ps.executeBatch();
                 conn.commit();
+
+                log.info("WSO2 API-M Migration Task : Updated ORGANIZATION column of AM_API_CATEGORY table");
             } catch (SQLException e) {
                 conn.rollback();
                 throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "
@@ -1277,20 +1277,19 @@ public class APIMgtDAO {
             throws APIMigrationException {
 
         List<String> tenantDomains = getGatewayTenantDomains();
-        String tenantDomainsList = String.join(",", tenantDomains);
 
         try (Connection conn = APIMgtDBUtil.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(UPDATE_GATEWAY_ENVIRONMENT_ORGANIZATION)) {
                 for (String tenantDomain : tenantDomains) {
-                    log.info("WSO2 API-M Migration Task : Updated ORGANIZATION column of AM_GATEWAY_ENVIRONMENT as "
-                            + tenantDomain + " where " + "TENANT_DOMAIN was " + tenantDomain);
                     ps.setString(1, tenantDomain);
                     ps.setString(2, tenantDomain);
                     ps.addBatch();
                 }
                 ps.executeBatch();
                 conn.commit();
+
+                log.info("WSO2 API-M Migration Task : Updated ORGANIZATION column of AM_GATEWAY_ENVIRONMENT table");
             } catch (SQLException e) {
                 conn.rollback();
                 throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "
@@ -1299,10 +1298,6 @@ public class APIMgtDAO {
         } catch (SQLException e) {
             throw new APIMigrationException("WSO2 API-M Migration Task : Error while deriving the database connection"
                     + e);
-        }
-        if (!tenantDomainsList.isEmpty()) {
-            log.info("WSO2 API-M Migration Task : Successfully persisted organization data in AM_GATEWAY_ENVIRONMENT"
-                    + " tenantDomains: " + tenantDomainsList);
         }
     }
 
@@ -1330,15 +1325,10 @@ public class APIMgtDAO {
      */
     public void updateApiOrganizations() throws APIMigrationException {
         List<String> apiProviders = getAPIProviders();
-        String providerList = String.join(",", apiProviders);
 
         updateAPIOrganizations(apiProviders, UPDATE_API_ORGANIZATION);
-        log.info("WSO2 API-M Migration Task : Successfully persisted organization data in AM_API table for apis "
-                + "created by " + providerList);
 
         updateAPIOrganizations(apiProviders, UPDATE_API_DEFAULT_VERSION_ORGANIZATION);
-        log.info("WSO2 API-M Migration Task : Successfully persisted organization data in AM_API_DEFAULT_VERSION for"
-                + " apis " + "created by " + providerList);
     }
 
     private List<String> getAPIProviders() throws APIMigrationException {
@@ -1364,15 +1354,15 @@ public class APIMgtDAO {
             try (PreparedStatement ps = conn.prepareStatement(query)) {
                 for (String apiProvider : apiProviders) {
                     String organization = MultitenantUtils.getTenantDomain(APIUtil.replaceEmailDomainBack(apiProvider));
-                    log.info("WSO2 API-M Migration Task : Updating ORGANIZATION column of "
-                            + query.split(" ")[1] + " table as " + organization + " where API_PROVIDER was "
-                            + apiProvider);
                     ps.setString(1, organization);
                     ps.setString(2, apiProvider);
                     ps.addBatch();
                 }
                 ps.executeBatch();
                 conn.commit();
+
+                log.info("WSO2 API-M Migration Task : Updated ORGANIZATION column of "
+                        + query.split(" ")[1] + " table");
             } catch (SQLException e) {
                 conn.rollback();
                 throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "
@@ -1451,14 +1441,13 @@ public class APIMgtDAO {
                 for (Map.Entry<Integer, String> subscriberOrganization : subscriberIdsAndOrganizations.entrySet()) {
                     String organization = subscriberOrganization.getValue();
                     int subscriberId = subscriberOrganization.getKey();
-                    log.info("WSO2 API-M Migration Task : Updating AM_APPLICATION ORGANIZATION as " + organization
-                            + " where SUBSCRIBER_ID is " + subscriberId);
                     ps.setString(1, organization);
                     ps.setInt(2, subscriberId);
                     ps.addBatch();
                 }
                 ps.executeBatch();
                 conn.commit();
+                log.info("WSO2 API-M Migration Task : Updated ORGANIZATION column of AM_APPLICATION table");
             } catch (SQLException e) {
                 conn.rollback();
                 throw new APIMigrationException("WSO2 API-M Migration Task : Error while updating organizations for "

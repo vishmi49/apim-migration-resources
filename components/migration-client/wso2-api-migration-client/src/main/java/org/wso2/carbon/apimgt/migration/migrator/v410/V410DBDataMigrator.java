@@ -94,7 +94,7 @@ public class V410DBDataMigrator extends Migrator {
             }
         } catch (JsonProcessingException jse) {
             log.error("WSO2 API-M Migration Task : Error while JSON Processing tenant conf :" + jse);
-            log.info("WSO2 API-M Migration Task : Hence, skipping tenant conf to db migration for tenant Id :"
+            log.error("WSO2 API-M Migration Task : Hence, skipping tenant conf to db migration for tenant Id :"
                     + tenantId);
         } catch (IOException e) {
             log.error("WSO2 API-M Migration Task : Error occurred while writing tenant-conf.json value to string."
