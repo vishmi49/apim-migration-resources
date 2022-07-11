@@ -55,9 +55,9 @@ public class V320DBDataMigrator extends Migrator {
 
     @Override
     public void migrate() throws APIMigrationException {
-        log.info("Starting updating API_TYPE of APIs...");
+        log.info("WSO2 API-M Migration Task : Starting API_TYPE update of APIs");
         updateAPITypeInDb();
-        log.info("Successfully updated API_TYPE of APIs...");
+        log.info("WSO2 API-M Migration Task : Successfully updated API_TYPE of APIs");
     }
 
     /**
@@ -102,11 +102,12 @@ public class V320DBDataMigrator extends Migrator {
                 }
             }
         } catch (RegistryException e) {
-            throw new APIMigrationException("Error while initiation the registry", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while initiation the registry", e);
         } catch (UserStoreException e) {
-            throw new APIMigrationException("Error while retrieving the tenants", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while retrieving the tenants", e);
         } catch (APIManagementException e) {
-            throw new APIMigrationException("Error while Retrieving API artifact from the registry", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while Retrieving API artifact from the "
+                    + "registry", e);
         }
     }
 }

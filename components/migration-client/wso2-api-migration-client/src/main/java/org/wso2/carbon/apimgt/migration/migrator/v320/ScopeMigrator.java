@@ -16,6 +16,8 @@
 
 package org.wso2.carbon.apimgt.migration.migrator.v320;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.Migrator;
 import org.wso2.carbon.apimgt.migration.dao.APIMgtDAO;
@@ -27,11 +29,12 @@ import java.util.List;
 import java.util.Map;
 
 public class ScopeMigrator extends Migrator {
+    private static final Log log = LogFactory.getLog(ScopeMigrator.class);
 
     @Override
     public void migrate() throws APIMigrationException {
         APIMgtDAO apiMgtDAO = APIMgtDAO.getInstance();
-        // Step 1: remove duplicate entries
+        // Step 1: remove duplicate entries for scopes attached to multiple resources of the same API
         ArrayList<APIScopeMappingDTO> duplicateList = new ArrayList<>();
         ArrayList<APIScopeMappingDTO> scopeAMData = apiMgtDAO.getAMScopeData();
         ArrayList<ResourceScopeInfoDTO> scopeResourceData = apiMgtDAO.getResourceScopeData();
@@ -47,10 +50,15 @@ public class ScopeMigrator extends Migrator {
             }
         }
         apiMgtDAO.removeDuplicateScopeEntries(duplicateList);
+        if (!duplicateList.isEmpty()) {
+            log.info("Removed duplicate scope entries for scopes attached to multiple resources of the same API, "
+                    + "from IDN_OAUTH2_SCOPE, AM_API_SCOPE and IDN_OAUTH2_SCOPE_BINDING tables");
+        }
 
         // Step 2: Remove duplicate versioned scopes registered for versioned APIs
         ArrayList<APIInfoScopeMappingDTO> apiInfoScopeMappingDTOS = apiMgtDAO.getAPIInfoScopeData();
         Map<String, Integer> apiScopeToScopeIdMapping = new HashMap<>();
+        boolean removedVersionedScopes = false;
         for (APIInfoScopeMappingDTO scopeInfoDTO : apiInfoScopeMappingDTOS) {
             String apiScopeKey = scopeInfoDTO.getApiName() + ":" + scopeInfoDTO.getApiProvider() +
                     ":" + scopeInfoDTO.getScopeName();
@@ -64,13 +72,18 @@ public class ScopeMigrator extends Migrator {
                     ArrayList<APIScopeMappingDTO> scopeRemovalList = new ArrayList<>();
                     scopeRemovalList.add(apiScopeMappingDTO);
                     apiMgtDAO.removeDuplicateScopeEntries(scopeRemovalList);
+                    removedVersionedScopes = true;
                 }
             } else {
                 apiScopeToScopeIdMapping.put(apiScopeKey, scopeInfoDTO.getScopeId());
             }
         }
+        if (removedVersionedScopes) {
+            log.info("Removed duplicate scope entries for scopes attached to versioned APIs, "
+                    + "from IDN_OAUTH2_SCOPE, AM_API_SCOPE and IDN_OAUTH2_SCOPE_BINDING tables");
+        }
 
-        // Step 3: Move entries in IDN_RESORCE_SCOPE_MAPPING table to AM_API_RESOURCE_SCOPE_MAPPING table
+        // Step 3: Move entries in IDN_RESOURCE_SCOPE_MAPPING table to AM_API_RESOURCE_SCOPE_MAPPING table
         ArrayList<APIInfoDTO> apiData = apiMgtDAO.getAPIData();
         ArrayList<APIURLMappingInfoDTO> urlMappingData = apiMgtDAO.getAPIURLMappingData();
         List<AMAPIResourceScopeMappingDTO> amapiResourceScopeMappingDTOList = new ArrayList<>();
@@ -97,5 +110,8 @@ public class ScopeMigrator extends Migrator {
             }
         }
         apiMgtDAO.addDataToResourceScopeMapping(amapiResourceScopeMappingDTOList);
+        if (!amapiResourceScopeMappingDTOList.isEmpty()) {
+            log.info("Moved entries in the IDN_RESOURCE_SCOPE_MAPPING table to AM_API_RESOURCE_SCOPE_MAPPING table");
+        }
     }
 }

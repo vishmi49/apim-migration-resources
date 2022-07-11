@@ -115,7 +115,8 @@ public class ApiMgtDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Database error while migrating identity scopes ", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Database error while migrating identity"
+                    + " scopes ", e);
         }
     }
 
@@ -131,7 +132,7 @@ public class ApiMgtDAO {
                 }
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Error while retrieving database connection", e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while retrieving database connection", e);
         }
         return false;
     }
@@ -144,7 +145,7 @@ public class ApiMgtDAO {
                 .toString();
         File configFile = new File(confXml);
         if (!configFile.exists()) {
-            log.warn("OAuth scope binding file is not present at: " + confXml);
+            log.warn("WSO2 API-M Migration Task : OAuth scope binding file is not present at: " + confXml);
             return new ArrayList<>();
         }
 
@@ -164,9 +165,9 @@ public class ApiMgtDAO {
                 scopes.add(scopeName);
             }
         } catch (XMLStreamException e) {
-            log.warn("Error while parsing scope config.", e);
+            log.warn("WSO2 API-M Migration Task : Error while parsing scope config.", e);
         } catch (FileNotFoundException e) {
-            log.warn("Error while loading scope config.", e);
+            log.warn("WSO2 API-M Migration Task : Error while loading scope config.", e);
         } finally {
             try {
                 if (parser != null) {
@@ -176,7 +177,7 @@ public class ApiMgtDAO {
                     IdentityIOStreamUtils.closeInputStream(stream);
                 }
             } catch (XMLStreamException e) {
-                log.error("Error while closing XML stream", e);
+                log.error("WSO2 API-M Migration Task : Error while closing XML stream", e);
             }
         }
         return scopes;
@@ -203,15 +204,22 @@ public class ApiMgtDAO {
                 }
                 statement.executeBatch();
                 connection.commit();
-                log.info("Successfully updated API_TYPE for APIs in tenant:" + tenantId + '(' + tenantDomain + ')');
+
+                log.info("WSO2 API-M Migration Task : Successfully updated API_TYPE in AM_API table for tenant:" +
+                        tenantId + '(' + tenantDomain + ") " + "with below changes");
+                apiInfoDTOList.stream().forEach((apiInfoDTO) -> {
+                    log.info("WSO2 API-M Migration Task : API_TYPE of " + apiInfoDTO.getApiProvider() + "-"
+                            + apiInfoDTO.getApiName() + "-" + apiInfoDTO.getApiVersion() + " was updated as "
+                            + apiInfoDTO.getType());
+                });
             } catch (SQLException e) {
                 connection.rollback();
-                throw new APIMigrationException("SQLException while updating API_TYPE for APIs in tenant:"
-                        + tenantId + '(' + tenantDomain + ')', e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : SQLException while updating API_TYPE for "
+                        + "APIs in tenant:" + tenantId + '(' + tenantDomain + ')', e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("SQLException while updating API_TYPE for APIs in tenant:"
-                    + tenantId + '(' + tenantDomain + ')', e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : SQLException while updating API_TYPE for APIs "
+                    + "in tenant:" + tenantId + '(' + tenantDomain + ')', e);
         }
 
     }

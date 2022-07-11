@@ -58,12 +58,12 @@ public class PopulateScopeRoleMappingMigrator extends Migrator {
      * permissions assigned.
      */
     private void populateRoleMappingWithUserRoles() {
-        log.info("Updating User Roles based on Permissions started.");
+        log.info("WSO2 API-M Migration Task : Updating User Roles based on Permissions started.");
         for (Tenant tenant : tenants) {
             try {
                 registryService.startTenantFlow(tenant);
                 Utility.loadAndSyncTenantConf(tenant.getId());
-                log.info("Updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                log.info("WSO2 API-M Migration Task : Updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
 
                 // Retrieve user roles which has create permission
                 List<UserRoleFromPermissionDTO> userRolesListWithCreatePermission = SharedDAO.getInstance()
@@ -109,21 +109,25 @@ public class PopulateScopeRoleMappingMigrator extends Migrator {
 
                 updateTenantConf(formattedTenantConf, tenant.getId());
 
-                if (log.isDebugEnabled()) {
-                    log.debug("Updated tenant-conf.json for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')'
-                            + "\n" + formattedTenantConf);
-                }
-                log.info("End updating user roles for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+
+                log.info("WSO2 API-M Migration Task : Updated tenant-conf.json for tenant " + tenant.getId() +
+                        '(' + tenant.getDomain() + ')' + "\n" + formattedTenantConf);
+
+                log.info("WSO2 API-M Migration Task : End updating user roles for tenant " + tenant.getId() +
+                        '(' + tenant.getDomain() + ')');
             } catch (APIMigrationException e) {
-                log.error("Error while retrieving role names based on existing permissions. ", e);
+                log.error("WSO2 API-M Migration Task : Error while retrieving role names based on "
+                        + "existing permissions. ", e);
             } catch (JsonProcessingException e) {
-                log.error("Error while formatting tenant-conf.json of tenant " + tenant.getId());
+                log.error("WSO2 API-M Migration Task :Error while formatting tenant-conf.json of tenant "
+                        + tenant.getId());
             } catch (IOException e) {
-                log.error("Error occurred while writing tenant-conf.json value to string." + tenant.getId(), e);
+                log.error("WSO2 API-M Migration Task : Error occurred while writing tenant-conf.json value to "
+                        + "string." + tenant.getId(), e);
             } finally {
                 registryService.endTenantFlow();
             }
         }
-        log.info("Updating User Roles done for all the tenants.");
+        log.info("WSO2 API-M Migration Task : Updating User Roles done for all the tenants.");
     }
 }

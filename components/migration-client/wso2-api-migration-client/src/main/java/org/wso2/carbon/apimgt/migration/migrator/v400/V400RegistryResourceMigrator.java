@@ -82,7 +82,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.ExportUtils.*;
 
@@ -92,7 +97,6 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
     List<Tenant> tenants;
     protected Registry registry;
     private TenantManager tenantManager;
-    RegistryPersistenceImpl apiPersistence;
     protected ArtifactSaver artifactSaver;
     private static final String OVERVIEW_PROVIDER = "overview_provider";
     private static final String OVERVIEW_VERSION = "overview_version";
@@ -115,21 +119,23 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
     private ApiMgtDAO apiMgtDAO1 = ApiMgtDAO.getInstance();
     @Override
     public void migrate() throws APIMigrationException {
-        log.info("Start migrating WebSocket APIs ..........");
+        log.info("WSO2 API-M Migration Task : Start migrating WebSocket APIs");
         migrateWebSocketAPI();
-        log.info("Successfully migrated WebSocket APIs ..........");
+        log.info("WSO2 API-M Migration Task : Successfully migrated WebSocket APIs");
 
-        log.info("Start migrating registry paths of Icon and WSDLs  ..........");
+        log.info("WSO2 API-M Migration Task : Start migrating registry paths of Icon and WSDLs");
         updateRegistryPathsOfIconAndWSDL();
-        log.info("Successfully migrated API registry paths of Icon and WSDLs.");
+        log.info("WSO2 API-M Migration Task : Successfully migrated API registry paths of Icon and WSDLs.");
 
-        log.info("Start removing unnecessary fault handlers from fault sequences ..........");
+        log.info("WSO2 API-M Migration Task : Start removing unnecessary fault handlers[org.wso2.carbon.apimgt.usage.publisher."
+                + "APIMgtFaultHandler, org.wso2.carbon.apimgt.gateway.handlers.analytics.APIMgtFaultHandler] from "
+                + "fault sequences");
         removeUnnecessaryFaultHandlers();
-        log.info("Successfully removed the unnecessary fault handlers from fault sequences.");
+        log.info("WSO2 API-M Migration Task : Successfully removed the unnecessary fault handlers from fault sequences.");
 
-        log.info("Start API Revision related migration ..........");
+        log.info("WSO2 API-M Migration Task : Start API Revision related migration");
         apiRevisionRelatedMigration();
-        log.info("Successfully done the API Revision related migration.");
+        log.info("WSO2 API-M Migration Task : Successfully completed the API Revision related migration.");
     }
 
     public void migrateWebSocketAPI() {
@@ -149,6 +155,10 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                             .getArtifactManager(this.registry, APIConstants.API_KEY);
                     if (tenantArtifactManager != null) {
                         GenericArtifact[] tenantArtifacts = tenantArtifactManager.getAllGenericArtifacts();
+                        if (tenantArtifacts.length > 0) {
+                            log.info("WSO2 API-M Migration Task : Migrating WebSocket APIs of tenant " +
+                                    tenant.getId() + '(' + tenant.getDomain() + ')');
+                        }
                         for (GenericArtifact artifact : tenantArtifacts) {
                             if (StringUtils.equalsIgnoreCase(artifact.getAttribute(APIConstants.API_OVERVIEW_TYPE),
                                     APIConstants.APITransportType.WS.toString())) {
@@ -156,8 +166,17 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                         .getAPIID(artifact.getAttribute(Constants.API_OVERVIEW_CONTEXT)));
                                 // Remove previous entries(In 3.x we are setting default REST methods with /*)
                                 apiMgtDAO.removePreviousURLTemplatesForWSAPIs(id);
+                                String apiIdentifier = artifact.getAttribute(APIConstants.API_OVERVIEW_PROVIDER) + "-" +
+                                        artifact.getAttribute(APIConstants.API_OVERVIEW_NAME) + "-" +
+                                        artifact.getAttribute(APIConstants.API_OVERVIEW_VERSION);
+                                log.info("WSO2 API-M Migration Task : Removed URL mappings for WS API: "
+                                        + apiIdentifier + " with default REST " + "methods and path /*");
+
                                 //  add default url templates for WS APIs
                                 apiMgtDAO.addDefaultURLTemplatesForWSAPIs(id);
+                                log.info("WSO2 API-M Migration Task : Added default WS URL mappings(SUBSCRIBE) "
+                                        + "for WS API: " + apiIdentifier);
+
                                 artifact.setAttribute(APIConstants.API_OVERVIEW_WS_URI_MAPPING,
                                         new Gson().toJson(wsUriMapping));
                                 tenantArtifactManager.updateGenericArtifact(artifact);
@@ -169,9 +188,12 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                     APIProvider apiProviderTenant = APIManagerFactory.getInstance()
                                             .getAPIProvider(APIUtil.getTenantAdminUserName(tenant.getDomain()));
                                     apiProviderTenant.saveAsyncApiDefinition(api, apiDefinition);
+                                    log.info("WSO2 API-M Migration Task : Generated and added Async API definition "
+                                            + "for WS API: " + apiIdentifier);
                                 } else {
                                     throw new APIMigrationException(
-                                            "Async Api definition is not added for the API " + artifact.getAttribute(
+                                            "WSO2 API-M Migration Task :  Async Api definition is not added for the "
+                                                    + "API " + artifact.getAttribute(
                                                     org.wso2.carbon.apimgt.impl.APIConstants.API_OVERVIEW_NAME)
                                                     + " due to returned API is null");
                                 }
@@ -183,13 +205,13 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 }
             }
         } catch (RegistryException e) {
-            log.error("Error while initiation the registry", e);
+            log.error("WSO2 API-M Migration Task : Error while initiation the registry", e);
         } catch (UserStoreException e) {
-            log.error("Error while retrieving the tenants", e);
+            log.error("WSO2 API-M Migration Task : Error while retrieving the tenants", e);
         } catch (APIManagementException e) {
-            log.error("Error while Retrieving API artifact from the registry", e);
+            log.error("WSO2 API-M Migration Task : Error while Retrieving API artifact from the registry", e);
         } catch (APIMigrationException e) {
-            log.error("Error while migrating WebSocket APIs", e);
+            log.error("WSO2 API-M Migration Task : Error while migrating WebSocket APIs", e);
         }
     }
     
@@ -197,6 +219,9 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {
+                log.info("WSO2 API-M Migration Task : Updating Registry paths of API icons and WSDLs of "
+                        + "tenant " + + tenant.getId() + '(' +
+                        tenant.getDomain() + ')');
                 List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
                 int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
                 APIUtil.loadTenantRegistry(apiTenantId);
@@ -221,6 +246,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                             }
                         }
                         for (APIInfoDTO apiInfoDTO : apiInfoDTOList) {
+                            String apiId = apiInfoDTO.getApiProvider() + "-" +apiInfoDTO.getApiName() + "-" +
+                                    apiInfoDTO.getApiVersion();
                             String apiPath = GovernanceUtils.getArtifactPath(registry, apiInfoDTO.getUuid());
                             int prependIndex = apiPath.lastIndexOf("/api");
                             String artifactPath = apiPath.substring(0, prependIndex);
@@ -239,6 +266,9 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                         .getGenericArtifact(apiInfoDTO.getUuid());
                                 apiArtifact.setAttribute(APIConstants.API_OVERVIEW_THUMBNAIL_URL, thumbPath);
                                 tenantArtifactManager.updateGenericArtifact(apiArtifact);
+                                log.info("WSO2 API-M Migration Task : Updated " +
+                                        APIConstants.API_OVERVIEW_THUMBNAIL_URL + " of API: " + apiId + " to " +
+                                        thumbPath);
                             }
                             String wsdlResourcePathOld =
                                     APIConstants.API_WSDL_RESOURCE_LOCATION + RegistryPersistenceUtil
@@ -271,6 +301,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                                 + "resource" + absoluteWSDLResourcePath;
                                 apiArtifact.setAttribute(APIConstants.API_OVERVIEW_WSDL, wsdlRegistryPath);
                                 tenantArtifactManager.updateGenericArtifact(apiArtifact);
+                                log.info("WSO2 API-M Migration Task : Updated " + APIConstants.API_OVERVIEW_WSDL +
+                                        " of API: " + apiId + " to " + wsdlRegistryPath);
                             }
                         }
                     }
@@ -279,11 +311,11 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 }
             }
         } catch (RegistryException e) {
-            log.error("Error while intitiation the registry", e);
+            log.error("WSO2 API-M Migration Task : Error while initiation the registry", e);
         } catch (UserStoreException e) {
-            log.error("Error while retrieving the tenants", e);
+            log.error("WSO2 API-M Migration Task : Error while retrieving the tenants", e);
         } catch (APIManagementException e) {
-            log.error("Error while Retrieving API artifact from the registry", e);
+            log.error("WSO2 API-M Migration Task : Error while Retrieving API artifact from the registry", e);
         }
     }
 
@@ -291,6 +323,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {
+                log.info("WSO2 API-M Migration Task : Starting API Revision related migration for tenant " +
+                        tenant.getId() + '(' + tenant.getDomain() + ')');
                 List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
                 List<Environment> dynamicEnvironments = org.wso2.carbon.apimgt.migration.
                         migrator.v400.dao.ApiMgtDAO.getInstance().getAllEnvironments(tenant.getDomain());
@@ -381,8 +415,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                         apiRevisionDeployments.add(apiRevisionDeployment);
                                     } else {
                                         throw new APIMigrationException(
-                                                "Vhosts are empty for the dynamic environment: " + dynamicEnv
-                                                        .getName());
+                                                "WSO2 API-M Migration Task : Vhosts are empty for the dynamic "
+                                                        + "environment: " + dynamicEnv.getName());
                                     }
                                 }
                             }
@@ -404,11 +438,11 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 }
             }
         } catch (RegistryException e) {
-            log.error("Error while initiation the registry", e);
+            log.error("WSO2 API-M Migration Task : Error while initiation the registry", e);
         } catch (UserStoreException e) {
-            log.error("Error while retrieving the tenants", e);
+            log.error("WSO2 API-M Migration Task : Error while retrieving the tenants", e);
         } catch (APIManagementException e) {
-            log.error("Error while Retrieving API artifact from the registry", e);
+            log.error("WSO2 API-M Migration Task : Error while Retrieving API artifact from the registry", e);
         }
     }
 
@@ -420,54 +454,56 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             revisionId = apiMgtDAO1.getMostRecentRevisionId(apiRevision.getApiUUID()) + 1;
         } catch (APIManagementException e) {
-            log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID()
-                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            log.warn("WSO2 API-M Migration Task : Couldn't retrieve mose recent revision Id from revision UUID: "
+                    + apiRevision.getApiUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         apiRevision.setId(revisionId);
         APIIdentifier apiId;
         try {
             apiId = APIUtil.getAPIIdentifierFromUUID(apiRevision.getApiUUID());
         } catch (APIManagementException e) {
-            throw new APIMigrationException(
-                    "Couldn't retrieve API Identifier for from revision UUID: " + apiRevision.getApiUUID()
-                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Couldn't retrieve API Identifier for from "
+                    + "revision UUID: " + apiRevision.getApiUUID() + " for tenant " + tenant.getId() + '(' +
+                    tenant.getDomain() + ')');
         }
         if (apiId == null) {
-            throw new APIMigrationException(
-                    "Couldn't retrieve existing API with API UUID: " + apiRevision.getApiUUID()
-                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Couldn't retrieve existing API with API "
+                    + "UUID: " + apiRevision.getApiUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain()
+                    + ')');
         }
         apiId.setUuid(apiRevision.getApiUUID());
         String revisionUUID;
         try {
             revisionUUID = addAPIRevisionToRegistry(apiId.getUUID(), revisionId, tenant.getDomain(), artifactManager);
         } catch (APIPersistenceException e) {
-            throw new APIMigrationException("Failed to add revision registry artifacts for API: " + apiId.getUUID()
-                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add revision registry artifacts for"
+                    + " API: " + apiId.getUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         if (StringUtils.isEmpty(revisionUUID)) {
-            throw new APIMigrationException(
-                    "Failed to retrieve revision from registry artifacts for API: " + apiId.getUUID()
-                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to retrieve revision from registry "
+                    + "artifacts for API: " + apiId.getUUID()+ " for tenant " + tenant.getId() + '('
+                    + tenant.getDomain() + ')');
         } else {
-            log.info("successfully added revision: " + revisionUUID + " to registry for API: " + apiId.getUUID()
-                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            log.info("WSO2 API-M Migration Task : Successfully added revision: "
+                    + revisionUUID + " to registry for API: " + apiId.getUUID() + " for tenant " + tenant.getId()
+                    + '(' + tenant.getDomain() + ')');
         }
 
         apiRevision.setRevisionUUID(revisionUUID);
 
         try {
             apiMgtDAO1.addAPIRevision(apiRevision);
-            log.info("successfully added revision: " + revisionUUID + " to database for API: " + apiId.getUUID()
-                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            log.info("WSO2 API-M Migration Task : Successfully added revision: " + revisionUUID + " to database for"
+                    + " API: " + apiId.getUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } catch (APIManagementException e) {
-            throw new APIMigrationException(
-                    "Failed to add revision to database artifacts for API: " + apiId.getUUID() + " revision uuid: "
-                            + revisionUUID + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add revision to database artifacts "
+                    + "for API: " + apiId.getUUID() + " revision uuid: " + revisionUUID + " for tenant "
+                    + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
 
-        log.info("Storing revision artifacts of API: " + apiRevision.getApiUUID() + " into gateway artifacts "
-                + "and external server for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+        log.info("WSO2 API-M Migration Task : Storing revision artifacts of API: " + apiRevision.getApiUUID() +
+                " into gateway artifacts " + "and external server for tenant " + tenant.getId() + '(' +
+                tenant.getDomain() + ')');
 
         try {
             File artifact = importExportAPI
@@ -485,11 +521,11 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiId.getApiName(), apiId.getVersion(),
                         apiRevision.getRevisionUUID(), organization, artifact);
             }
-            log.info("successfully added revision artifact of API: " + apiId.getUUID()
+            log.info("WSO2 API-M Migration Task : Successfully added revision artifact of API: " + apiId.getUUID()
                     + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } catch (APIImportExportException | ArtifactSynchronizerException | APIManagementException e) {
-            throw new APIMigrationException("Error while Store the Revision Artifact for API: " + apiId.getUUID()
-                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while Store the Revision Artifact "
+                    + "for API: " + apiId.getUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
         }
         return revisionUUID;
     }
@@ -503,8 +539,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             revisionId = apiMgtDAO1.getMostRecentRevisionId(apiRevision.getApiUUID()) + 1;
         } catch (APIManagementException e) {
-            log.warn("Couldn't retrieve mose recent revision Id from revision UUID: " + apiRevision.getApiUUID()
-                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            log.warn("WSO2 API-M Migration Task : Couldn't retrieve mose recent revision Id from revision UUID: "
+                    + apiRevision.getApiUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
         apiRevision.setId(revisionId);
         APIProductIdentifier apiProductIdentifier;
@@ -512,15 +548,15 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             apiProductIdentifier = APIUtil.getAPIProductIdentifierFromUUID(apiRevision.getApiUUID());
         } catch (APIManagementException e) {
-            throw new APIMigrationException(
-                    "Couldn't retrieve APIProduct identifier for API product: " + apiRevision.getApiUUID()
-                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Couldn't retrieve APIProduct identifier for "
+                    + "API product: " + apiRevision.getApiUUID() + " for tenant " + tenant.getId() + '('
+                    + tenant.getDomain() + ')');
         }
 
         if (apiProductIdentifier == null) {
-            throw new APIMigrationException(
-                    "Couldn't retrieve existing API Product with ID: " + apiRevision.getApiUUID()
-                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Couldn't retrieve existing API Product with "
+                    + "ID: " + apiRevision.getApiUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain()
+                    + ')');
         }
         apiProductIdentifier.setUUID(apiRevision.getApiUUID());
         String revisionUUID;
@@ -528,19 +564,18 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
             revisionUUID = addAPIRevisionToRegistry(apiProductIdentifier.getUUID(), revisionId, tenant.getDomain(),
                     artifactManager);
         } catch (APIPersistenceException e) {
-            throw new APIMigrationException(
-                    "Failed to add revision registry artifacts for API Product: " + apiRevision.getApiUUID()
-                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add revision registry artifacts for"
+                    + " API Product: " + apiRevision.getApiUUID() + " for tenant " + tenant.getId() + '('
+                    + tenant.getDomain() + ')');
         }
 
         if (StringUtils.isEmpty(revisionUUID)) {
-            throw new APIMigrationException(
-                    "Failed to retrieve revision registry artifacts for API Product uuid: " + apiRevision.getApiUUID()
-                            + " revision uuid: " + revisionUUID + "...for tenant " + tenant.getId()
-                            + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to retrieve revision registry artifacts"
+                    + " for API Product uuid: " + apiRevision.getApiUUID() + " revision uuid: " + revisionUUID
+                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } else {
-            log.info("successfully added revision: " + revisionUUID + " to registry for API Product: "
-                    + apiProductIdentifier.getUUID() + "...for tenant " + tenant.getId()
+            log.info("WSO2 API-M Migration Task : Successfully added revision: " + revisionUUID + " to registry for"
+                    + " API Product: " + apiProductIdentifier.getUUID() + "...for tenant " + tenant.getId()
                     + '(' + tenant.getDomain() + ')');
             apiRevision.setRevisionUUID(revisionUUID);
         }
@@ -548,18 +583,17 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             org.wso2.carbon.apimgt.migration.
                     migrator.v400.dao.ApiMgtDAO.getInstance().addAPIProductRevision(apiRevision);
-            log.info("successfully added revision: " + revisionUUID + " to database for API Product: "
-                    + apiProductIdentifier.getUUID() + " for tenant " + tenant.getId() + '('
+            log.info("WSO2 API-M Migration Task : Successfully added revision: " + revisionUUID + " to database for"
+                    + " API Product: " + apiProductIdentifier.getUUID() + " for tenant " + tenant.getId() + '('
                     + tenant.getDomain() + ')');
         } catch (APIManagementException e) {
-            throw new APIMigrationException(
-                    "Failed to add API revision uuid: " + revisionUUID + " " + "for API Product : "
-                            + apiProductIdentifier.getUUID() + " for tenant " + tenant.getId()
-                            + '(' + tenant.getDomain() + ')');
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add API revision uuid: "
+                    + revisionUUID + " " + "for API Product : " + apiProductIdentifier.getUUID() + " for tenant "
+                    + tenant.getId() + '(' + tenant.getDomain() + ')');
         }
 
-        log.info("Storing revision artifacts of API Product: " + apiRevision.getApiUUID() +
-                " into gateway artifacts and external server for tenant " + tenant.getId() +
+        log.info("WSO2 API-M Migration Task : Storing revision artifacts of API Product: " + apiRevision.getApiUUID()
+                + " into gateway artifacts and external server for tenant " + tenant.getId() +
                 '(' + tenant.getDomain() + ')');
 
         // Storing revision artifacts of API Product for gateway artifacts and external server
@@ -576,12 +610,12 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 artifactSaver.saveArtifact(apiRevision.getApiUUID(), apiProductIdentifier.getName(),
                         apiProductIdentifier.getVersion(), apiRevision.getRevisionUUID(), organization, artifact);
             }
-            log.info("successfully added revision artifact of API Product: " + apiProductIdentifier.getUUID()
-                    + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+            log.info("WSO2 API-M Migration Task : Successfully added revision artifact of API Product: " +
+                    apiProductIdentifier.getUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
         } catch (APIImportExportException | ArtifactSynchronizerException | APIManagementException e) {
-            throw new APIMigrationException(
-                    "Error while Store the Revision Artifact for API product: " + apiProductIdentifier.getUUID()
-                            + " for tenant " + tenant.getId() + '(' + tenant.getDomain() + ')', e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while Store the Revision Artifact for "
+                    + "API product: " + apiProductIdentifier.getUUID() + " for tenant " + tenant.getId() + '('
+                    + tenant.getDomain() + ')', e);
         }
         return revisionUUID;
     }
@@ -607,8 +641,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                     try {
                         seqCollection = (org.wso2.carbon.registry.api.Collection) registry.get(faultSequencePath);
                     } catch (ResourceNotFoundException e) {
-                        log.warn("Resource does not exist for " + faultSequencePath + " for tenant domain:" + tenant
-                                .getDomain());
+                        log.warn("WSO2 API-M Migration Task : Resource does not exist for " + faultSequencePath
+                                + " for tenant domain:" + tenant.getDomain());
                     }
 
                     if (seqCollection != null) {
@@ -637,6 +671,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                     Node parentNode = node.getParentNode();
                                     parentNode.removeChild(node);
                                     parentNode.normalize();
+                                    log.info("WSO2 API-M Migration Task : Removed " + namedItem.getNodeValue() +
+                                            " from sequence: " + childPath);
                                 }
                             }
                             // Convert the content to String
@@ -651,13 +687,13 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 }
             }
         } catch (UserStoreException e) {
-            log.error("Error while retrieving the tenants", e);
+            log.error("WSO2 API-M Migration Task : Error while retrieving the tenants", e);
         } catch (APIManagementException e) {
-            log.error("Error while retrieving tenant admin's username", e);
+            log.error("WSO2 API-M Migration Task : Error while retrieving tenant admin's username", e);
         } catch (org.wso2.carbon.registry.api.RegistryException e) {
-            log.error("Error while retrieving fault sequences", e);
+            log.error("WSO2 API-M Migration Task : Error while retrieving fault sequences", e);
         } catch (Exception e) {
-            log.error("Error while removing unnecessary fault handlers from fault sequences", e);
+            log.error("WSO2 API-M Migration Task : Error while removing unnecessary fault handlers from fault sequences", e);
         }
     }
 
@@ -677,23 +713,23 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 String apiSourcePath = apiPath.substring(0, prependIndex);
                 String revisionTargetPath = RegistryPersistenceUtil.getRevisionPath(apiId.getUUID(), revisionId);
                 if (registry.resourceExists(revisionTargetPath)) {
-                    log.warn("API revision already exists with id: " + revisionId);
+                    log.warn("WSO2 API-M Migration Task : API revision already exists with id: " + revisionId);
                 } else {
                     registry.copy(apiSourcePath, revisionTargetPath);
                     registry.commitTransaction();
                     transactionCommitted = true;
-                    if (log.isDebugEnabled()) {
-                        String logMessage =
-                                "Revision for API Name: " + apiId.getApiName() + ", API Version " + apiId.getVersion()
-                                        + " created";
-                        log.debug(logMessage);
-                    }
+
+                    String logMessage = "WSO2 API-M Migration Task : Revision for API Name: " + apiId.getApiName()
+                            + ", " + "API Version " + apiId.getVersion() + " created";
+                    log.info(logMessage);
+
                 }
                 Resource apiRevisionArtifact = registry.get(revisionTargetPath + "api");
                 revisionUUID = apiRevisionArtifact.getUUID();
 
             } else {
-                String msg = "Failed to get API. API artifact corresponding to artifactId " + apiUUID + " does not exist";
+                String msg = "WSO2 API-M Migration Task : Failed to get API. API artifact corresponding to artifactId "
+                        + apiUUID + " does not exist";
                 throw new APIMgtResourceNotFoundException(msg);
             }
         } catch (RegistryException e) {
@@ -701,12 +737,13 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 registry.rollbackTransaction();
             } catch (RegistryException re) {
                 // Throwing an error here would mask the original exception
-                log.error("Error while rolling back the transaction for API Revision create for API: "
-                        + apiUUID, re);
+                log.error("WSO2 API-M Migration Task : Error while rolling back the transaction for API Revision "
+                        + "create for API: " + apiUUID, re);
             }
-            throw new APIPersistenceException("Error while performing registry transaction operation", e);
+            throw new APIPersistenceException("WSO2 API-M Migration Task : Error while performing registry transaction"
+                    + " operation", e);
         } catch (APIManagementException e) {
-            throw new APIPersistenceException("Error while creating API Revision", e);
+            throw new APIPersistenceException("WSO2 API-M Migration Task : Error while creating API Revision", e);
         } finally {
             try {
                 if (tenantFlowStarted) {
@@ -716,9 +753,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                     registry.rollbackTransaction();
                 }
             } catch (RegistryException ex) {
-                throw new APIPersistenceException(
-                        "Error while rolling back the transaction for API Revision create for API: "
-                                + apiUUID, ex);
+                throw new APIPersistenceException("WSO2 API-M Migration Task : Error while rolling back the transaction"
+                        + " for API Revision create for API: " + apiUUID, ex);
             }
         }
         return revisionUUID;
@@ -766,16 +802,15 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
         try {
             addAPIProductMetaInformationToArchive(archivePath, apiProductDtoToReturn, exportFormat);
         } catch (APIMigrationException e) {
-            throw new APIMigrationException("Failed to add meta information for API Product: "
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to add meta information for API Product: "
                     + apiProductDtoToReturn.getName() , e);
         }
         addDependentAPIsToArchive(archivePath, apiProductDtoToReturn, exportFormat, apiProvider, username,
                 Boolean.TRUE, preserveDocs, preserveCredentials, organization);
 
         // Export mTLS authentication related certificates
-        if (log.isDebugEnabled()) {
-            log.debug("Mutual SSL enabled. Exporting client certificates.");
-        }
+
+        log.info("WSO2 API-M Migration Task : Exporting client certificates.");
         addClientCertificatesToArchive(archivePath, apiProductIdentifier, tenant.getId(), apiProvider, exportFormat,
                 organization);
 
@@ -795,18 +830,17 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
             CommonUtil.writeToYamlOrJson(archivePath + ImportExportConstants.SWAGGER_DEFINITION_LOCATION, exportFormat,
                     formattedSwaggerJson);
 
-            if (log.isDebugEnabled()) {
-                log.debug(
-                        "Meta information retrieved successfully for API Product: " + apiProductDtoToReturn.getName());
-            }
+            log.info("WSO2 API-M Migration Task : Successfully retrieved meta information for API Product: "
+                                + apiProductDtoToReturn.getName());
+
             CommonUtil.writeDtoToFile(archivePath + ImportExportConstants.API_PRODUCT_FILE_LOCATION, exportFormat,
                     ImportExportConstants.TYPE_API_PRODUCT, apiProductDtoToReturn);
         } catch (APIManagementException | APIMigrationException e) {
-            throw new APIMigrationException(
-                    "Error while retrieving Swagger definition for API Product: " + apiProductDtoToReturn.getName(), e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while retrieving Swagger definition"
+                    + " for API Product: " + apiProductDtoToReturn.getName(), e);
         } catch (IOException e) {
-            throw new APIImportExportException(
-                    "Error while saving as YAML for API Product: " + apiProductDtoToReturn.getName(), e);
+            throw new APIImportExportException("WSO2 API-M Migration Task : Error while saving as YAML for API "
+                    + "Product: " + apiProductDtoToReturn.getName(), e);
         }
     }
 
@@ -824,16 +858,13 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                 apiDocContent = new String((byte[]) apiDocResource.getContent(), Charset.defaultCharset());
                 parser.parse(apiDocContent);
             } else {
-                if (log.isDebugEnabled()) {
-                    log.debug("Resource " +
+                log.info("WSO2 API-M Migration Task : Resource " +
                             org.wso2.carbon.apimgt.impl.APIConstants.API_OAS_DEFINITION_RESOURCE_NAME +
                             " not found at " + resourcePath);
-                }
             }
         } catch (RegistryException | ParseException e) {
-            throw new APIMigrationException (
-                    "Error while retrieving OpenAPI v2.0 or v3.0.0 Definition for " + product.getId().getName() + '-'
-                            + product.getId().getProviderName(), e);
+            throw new APIMigrationException ("WSO2 API-M Migration Task : Error while retrieving OpenAPI v2.0 or v3.0.0"
+                    + " Definition for " + product.getId().getName() + '-' + product.getId().getProviderName(), e);
         }
         return apiDocContent;
     }

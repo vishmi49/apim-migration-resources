@@ -55,7 +55,7 @@ public class V410DBDataMigrator extends Migrator {
                     .collect(Collectors.toMap(Tenant::getId, Tenant::getDomain));
             apiMgtDAO.updateApiCategoryOrganizations(tenantIdsAndOrganizations);
         } catch (UserStoreException e) {
-            throw new APIMigrationException("Failed to retrieve tenants");
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to retrieve tenants");
         }
     }
 
@@ -93,10 +93,12 @@ public class V410DBDataMigrator extends Migrator {
                 formattedTenantConf = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(tenantConf);
             }
         } catch (JsonProcessingException jse) {
-            log.error("Error while JSON Processing tenant conf :" + jse);
-            log.info("Hence, skipping tenant conf to db migration for tenant Id :" + tenantId);
+            log.error("WSO2 API-M Migration Task : Error while JSON Processing tenant conf :" + jse);
+            log.error("WSO2 API-M Migration Task : Hence, skipping tenant conf to db migration for tenant Id :"
+                    + tenantId);
         } catch (IOException e) {
-            log.error("Error occurred while writing tenant-conf.json value to string." + tenantId, e);
+            log.error("WSO2 API-M Migration Task : Error occurred while writing tenant-conf.json value to string."
+                    + tenantId, e);
         }
 
         if (formattedTenantConf != null) {
@@ -106,18 +108,21 @@ public class V410DBDataMigrator extends Migrator {
                 if (StringUtils.isEmpty(tenantConfig)) {
                     systemConfigurationsDAO
                             .addSystemConfig(organization, APIConstants.ConfigType.TENANT.toString(), formattedTenantConf);
+                    log.info("WSO2 API-M Migration Task : Added tenant-conf.json content to DB for tenant "
+                            + tenant.getId() + '(' + tenant.getDomain() + ')');
                 } else {
                     systemConfigurationsDAO
                             .updateSystemConfig(organization, APIConstants.ConfigType.TENANT.toString(), formattedTenantConf);
+                    log.info("WSO2 API-M Migration Task : Updated tenant-conf.json content in DB for tenant "
+                            + tenant.getId() + '(' + tenant.getDomain() + ')');
                 }
             } catch (APIManagementException e) {
-                log.info("Error while adding to tenant conf to database for tenant: " + tenantId + "with Error :"
-                        + e);
+                log.info("WSO2 API-M Migration Task : Error while adding to tenant conf to database for tenant: "
+                        + tenantId + "with Error :" + e);
             }
         } else {
-            if (log.isDebugEnabled()) {
-                log.debug("tenant conf value is empty.");
-            }
+            log.info("WSO2 API-M Migration Task : tenant-conf content is empty.");
+
         }
     }
 }

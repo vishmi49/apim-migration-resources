@@ -48,25 +48,31 @@ public class V410ScopeMigrator extends Migrator {
             UserRegistry registry = registryService.getConfigSystemRegistry(tenantID);
             byte[] data = Utility.getTenantConfFromFile();
             if (registry.resourceExists(APIConstants.API_TENANT_CONF_LOCATION)) {
-                log.debug("tenant-conf of tenant " + tenantID + " is  already uploaded to the registry");
                 Optional<Byte[]> migratedTenantConf = Utility.migrateTenantConf(tenantID);
                 if (migratedTenantConf.isPresent()) {
-                    log.debug("Detected new additions to tenant-conf of tenant " + tenantID);
+                    log.info("WSO2 API-M Migration Task : Detected new additions to tenant-conf of tenant "
+                            + tenantID);
                     data = ArrayUtils.toPrimitive(migratedTenantConf.get());
                 } else {
-                    log.debug("No changes required in tenant-conf.json of tenant " + tenantID);
+                    log.info("WSO2 API-M Migration Task : No changes required in tenant-conf.json of tenant " +
+                            tenantID);
                     return;
                 }
             }
-            log.debug("Adding/updating tenant-conf.json to the registry of tenant " + tenantID);
+            log.info("WSO2 API-M Migration Task : Adding/updating tenant-conf.json to the registry of tenant "
+                    + tenantID);
             Utility.updateTenantConf(registry, data);
-            log.debug("Successfully added/updated tenant-conf.json of tenant  " + tenantID);
+            log.info("WSO2 API-M Migration Task : Successfully added/updated tenant-conf.json of tenant  "
+                    + tenantID);
         } catch (RegistryException e) {
-            throw new APIMigrationException("Error while saving tenant conf to the registry of tenant " + tenantID, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while saving tenant conf to the registry"
+                    + " of tenant " + tenantID, e);
         } catch (IOException e) {
-            throw new APIMigrationException("Error while reading tenant conf file content of tenant " + tenantID, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while reading tenant conf file content "
+                    + "of tenant " + tenantID, e);
         } catch (APIMigrationException e) {
-            throw new APIMigrationException("Error while reading tenant conf file content of tenant " + tenantID, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Error while reading tenant conf file content "
+                    + "of tenant " + tenantID, e);
         }
     }
 }

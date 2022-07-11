@@ -29,6 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * This class is used to migrate scopes from IDN_OAUTH2_SCOPE table to AM_SCOPE table during 3.1.0 to 3.2.0 migration
@@ -39,9 +41,9 @@ public class IdentityScopeMigrator extends Migrator {
 
     @Override
     public void migrate() throws APIMigrationException {
-        log.info("Starting identity scope migration...");
         boolean scopesMigrated = ApiMgtDAO.getInstance().isScopesMigrated();
         if (!scopesMigrated) {
+            log.info("WSO2 API-M Migration Task : Starting identity scope migration");
             List<String> identityScopes = ApiMgtDAO.getInstance().retrieveIdentityScopes();
             Map<Integer, Map<String, Scope>> scopesMap = ApiMgtDAO.getInstance().migrateIdentityScopes(identityScopes);
 
@@ -52,12 +54,19 @@ public class IdentityScopeMigrator extends Migrator {
                     if (scopeMap != null) {
                         Set<Scope> scopeSet = new HashSet<>(scopeMap.values());
                         scopesDAO.addScopes(scopeSet, scopesMapEntry.getKey());
+                        String scopeStr = scopeSet.stream().map(scope -> scope.getKey())
+                                .collect(Collectors.joining(", "));
+                        log.info("WSO2 API-M Migration Task : Successfully migrated scopes ("
+                                + scopeStr + ") of tenant: "+ scopesMapEntry.getKey() +" from IDN_OAUTH2_SCOPE table "
+                                + "to AM_SCOPE table");
                     }
                 }
-                log.info("Successfully migrated identity scopes");
             } catch (APIManagementException e) {
-                throw new APIMigrationException("Error occurred while migrating identity scopes", e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Error occurred while migrating identity "
+                        + "scopes", e);
             }
+        } else {
+            log.info("WSO2 API-M Migration Task : Scopes are already migrated, hence skipping this step");
         }
     }
 

@@ -46,7 +46,7 @@ public class SharedDAO {
     }
 
     public void runSQLScript(String sqlScriptPath) throws SQLException {
-        log.info("Running SQL script in " + sqlScriptPath + " started");
+        log.info("WSO2 API-M Migration Task : Running SQL script at " + sqlScriptPath);
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         Statement statement = null;
@@ -57,7 +57,7 @@ public class SharedDAO {
             InputStream is = new FileInputStream(sqlScriptPath);
             List<String> sqlStatements = readSQLStatements(is, dbType);
             for (String sqlStatement : sqlStatements) {
-                log.debug("SQL to be executed : " + sqlStatement);
+                log.debug("WSO2 API-M Migration Task : SQL to be executed : " + sqlStatement);
                 if (Constants.DB_TYPE_ORACLE.equals(dbType)) {
                     statement = connection.createStatement();
                     statement.executeUpdate(sqlStatement);
@@ -70,7 +70,7 @@ public class SharedDAO {
         }  catch (Exception e) {
             /* MigrationDBCreator extends from org.wso2.carbon.utils.dbcreator.DatabaseCreator and in the super class
             method getDatabaseType throws generic Exception */
-            log.error("Error occurred while migrating databases", e);
+            log.error("WSO2 API-M Migration Task : Error occurred while migrating databases", e);
             if (connection != null) {
                 connection.rollback();
             }
@@ -85,7 +85,7 @@ public class SharedDAO {
                 connection.close();
             }
         }
-        log.info("Running SQL script completed successfully.");
+        log.info("WSO2 API-M Migration Task : Successfully executed SQL script at " + sqlScriptPath);
     }
 
     private List<String> readSQLStatements(InputStream is, String dbType) {
@@ -135,12 +135,13 @@ public class SharedDAO {
             }
             bufferedReader.close();
         }  catch (IOException e) {
-            log.error("Error while reading SQL statements from stream", e);
+            log.error("WSO2 API-M Migration Task : Error while reading SQL statements from stream", e);
         }
         return sqlStatements;
     }
 
-    public List<UserRoleFromPermissionDTO> getRoleNamesMatchingPermission(String permission, int tenantId) throws APIMigrationException {
+    public List<UserRoleFromPermissionDTO> getRoleNamesMatchingPermission(String permission, int tenantId)
+            throws APIMigrationException {
         List<UserRoleFromPermissionDTO> userRoleFromPermissionList = new ArrayList<UserRoleFromPermissionDTO>();
 
         String sqlQuery =
@@ -172,15 +173,15 @@ public class SharedDAO {
                     userRoleFromPermissionDTO.setUserRoleDomainName(userRoleDomainName);
                     userRoleFromPermissionList.add(userRoleFromPermissionDTO);
 
-                    log.info("User role name: " + userRoleName + ", User domain name: " + userRoleDomainName
-                            + " retrieved for " + tenantId);
+                    log.info("WSO2 API-M Migration Task :  User role name: " + userRoleName + ", User domain name: "
+                            + userRoleDomainName + " retrieved for " + tenantId);
                 }
             } catch (SQLException e) {
-                throw new APIMigrationException("Failed to get the result set.", e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get the result set.", e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Failed to get Roles matching the permission " + permission +
-                    " and tenant " + tenantId, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get Roles matching the permission "
+                    + permission + " and tenant " + tenantId, e);
         }
         return userRoleFromPermissionList;
     }
@@ -216,15 +217,15 @@ public class SharedDAO {
                     userRoleFromPermissionDTO.setUserRoleDomainName(userRoleDomainName);
                     userRoleFromPermissionList.add(userRoleFromPermissionDTO);
 
-                    log.info("User role name: " + userRoleName + ", User domain name: " + userRoleDomainName
-                            + " retrieved for " + tenantId);
+                    log.info("WSO2 API-M Migration Task : User role name: " + userRoleName + ", User domain name: "
+                            + userRoleDomainName + " retrieved for " + tenantId);
                 }
             } catch (SQLException e) {
-                throw new APIMigrationException("Failed to get the result set.", e);
+                throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get the result set.", e);
             }
         } catch (SQLException e) {
-            throw new APIMigrationException("Failed to get Roles matching the permission " + permissions +
-                    " and tenant " + tenantId, e);
+            throw new APIMigrationException("WSO2 API-M Migration Task : Failed to get Roles matching the permission "
+                    + permissions + " and tenant " + tenantId, e);
         }
         return userRoleFromPermissionList;
     }
