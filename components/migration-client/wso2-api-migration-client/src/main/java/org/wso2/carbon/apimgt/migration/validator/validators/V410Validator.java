@@ -11,6 +11,7 @@ import org.wso2.carbon.apimgt.impl.definitions.AsyncApiParserUtil;
 import org.wso2.carbon.apimgt.impl.definitions.OASParserUtil;
 import org.wso2.carbon.apimgt.impl.utils.APIMWSDLReader;
 import org.wso2.carbon.apimgt.impl.wsdl.model.WSDLValidationResponse;
+import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.apimgt.migration.validator.dao.ApiMgtDAO;
 import org.wso2.carbon.apimgt.migration.validator.utils.Utils;
 import org.wso2.carbon.apimgt.rest.api.publisher.v1.common.mappings.PublisherCommonUtils;
@@ -27,6 +28,7 @@ import java.sql.SQLException;
 
 public class V410Validator extends Validator {
     private static final Log log = LogFactory.getLog(V410Validator.class);
+    private final String saveSwagger = System.getProperty(Constants.preValidationService.SAVE_INVALID_DEFINITION);
 
     public V410Validator(Utils utils) {
         super(utils);
@@ -68,22 +70,31 @@ public class V410Validator extends Validator {
     }
 
     public void validateOpenAPIDefinition() {
+        String apiDefinition = null;
         APIDefinitionValidationResponse validationResponse = null;
         log.info("Validating open API definition of API {name: " + apiName + ", version: " +
                 apiVersion + ", provider: " + provider + "}");
         try {
-            String apiDefinition = utils.getAPIDefinition(registry, apiName, apiVersion, provider, apiId);
-            validationResponse = OASParserUtil.validateAPIDefinition(apiDefinition, Boolean.TRUE);
+            apiDefinition = utils.getAPIDefinition(registry, apiName, apiVersion, provider, apiId);
+            if (apiDefinition != null) {
+                validationResponse = OASParserUtil.validateAPIDefinition(apiDefinition, Boolean.TRUE);
+            }
         } catch (APIManagementException e) {
             log.error("Error while validating open API definition for " + apiName + " version: " + apiVersion
                     + " type: " + apiType, e);
         }
         if (validationResponse != null && !validationResponse.isValid()) {
+            if (saveSwagger != null) {
+                utils.saveInvalidDefinition(apiId, apiDefinition);
+            }
             for (ErrorHandler error : validationResponse.getErrorItems()) {
                 log.error("OpenAPI Definition for API {name: " + apiName + ", version: " +
                         apiVersion + ", provider: " + provider + "}" + " is invalid. ErrorMessage: " +
                         error.getErrorMessage() + " ErrorDescription: " + error.getErrorDescription());
             }
+        } else if (apiDefinition == null) {
+            log.error("Error while validating open API definition for " + apiName + " version: " + apiVersion
+                    + " type: " + apiType + ". Swagger definition of the API is missing...");
         } else {
             log.info("Successfully validated open API definition of " + apiName + " version: " + apiVersion
                     + " type: " + apiType);
