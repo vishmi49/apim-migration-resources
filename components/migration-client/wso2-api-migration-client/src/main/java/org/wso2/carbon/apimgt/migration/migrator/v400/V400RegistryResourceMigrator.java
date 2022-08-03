@@ -21,7 +21,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.bouncycastle.jcajce.provider.symmetric.IDEA;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.w3c.dom.Document;
@@ -221,7 +220,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {
                 log.info("WSO2 API-M Migration Task : Updating Registry paths of API icons and WSDLs of "
-                        + "tenant " + + tenant.getId() + '(' +
+                        + "tenant " + tenant.getId() + '(' +
                         tenant.getDomain() + ')');
                 List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
                 int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
@@ -247,7 +246,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                             }
                         }
                         for (APIInfoDTO apiInfoDTO : apiInfoDTOList) {
-                            String apiId = apiInfoDTO.getApiProvider() + "-" +apiInfoDTO.getApiName() + "-" +
+                            String apiId = apiInfoDTO.getApiProvider() + "-" + apiInfoDTO.getApiName() + "-" +
                                     apiInfoDTO.getApiVersion();
                             String apiPath = GovernanceUtils.getArtifactPath(registry, apiInfoDTO.getUuid());
                             int prependIndex = apiPath.lastIndexOf("/api");
@@ -275,8 +274,8 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                     APIConstants.API_WSDL_RESOURCE_LOCATION + RegistryPersistenceUtil
                                             .createWsdlFileName(apiInfoDTO.getApiProvider(), apiInfoDTO.getApiName(),
                                                     apiInfoDTO.getApiVersion());
-                            APIIdentifier identifier = new APIIdentifier(apiInfoDTO.getApiProvider(), apiInfoDTO.getApiName(),
-                                    apiInfoDTO.getApiVersion());
+                            APIIdentifier identifier = new APIIdentifier(apiInfoDTO.getApiProvider(),
+                                    apiInfoDTO.getApiName(), apiInfoDTO.getApiVersion());
                             String wsdlResourceArchivePathOld = RegistryPersistenceUtil.getWsdlArchivePath(identifier);
                             String resourcePath = null;
                             if (registry.resourceExists(wsdlResourcePathOld)) {
