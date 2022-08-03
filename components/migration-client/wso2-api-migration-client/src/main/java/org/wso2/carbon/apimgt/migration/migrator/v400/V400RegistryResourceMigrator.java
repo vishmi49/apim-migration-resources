@@ -284,34 +284,37 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                             } else if (registry.resourceExists(wsdlResourceArchivePathOld)) {
                                 resourcePath = wsdlResourceArchivePathOld;
                             }
-                            Resource resource = registry.get(resourcePath);
-                            String wsdlResourcePath;
-                            String wsdlResourcePathArchive = artifactPath + RegistryConstants.PATH_SEPARATOR
-                                    + APIConstants.API_WSDL_ARCHIVE_LOCATION + apiInfoDTO.getApiProvider()
-                                    + APIConstants.WSDL_PROVIDER_SEPERATOR + apiInfoDTO.getApiName() + apiInfoDTO
-                                    .getApiVersion() + APIConstants.ZIP_FILE_EXTENSION;
-                            String wsdlResourcePathFile =
-                                    artifactPath + RegistryConstants.PATH_SEPARATOR + RegistryPersistenceUtil
-                                            .createWsdlFileName(apiInfoDTO.getApiProvider(),
-                                                    apiInfoDTO.getApiName(), apiInfoDTO.getApiVersion());
-                            if (APIConstants.APPLICATION_ZIP.equals(resource.getMediaType())) {
-                                wsdlResourcePath = wsdlResourcePathArchive;
-                            } else {
-                                wsdlResourcePath = wsdlResourcePathFile;
+                            if (resourcePath != null) {
+                                Resource resource = registry.get(resourcePath);
+                                String wsdlResourcePath;
+                                String wsdlResourcePathArchive = artifactPath + RegistryConstants.PATH_SEPARATOR
+                                        + APIConstants.API_WSDL_ARCHIVE_LOCATION + apiInfoDTO.getApiProvider()
+                                        + APIConstants.WSDL_PROVIDER_SEPERATOR + apiInfoDTO.getApiName() + apiInfoDTO
+                                        .getApiVersion() + APIConstants.ZIP_FILE_EXTENSION;
+                                String wsdlResourcePathFile =
+                                        artifactPath + RegistryConstants.PATH_SEPARATOR + RegistryPersistenceUtil
+                                                .createWsdlFileName(apiInfoDTO.getApiProvider(),
+                                                        apiInfoDTO.getApiName(), apiInfoDTO.getApiVersion());
+                                if ("application/octet-stream".equals(resource.getMediaType())
+                                        || APIConstants.APPLICATION_ZIP.equals(resource.getMediaType())) {
+                                    wsdlResourcePath = wsdlResourcePathArchive;
+                                } else {
+                                    wsdlResourcePath = wsdlResourcePathFile;
+                                }
+                                registry.copy(resourcePath, wsdlResourcePath);
+                                GenericArtifact apiArtifact = tenantArtifactManager
+                                        .getGenericArtifact(apiInfoDTO.getUuid());
+                                String absoluteWSDLResourcePath = RegistryUtils
+                                        .getAbsolutePath(RegistryContext.getBaseInstance(),
+                                                RegistryConstants.GOVERNANCE_REGISTRY_BASE_PATH) + wsdlResourcePath;
+                                String wsdlRegistryPath =
+                                        RegistryConstants.PATH_SEPARATOR + "registry" + RegistryConstants.PATH_SEPARATOR
+                                                + "resource" + absoluteWSDLResourcePath;
+                                apiArtifact.setAttribute(APIConstants.API_OVERVIEW_WSDL, wsdlRegistryPath);
+                                tenantArtifactManager.updateGenericArtifact(apiArtifact);
+                                log.info("WSO2 API-M Migration Task : Updated " + APIConstants.API_OVERVIEW_WSDL +
+                                        " of API: " + apiId + " to " + wsdlRegistryPath);
                             }
-                            registry.copy(resourcePath, wsdlResourcePath);
-                            GenericArtifact apiArtifact = tenantArtifactManager
-                                    .getGenericArtifact(apiInfoDTO.getUuid());
-                            String absoluteWSDLResourcePath = RegistryUtils
-                                    .getAbsolutePath(RegistryContext.getBaseInstance(),
-                                            RegistryConstants.GOVERNANCE_REGISTRY_BASE_PATH) + wsdlResourcePath;
-                            String wsdlRegistryPath =
-                                    RegistryConstants.PATH_SEPARATOR + "registry" + RegistryConstants.PATH_SEPARATOR
-                                            + "resource" + absoluteWSDLResourcePath;
-                            apiArtifact.setAttribute(APIConstants.API_OVERVIEW_WSDL, wsdlRegistryPath);
-                            tenantArtifactManager.updateGenericArtifact(apiArtifact);
-                            log.info("WSO2 API-M Migration Task : Updated " + APIConstants.API_OVERVIEW_WSDL +
-                                    " of API: " + apiId + " to " + wsdlRegistryPath);
                         }
                     }
                 } finally {
