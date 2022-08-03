@@ -295,8 +295,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                         artifactPath + RegistryConstants.PATH_SEPARATOR + RegistryPersistenceUtil
                                                 .createWsdlFileName(apiInfoDTO.getApiProvider(),
                                                         apiInfoDTO.getApiName(), apiInfoDTO.getApiVersion());
-                                if ("application/octet-stream".equals(resource.getMediaType())
-                                        || APIConstants.APPLICATION_ZIP.equals(resource.getMediaType())) {
+                                if (APIConstants.APPLICATION_ZIP.equals(resource.getMediaType())) {
                                     wsdlResourcePath = wsdlResourcePathArchive;
                                 } else {
                                     wsdlResourcePath = wsdlResourcePathFile;
