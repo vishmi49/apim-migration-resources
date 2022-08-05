@@ -48,6 +48,13 @@
             </includes>
         </fileSet>
         <fileSet>
+            <directory>${project.basedir}/src/main/resources/rxts/4.2.0</directory>
+            <outputDirectory>wso2am-migration-${project.version}/migration-resources/rxts/4.2.0</outputDirectory>
+            <includes>
+                <include>*.rxt</include>
+            </includes>
+        </fileSet>
+        <fileSet>
             <directory>${project.basedir}/target/scripts/migration-4.0.0_to_4.1.0</directory>
             <outputDirectory>wso2am-migration-${project.version}/migration-4.0.0_to_4.1.0</outputDirectory>
             <includes>

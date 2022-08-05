@@ -46,6 +46,7 @@ public class VersionMigrationHolder {
         versionMigrationList.add(new V320Migration());
         versionMigrationList.add(new V400Migration());
         versionMigrationList.add(new V410Migration());
+        versionMigrationList.add(new V420Migration());
     }
 
     public static VersionMigrationHolder getInstance() {
