@@ -65,14 +65,24 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                 log.info("WSO2 API-M Migration Task : Starting data migration of Self Signup Configuration for tenant "
                         + tenantId + '(' + tenantDomain + ')');
                 if (registry.resourceExists("/apimgt/applicationdata/sign-up-config.xml")) {
-                    Resource resource = registry.get("/apimgt/applicationdata/sign-up-config.xml");
+                    HashSet<String> signUpRoles = new HashSet<String>();
+                    String currentConfig = ServiceReferenceHolder.getInstance().getApimConfigService()
+                            .getTenantConfig(tenantDomain);
+                    JsonObject currentConfigJsonObject = (JsonObject) new JsonParser().parse(currentConfig);
+                    if (currentConfigJsonObject.has("SelfSignUp")) {
+                        JsonObject currentSelfSignUp = (JsonObject) currentConfigJsonObject.get("SelfSignUp");
+                        JsonArray currentSignUpRoles = (JsonArray) currentSelfSignUp.get("SignUpRoles");
+                        Iterator<JsonElement> currentSignUpRolesIterator = currentSignUpRoles.iterator();
+                        while (currentSignUpRolesIterator.hasNext()) {
+                            signUpRoles.add(currentSignUpRolesIterator.next().getAsString());
+                        }
+                        currentConfigJsonObject.remove("SelfSignUp");
+                    }
 
+                    Resource resource = registry.get("/apimgt/applicationdata/sign-up-config.xml");
                     OMElement element = AXIOMUtil.stringToOM(
                             new String((byte[]) resource.getContent(), Charset.defaultCharset()));
-
                     JsonObject selfSignUpJsonObject = new JsonObject();
-                    HashSet<String> signUpRoles = new HashSet<String>();
-
                     String signUpDomain = element.getFirstChildWithName(new QName("SignUpDomain")).getText();
                     OMElement rolesElement = element.getFirstChildWithName(new QName("SignUpRoles"));
                     Iterator roleListIterator = rolesElement.getChildrenWithLocalName("SignUpRole");
@@ -88,19 +98,6 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                         }
                     }
 
-                    String currentConfig = ServiceReferenceHolder.getInstance().getApimConfigService()
-                            .getTenantConfig(tenantDomain);
-                    JsonObject currentConfigJsonObject = (JsonObject) new JsonParser().parse(currentConfig);
-
-                    if (currentConfigJsonObject.has("SelfSignUp")) {
-                        JsonObject currentSelfSignUp = (JsonObject) currentConfigJsonObject.get("SelfSignUp");
-                        JsonArray currentSignUpRoles = (JsonArray) currentSelfSignUp.get("SignUpRoles");
-                        Iterator<JsonElement> currentSignUpRolesIterator = currentSignUpRoles.iterator();
-                        while (currentSignUpRolesIterator.hasNext()) {
-                            signUpRoles.add(currentSignUpRolesIterator.next().getAsString());
-                        }
-                        currentConfigJsonObject.remove("SelfSignUp");
-                    }
                     selfSignUpJsonObject.add("SignUpRoles", new Gson().toJsonTree(signUpRoles).getAsJsonArray());
                     currentConfigJsonObject.add("SelfSignUp", selfSignUpJsonObject);
 
