@@ -284,6 +284,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                                 resourcePath = wsdlResourceArchivePathOld;
                             }
                             if (resourcePath != null) {
+                                log.info("WSDL resource path: " + resourcePath);
                                 Resource resource = registry.get(resourcePath);
                                 String wsdlResourcePath;
                                 String wsdlResourcePathArchive = artifactPath + RegistryConstants.PATH_SEPARATOR
