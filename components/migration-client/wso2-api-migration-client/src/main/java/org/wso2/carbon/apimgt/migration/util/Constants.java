@@ -445,6 +445,8 @@ public class Constants {
     public static final String V400_RXT_PATH = RXT_DIR + "4.0.0" + File.separator;
 
     public static final String V410_RXT_PATH = RXT_DIR + "4.1.0" + File.separator;
+
+    public static final String V420_RXT_PATH = RXT_DIR + "4.2.0" + File.separator;
     
     public static class preValidationService {
         public static final String API_DEFINITION_VALIDATION = "apiDefinitionValidation";
@@ -493,5 +495,8 @@ public class Constants {
 
     public static final String DEFAULT_ROLES_CONFIG = "DefaultRoles";
     public static final String ENABLE_RECOMMENDATION = "EnableRecommendation";
+
+    public static final String SELF_SIGNUP = "SelfSignUp";
+    public static final String SELF_SIGNUP_ROLES ="SignUpRoles";
 
 }

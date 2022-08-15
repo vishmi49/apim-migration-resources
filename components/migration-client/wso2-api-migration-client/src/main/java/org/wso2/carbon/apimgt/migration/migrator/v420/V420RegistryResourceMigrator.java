@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2022, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.wso2.carbon.apimgt.migration.migrator.v420;
 
 import com.google.gson.JsonObject;
@@ -47,6 +63,7 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
         log.info("WSO2 API-M Migration Task : Starting registry data migration for API Manager "
                 + Constants.VERSION_4_2_0);
 
+        boolean isMigrationFailedForATenant = false;
         boolean isTenantFlowStarted = false;
         for (Tenant tenant : tenants) {
             String tenantDomain = tenant.getDomain();
@@ -68,15 +85,18 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                     HashSet<String> signUpRoles = new HashSet<String>();
                     String currentConfig = ServiceReferenceHolder.getInstance().getApimConfigService()
                             .getTenantConfig(tenantDomain);
+                    log.info("Current Config of tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                    log.info(currentConfig);
+
                     JsonObject currentConfigJsonObject = (JsonObject) new JsonParser().parse(currentConfig);
-                    if (currentConfigJsonObject.has("SelfSignUp")) {
-                        JsonObject currentSelfSignUp = (JsonObject) currentConfigJsonObject.get("SelfSignUp");
-                        JsonArray currentSignUpRoles = (JsonArray) currentSelfSignUp.get("SignUpRoles");
+                    if (currentConfigJsonObject.has(Constants.SELF_SIGNUP)) {
+                        JsonObject currentSelfSignUp = (JsonObject) currentConfigJsonObject.get(Constants.SELF_SIGNUP);
+                        JsonArray currentSignUpRoles = (JsonArray) currentSelfSignUp.get(Constants.SELF_SIGNUP_ROLES);
                         Iterator<JsonElement> currentSignUpRolesIterator = currentSignUpRoles.iterator();
                         while (currentSignUpRolesIterator.hasNext()) {
                             signUpRoles.add(currentSignUpRolesIterator.next().getAsString());
                         }
-                        currentConfigJsonObject.remove("SelfSignUp");
+                        currentConfigJsonObject.remove(Constants.SELF_SIGNUP);
                     }
 
                     Resource resource = registry.get("/apimgt/applicationdata/sign-up-config.xml");
@@ -84,7 +104,7 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                             new String((byte[]) resource.getContent(), Charset.defaultCharset()));
                     JsonObject selfSignUpJsonObject = new JsonObject();
                     String signUpDomain = element.getFirstChildWithName(new QName("SignUpDomain")).getText();
-                    OMElement rolesElement = element.getFirstChildWithName(new QName("SignUpRoles"));
+                    OMElement rolesElement = element.getFirstChildWithName(new QName(Constants.SELF_SIGNUP_ROLES));
                     Iterator roleListIterator = rolesElement.getChildrenWithLocalName("SignUpRole");
                     while (roleListIterator.hasNext()) {
                         OMElement roleElement = (OMElement) roleListIterator.next();
@@ -98,8 +118,9 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                         }
                     }
 
-                    selfSignUpJsonObject.add("SignUpRoles", new Gson().toJsonTree(signUpRoles).getAsJsonArray());
-                    currentConfigJsonObject.add("SelfSignUp", selfSignUpJsonObject);
+                    selfSignUpJsonObject.add(Constants.SELF_SIGNUP_ROLES,
+                            new Gson().toJsonTree(signUpRoles).getAsJsonArray());
+                    currentConfigJsonObject.add(Constants.SELF_SIGNUP, selfSignUpJsonObject);
 
                     // Prettify the tenant-conf
                     Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -107,18 +128,27 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                     ServiceReferenceHolder.getInstance().getApimConfigService()
                             .updateTenantConfig(tenantDomain, formattedTenantConf);
 
+                    // Log the updated tenant config
+                    String updatedConfig = ServiceReferenceHolder.getInstance().getApimConfigService()
+                            .getTenantConfig(tenantDomain);
+                    log.info("Updated Config of tenant " + tenant.getId() + '(' + tenant.getDomain() + ')');
+                    log.info(updatedConfig);
+
                     registry.delete("/apimgt/applicationdata/sign-up-config.xml");
                 }
                 log.info("WSO2 API-M Migration Task : Completed data migration of Self Signup Configuration for tenant "
                         + tenantId + '(' + tenantDomain + ')');
             } catch (APIManagementException e) {
+                isMigrationFailedForATenant = true;
                 throw new APIMigrationException(
                         "WSO2 API-M Migration Task : Error occurred while migrating Self Signup Configuration for tenant "
                                 + tenantId + '(' + tenantDomain + ')', e);
             } catch (RegistryException e) {
+                isMigrationFailedForATenant = true;
                 throw new APIMigrationException(
                         "WSO2 API-M Migration Task : Error occurred while accessing the registry ", e);
             } catch (XMLStreamException e) {
+                isMigrationFailedForATenant = true;
                 throw new APIMigrationException(
                         "WSO2 API-M Migration Task : Error occurred while converting the XML string to OMElement", e);
             } finally {
@@ -129,7 +159,10 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
             log.info("WSO2 API-M Migration Task : Completed registry data migration for tenant " + tenantId + '('
                     + tenantDomain + ')');
         }
-        log.info("WSO2 API-M Migration Task : Registry data migration is done for API Manager "
-                + Constants.VERSION_4_2_0);
+        if (isMigrationFailedForATenant) {
+            throw new APIMigrationException("WSO2 API-M Migration Task : Registry data migration is failed");
+        } else {
+            log.info("WSO2 API-M Migration Task : API registry data migration done for all the tenants");
+        }
     }
 }
