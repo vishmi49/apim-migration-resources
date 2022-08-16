@@ -63,7 +63,7 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
         log.info("WSO2 API-M Migration Task : Starting registry data migration for API Manager "
                 + Constants.VERSION_4_2_0);
 
-        boolean isMigrationFailedForATenant = false;
+        boolean isError = false;
         boolean isTenantFlowStarted = false;
         for (Tenant tenant : tenants) {
             String tenantDomain = tenant.getDomain();
@@ -139,18 +139,23 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                 log.info("WSO2 API-M Migration Task : Completed data migration of Self Signup Configuration for tenant "
                         + tenantId + '(' + tenantDomain + ')');
             } catch (APIManagementException e) {
-                isMigrationFailedForATenant = true;
-                throw new APIMigrationException(
+                log.error(
                         "WSO2 API-M Migration Task : Error occurred while migrating Self Signup Configuration for tenant "
                                 + tenantId + '(' + tenantDomain + ')', e);
+                isError = true;
+                continue;
             } catch (RegistryException e) {
-                isMigrationFailedForATenant = true;
-                throw new APIMigrationException(
-                        "WSO2 API-M Migration Task : Error occurred while accessing the registry ", e);
+                log.error(
+                        "WSO2 API-M Migration Task : Error occurred while accessing the registry for tenant " + tenantId
+                                + '(' + tenantDomain + ')', e);
+                isError = true;
+                continue;
             } catch (XMLStreamException e) {
-                isMigrationFailedForATenant = true;
-                throw new APIMigrationException(
-                        "WSO2 API-M Migration Task : Error occurred while converting the XML string to OMElement", e);
+                log.error(
+                        "WSO2 API-M Migration Task : Error occurred while converting the XML string to OMElement for tenant "
+                                + tenantId + '(' + tenantDomain + ')', e);
+                isError = true;
+                continue;
             } finally {
                 if (isTenantFlowStarted) {
                     PrivilegedCarbonContext.endTenantFlow();
@@ -159,8 +164,9 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
             log.info("WSO2 API-M Migration Task : Completed registry data migration for tenant " + tenantId + '('
                     + tenantDomain + ')');
         }
-        if (isMigrationFailedForATenant) {
-            throw new APIMigrationException("WSO2 API-M Migration Task : Registry data migration is failed");
+        if (isError) {
+            throw new APIMigrationException(
+                    "WSO2 API-M Migration Task : Error/s occurred during Registry data migration");
         } else {
             log.info("WSO2 API-M Migration Task : API registry data migration done for all the tenants");
         }
