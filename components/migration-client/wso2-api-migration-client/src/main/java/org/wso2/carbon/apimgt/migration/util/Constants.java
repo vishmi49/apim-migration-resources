@@ -333,6 +333,7 @@ public class Constants {
     public static final String API_OVERVIEW_VERSION = "overview_version";
     public static final String API_OVERVIEW_PROVIDER = "overview_provider";
     public static final String API_OVERVIEW_CONTEXT = "overview_context";
+    public static final String API_OVERVIEW_STATUS = "overview_status";
     public static final String API_OVERVIEW_WSDL = "overview_wsdl";
     public static final String API_OVERVIEW_VERSION_COMPARABLE = "overview_versionComparable";
     public static final String[] HTTP_DEFAULT_METHODS = {"GET", "PUT", "POST", "DELETE", "PATCH"};
