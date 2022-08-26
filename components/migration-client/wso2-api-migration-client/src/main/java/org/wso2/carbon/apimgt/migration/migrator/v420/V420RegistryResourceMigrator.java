@@ -281,14 +281,13 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
 
                 if (artifactManager != null) {
                     GenericArtifact[] artifacts = artifactManager.getAllGenericArtifacts();
-                    log.info("Artifacts Length:" + artifacts.length);
+                    log.info("Artifacts Length: " + artifacts.length);
                     for (GenericArtifact artifact : artifacts) {
                         String aspect = "APILifeCycle";
 
                         String apiOverviewStatus = artifact.getAttribute(Constants.API_OVERVIEW_STATUS);
                         String lcState = artifact.getLifecycleState();
-                        log.info("API_OVERVIEW_STATUS: " + apiOverviewStatus);
-                        log.info("lcState: " + lcState);
+                        log.info("API_ID: "+artifact.getId() + " : API_OVERVIEW_STATUS: " + apiOverviewStatus+" lcState: " + lcState);
 
                         if (!apiOverviewStatus.equals(lcState) && lcState != null) {
                             artifact.setAttribute(Constants.API_OVERVIEW_STATUS, lcState);
@@ -306,7 +305,7 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
 
                     }
                 } else {
-                    log.info("ArtifactManager Is Null");
+                    throw new APIMigrationException("Artifact Manager is Null");
                 }
 
             } catch (APIManagementException e) {
