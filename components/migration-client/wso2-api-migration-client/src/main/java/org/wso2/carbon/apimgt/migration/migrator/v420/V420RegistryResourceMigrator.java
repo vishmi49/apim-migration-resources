@@ -16,14 +16,12 @@
 
 package org.wso2.carbon.apimgt.migration.migrator.v420;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.util.AXIOMUtil;
 import org.apache.commons.io.FileUtils;
@@ -38,7 +36,6 @@ import org.w3c.dom.NodeList;
 import org.wso2.carbon.apimgt.api.APIManagementException;
 import org.wso2.carbon.apimgt.api.model.API;
 import org.wso2.carbon.apimgt.api.model.APIIdentifier;
-import org.wso2.carbon.apimgt.impl.dao.ApiMgtDAO;
 import org.wso2.carbon.apimgt.impl.internal.ServiceReferenceHolder;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.client.internal.ServiceHolder;
@@ -60,11 +57,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -72,29 +64,55 @@ import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamException;
 
 public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
+
     private static final Log log = LogFactory.getLog(V420RegistryResourceMigrator.class);
     List<Tenant> tenants;
 
     public V420RegistryResourceMigrator(String rxtDir) throws UserStoreException {
+
         super(rxtDir);
         tenants = loadTenants();
     }
 
+    private static JSONObject getTransitionObj(String event, String target) {
+
+        JSONObject transitionObj = new JSONObject();
+        transitionObj.put("Event", event);
+        transitionObj.put("Target", target);
+        return transitionObj;
+    }
+
     public void migrate() throws APIMigrationException {
+
         super.migrate();
         registryDataPopulation();
     }
 
-    private JSONObject returnLifeCycleAsJson(String lcXML) throws ParserConfigurationException, IOException, SAXException {
+    private JSONObject convertLifecycleToJSON(String lcXML) throws APIMigrationException {
+
         JSONObject LCConfigObj = new JSONObject();
         JSONArray statesArray = new JSONArray();
 
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(new InputSource(new StringReader(lcXML)));
+        DocumentBuilder dBuilder = null;
+        try {
+            dBuilder = dbFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new APIMigrationException(e);
+        }
+        Document doc = null;
+        try {
+            doc = dBuilder.parse(new InputSource(new StringReader(lcXML)));
+        } catch (SAXException | IOException e) {
+            throw new APIMigrationException(e);
+        }
 
         Element root = doc.getDocumentElement();
         NodeList states = root.getElementsByTagName("state");
@@ -143,29 +161,23 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                             }
                         }
                     }
-                    if (transitionArray.size() > 0) stateObj.put("Transitions", transitionArray);
-                    if (checkListItems.size() > 0) stateObj.put("CheckItems", checkListItems);
+                    if (transitionArray.size() > 0) {
+                        stateObj.put("Transitions", transitionArray);
+                    }
+                    if (checkListItems.size() > 0) {
+                        stateObj.put("CheckItems", checkListItems);
+                    }
                 }
             }
             statesArray.add(stateObj);
             LCConfigObj.put("States", statesArray);
 
-//            ObjectMapper mapper = new ObjectMapper();
-//            mapper.enable(SerializationFeature.INDENT_OUTPUT);
-//            mapper.writeValue(new File("LCConfig.json"), LCConfigObj);
         }
         return LCConfigObj;
     }
 
-    private static JSONObject getTransitionObj(String event, String target) {
-
-        JSONObject transitionObj = new JSONObject();
-        transitionObj.put("Event", event);
-        transitionObj.put("Target", target);
-        return transitionObj;
-    }
-
     private void registryDataPopulation() throws APIMigrationException {
+
         log.info("WSO2 API-M Migration Task : Starting registry data migration for API Manager "
                 + Constants.VERSION_4_2_0);
 
@@ -251,29 +263,38 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                 if (file != null && file.exists()) {
                     String lcXML = FileUtils.readFileToString(file);
 
-                    JSONObject States = returnLifeCycleAsJson(lcXML);
+                    JSONObject States = convertLifecycleToJSON(lcXML);
                     String currentConfig = ServiceReferenceHolder.getInstance().getApimConfigService()
                             .getTenantConfig(tenantDomain);
                     JsonObject currentConfigJsonObject = (JsonObject) new JsonParser().parse(currentConfig);
                     JsonObject StateJsonObject = (JsonObject) new JsonParser().parse(States.toString());
-                    currentConfigJsonObject.add("LifeCycle",StateJsonObject);
+                    currentConfigJsonObject.add("LifeCycle", StateJsonObject);
                     Gson gson = new GsonBuilder().setPrettyPrinting().create();
                     String formattedTenantConf = gson.toJson(currentConfigJsonObject);
                     ServiceReferenceHolder.getInstance().getApimConfigService()
                             .updateTenantConfig(tenantDomain, formattedTenantConf);
-                }else{
-                    log.info("LifeCycleDoesn't found");
+                } else {
+                    throw new APIMigrationException("Default LifeCycle XML File Do Not Exist.");
                 }
 
                 GenericArtifactManager artifactManager = APIUtil.getArtifactManager(registry, APIConstants.API_KEY);
 
                 if (artifactManager != null) {
                     GenericArtifact[] artifacts = artifactManager.getAllGenericArtifacts();
-                    log.info("Artifacts Length:"+artifacts.length);
+                    log.info("Artifacts Length:" + artifacts.length);
                     for (GenericArtifact artifact : artifacts) {
                         String aspect = "APILifeCycle";
 
-                        if(artifact.getPath().contains("/apimgt/applicationdata/provider")){
+                        String apiOverviewStatus = artifact.getAttribute(Constants.API_OVERVIEW_STATUS);
+                        String lcState = artifact.getLifecycleState();
+                        log.info("API_OVERVIEW_STATUS: " + apiOverviewStatus);
+                        log.info("lcState: " + lcState);
+
+                        if (!apiOverviewStatus.equals(lcState) && lcState != null) {
+                            artifact.setAttribute(Constants.API_OVERVIEW_STATUS, lcState);
+                        }
+
+                        if (artifact.getPath().contains("/apimgt/applicationdata/provider")) {
                             GenericArtifact apiArtifact = artifactManager.getGenericArtifact(artifact.getId());
                             API api = RegistryPersistenceUtil.getApiForPublishing(registry, apiArtifact);
                             APIIdentifier apiId = api.getId();
@@ -283,17 +304,8 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                             GovernanceUtils.removeAspect(path, aspect, registry);
                         }
 
-                        String apiOverviewStatus = artifact.getAttribute(Constants.API_OVERVIEW_STATUS);
-                        String lcState =  artifact.getLifecycleState();
-                        log.info("API_OVERVIEW_STATUS: "+apiOverviewStatus);
-                        log.info("lcState: "+lcState);
-
-                        if(!apiOverviewStatus.equals(lcState) && lcState!=null){
-                            artifact.setAttribute(Constants.API_OVERVIEW_STATUS,lcState);
-                        }
-
                     }
-                }else{
+                } else {
                     log.info("ArtifactManager Is Null");
                 }
 
@@ -317,14 +329,6 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
                 continue;
             } catch (IOException e) {
                 log.error("WSO2 API-M Migration Task : Error occurred while getting the Lifecycle XML ");
-                isError = true;
-                continue;
-            } catch (ParserConfigurationException e) {
-                log.error("WSO2 API-M Migration Task : Error occurred while parsing Lifecycle XML ");
-                isError = true;
-                continue;
-            } catch (SAXException e) {
-                log.error("WSO2 API-M Migration Task : Error occurred while parsing Lifecycle XML ");
                 isError = true;
                 continue;
             } finally {
