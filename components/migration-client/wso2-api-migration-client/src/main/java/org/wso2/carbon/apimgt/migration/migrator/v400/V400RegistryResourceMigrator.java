@@ -220,7 +220,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
             List<Tenant> tenants = APIUtil.getAllTenantsWithSuperTenant();
             for (Tenant tenant : tenants) {
                 log.info("WSO2 API-M Migration Task : Updating Registry paths of API icons and WSDLs of "
-                        + "tenant " + + tenant.getId() + '(' +
+                        + "tenant " + tenant.getId() + '(' +
                         tenant.getDomain() + ')');
                 List<APIInfoDTO> apiInfoDTOList = new ArrayList<>();
                 int apiTenantId = tenantManager.getTenantId(tenant.getDomain());
@@ -246,7 +246,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                             }
                         }
                         for (APIInfoDTO apiInfoDTO : apiInfoDTOList) {
-                            String apiId = apiInfoDTO.getApiProvider() + "-" +apiInfoDTO.getApiName() + "-" +
+                            String apiId = apiInfoDTO.getApiProvider() + "-" + apiInfoDTO.getApiName() + "-" +
                                     apiInfoDTO.getApiVersion();
                             String apiPath = GovernanceUtils.getArtifactPath(registry, apiInfoDTO.getUuid());
                             int prependIndex = apiPath.lastIndexOf("/api");
@@ -272,25 +272,44 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                             }
                             String wsdlResourcePathOld =
                                     APIConstants.API_WSDL_RESOURCE_LOCATION + RegistryPersistenceUtil
-                                            .createWsdlFileName(apiInfoDTO.getApiProvider(), apiInfoDTO.getApiName(),
+                                            .createWsdlFileName(RegistryPersistenceUtil
+                                                    .replaceEmailDomain(apiInfoDTO.getApiProvider()), apiInfoDTO.getApiName(),
                                                     apiInfoDTO.getApiVersion());
+                            APIIdentifier identifier = new APIIdentifier(RegistryPersistenceUtil
+                                    .replaceEmailDomain(apiInfoDTO.getApiProvider()),
+                                    apiInfoDTO.getApiName(), apiInfoDTO.getApiVersion());
+                            String wsdlResourceArchivePathOld = RegistryPersistenceUtil.getWsdlArchivePath(identifier);
+                            String resourcePath = null;
                             if (registry.resourceExists(wsdlResourcePathOld)) {
-                                Resource resource = registry.get(wsdlResourcePathOld);
+                                resourcePath = wsdlResourcePathOld;
+                            } else if (registry.resourceExists(wsdlResourceArchivePathOld)) {
+                                resourcePath = wsdlResourceArchivePathOld;
+                            }
+                            if (resourcePath != null) {
+                                log.info("WSDL resource path: " + resourcePath);
+                                Resource resource = registry.get(resourcePath);
                                 String wsdlResourcePath;
                                 String wsdlResourcePathArchive = artifactPath + RegistryConstants.PATH_SEPARATOR
-                                        + APIConstants.API_WSDL_ARCHIVE_LOCATION + apiInfoDTO.getApiProvider()
+                                        + APIConstants.API_WSDL_ARCHIVE_LOCATION + RegistryPersistenceUtil
+                                        .replaceEmailDomain(apiInfoDTO.getApiProvider())
                                         + APIConstants.WSDL_PROVIDER_SEPERATOR + apiInfoDTO.getApiName() + apiInfoDTO
                                         .getApiVersion() + APIConstants.ZIP_FILE_EXTENSION;
                                 String wsdlResourcePathFile =
                                         artifactPath + RegistryConstants.PATH_SEPARATOR + RegistryPersistenceUtil
-                                                .createWsdlFileName(apiInfoDTO.getApiProvider(),
+                                                .createWsdlFileName(RegistryPersistenceUtil
+                                                        .replaceEmailDomain(apiInfoDTO.getApiProvider()),
                                                         apiInfoDTO.getApiName(), apiInfoDTO.getApiVersion());
-                                if (APIConstants.APPLICATION_ZIP.equals(resource.getMediaType())) {
+                                if (resource.getPath() != null
+                                        && resource.getPath().endsWith(APIConstants.ZIP_FILE_EXTENSION)) {
                                     wsdlResourcePath = wsdlResourcePathArchive;
+                                    if ("application/octet-stream".equals(resource.getMediaType())) {
+                                        resource.setMediaType(APIConstants.APPLICATION_ZIP);
+                                        registry.put(resourcePath, resource);
+                                    }
                                 } else {
                                     wsdlResourcePath = wsdlResourcePathFile;
                                 }
-                                registry.copy(wsdlResourcePathOld, wsdlResourcePath);
+                                registry.copy(resourcePath, wsdlResourcePath);
                                 GenericArtifact apiArtifact = tenantArtifactManager
                                         .getGenericArtifact(apiInfoDTO.getUuid());
                                 String absoluteWSDLResourcePath = RegistryUtils
