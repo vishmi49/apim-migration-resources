@@ -4,8 +4,8 @@ JMeter script to populate sample data in WSO2 API Manager.
 # Getting Started
 1. Download and setup Apache JMeter from https://jmeter.apache.org/download_jmeter.cgi
     1. For linux users: download the zip file, goto bin directory, and run command `./jmeter`
-2. Download or clone https://github.com/binodmx/apim-data-populator.git
-3. Open `apim-<version>-data-populating-plan.jmx` in JMeter
+2. Download or clone https://github.com/wso2-extensions/apim-migration-resources.git
+3. Open `apim-data-populator/apim-<version>-data-populating-plan.jmx` in JMeter
 4. Goto APIM Data Populator Plan → User Defined Variables and change `adp_home` variable to path to apim-data-populator directory
 5. Click on start button
 
