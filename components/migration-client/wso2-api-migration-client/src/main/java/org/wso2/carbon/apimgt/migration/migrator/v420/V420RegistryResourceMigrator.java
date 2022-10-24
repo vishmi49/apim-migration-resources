@@ -83,7 +83,7 @@ public class V420RegistryResourceMigrator extends RegistryResourceMigrator {
         tenants = loadTenants();
     }
 
-    protected static JSONObject getTransitionObj(String event, String target) {
+    private static JSONObject getTransitionObj(String event, String target) {
 
         JSONObject transitionObj = new JSONObject();
         transitionObj.put("Event", event);
