@@ -68,7 +68,7 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
         if (APIUtil.isDisabledExtendedAPIMConfigService()) {
             log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is disabled. Hence, executing super "
                     + "method logic.");
-            super.getTenantConfig(organization);
+            return super.getTenantConfig(organization);
         } else {
             log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is enabled. Hence, executing overridden "
                     + "implementation");
@@ -99,7 +99,6 @@ public class ExtendedAPIMConfigServiceImpl extends APIMConfigServiceImpl {
                 PrivilegedCarbonContext.endTenantFlow();
             }
         }
-        return null;
     }
 
     @Override
