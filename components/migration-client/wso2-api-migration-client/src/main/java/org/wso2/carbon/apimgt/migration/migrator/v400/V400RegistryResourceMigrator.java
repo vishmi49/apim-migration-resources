@@ -697,7 +697,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
                     + "ID: " + apiRevision.getApiUUID() + " for tenant " + tenant.getId() + '(' + tenant.getDomain()
                     + ')');
         }
-        apiProductIdentifier.setUUID(apiRevision.getApiUUID());
+        apiProductIdentifier.setUuid(apiRevision.getApiUUID());
         String revisionUUID;
         try {
             revisionUUID = addAPIRevisionToRegistry(apiProductIdentifier.getUUID(), revisionId, tenant.getDomain(),
@@ -946,7 +946,7 @@ public class V400RegistryResourceMigrator extends RegistryResourceMigrator {
 
         String organization = tenant.getDomain();
         APIProductIdentifier apiProductIdentifier = APIUtil.getAPIProductIdentifierFromUUID(apiId);
-        apiProductIdentifier.setUUID(apiId);
+        apiProductIdentifier.setUuid(apiId);
         APIProduct product = apiProvider.getAPIProductbyUUID(revisionUUID, organization);
         APIProductDTO apiProductDtoToReturn = APIMappingUtil.fromAPIProducttoDTO(product);
         return exportApiProduct(apiProvider, apiProductIdentifier, apiProductDtoToReturn, tenant, format,

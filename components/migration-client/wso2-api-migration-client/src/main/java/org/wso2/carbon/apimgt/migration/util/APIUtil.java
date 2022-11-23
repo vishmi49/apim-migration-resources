@@ -178,7 +178,7 @@ public final  class APIUtil {
             //set last access time
             api.setLastUpdated(registry.get(artifactPath).getLastModified());
             //set uuid
-            api.setUUID(artifact.getId());
+            api.setUuid(artifact.getId());
             //setting api ID for scope retrieval
             api.getId().setApplicationId(Integer.toString(apiId));
             // set url
@@ -405,7 +405,7 @@ public final  class APIUtil {
                 return null;
             }
             //set uuid
-            api.setUUID(artifact.getId());
+            api.setUuid(artifact.getId());
             api.setRating(getAverageRating(apiId));
             api.setThumbnailUrl(artifact.getAttribute(APIConstants.API_OVERVIEW_THUMBNAIL_URL));
             api.setStatus(getLcStateFromArtifact(artifact));
