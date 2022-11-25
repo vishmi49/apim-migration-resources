@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.apimgt.migration.APIMigrationException;
 import org.wso2.carbon.apimgt.migration.migrator.VersionMigrator;
 import org.wso2.carbon.apimgt.migration.migrator.v420.V420RegistryResourceMigrator;
+import org.wso2.carbon.apimgt.migration.util.APIUtil;
 import org.wso2.carbon.apimgt.migration.util.Constants;
 import org.wso2.carbon.user.api.UserStoreException;
 
@@ -40,6 +41,11 @@ public class V420Migration extends VersionMigrator {
         log.info("WSO2 API-M Migration Task : Starting migration from " + getPreviousVersion() + " to "
                 + getCurrentVersion() + "...");
         log.info("--------------------------------------------------------------------------------------------------");
+
+        // Setting ExtendedAPIMConfigService as disabled. This extended implementation is only needed and enabled for migrations
+        // which are coming from versions before APIM 4.1. Also need to disable this for future migrations such as from APIM 4.2 to APIM 4.3.
+        APIUtil.setDisabledExtendedAPIMConfigService(true);
+        log.info("WSO2 API-M Migration Task : ExtendedAPIMConfigService is disabled");
 
         log.info(
                 "WSO2 API-M Migration Task : Starting registry resource migration from " + getPreviousVersion() + " to "
