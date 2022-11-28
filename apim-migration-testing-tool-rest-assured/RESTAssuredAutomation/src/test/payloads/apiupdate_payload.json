@@ -1,0 +1,182 @@
+{
+    "name": "PizzaShackAPI",
+    "description": "This is a simple API for Pizza Shack online pizza delivery store.",
+    "context": "pizza",
+    "version": "1.0.0",
+    "provider": "admin",
+    "lifeCycleStatus": "CREATED",
+    "wsdlInfo": {
+      "type": "WSDL"
+    },
+    "responseCachingEnabled": true,
+    "cacheTimeout": 300,
+    "destinationStatsEnabled": "Disabled",
+    "hasThumbnail": false,
+    "isDefaultVersion": false,
+    "enableSchemaValidation": false,
+    "enableStore": true,
+    "type": "HTTP",
+    "transport": [
+      "http",
+      "https"
+    ],
+    "tags": [
+      "pizza",
+      "food"
+    ],
+    "policies": [
+      "Unlimited"
+    ],
+    "apiThrottlingPolicy": "Unlimited",
+    "authorizationHeader": "Authorization",
+    "securityScheme": [
+      "oauth2"
+    ],
+    "maxTps": {
+      "production": 1000,
+      "sandbox": 1000
+    },
+    "visibility": "PUBLIC",
+    "visibleRoles": [],
+    "visibleTenants": [],
+    "endpointSecurity": {
+      "type": "BASIC",
+      "username": "admin",
+      "password": "password"
+    },
+    "gatewayEnvironments": [
+      "Production and Sandbox"
+    ],
+    "deploymentEnvironments": [
+      {
+        "type": "Kubernetes",
+        "clusterName": [
+          "minikube"
+        ]
+      }
+    ],
+    "labels": [],
+    "mediationPolicies": [
+      {
+        "name": "json_to_xml_in_message",
+        "type": "in"
+      },
+      {
+        "name": "xml_to_json_out_message",
+        "type": "out"
+      },
+      {
+        "name": "json_fault",
+        "type": "fault"
+      }
+    ],
+    "subscriptionAvailability": "CURRENT_TENANT",
+    "subscriptionAvailableTenants": [],
+    "additionalProperties": {
+      "property1": "string",
+      "property2": "string"
+    },
+    "monetization": {
+      "enabled": true,
+      "properties": {
+        "property1": "string",
+        "property2": "string"
+      }
+    },
+    "accessControl": "NONE",
+    "accessControlRoles": [],
+    "businessInformation": {
+      "businessOwner": "businessowner",
+      "businessOwnerEmail": "businessowner@wso2.com",
+      "technicalOwner": "technicalowner",
+      "technicalOwnerEmail": "technicalowner@wso2.com"
+    },
+    "corsConfiguration": {
+      "corsConfigurationEnabled": false,
+      "accessControlAllowOrigins": [
+        "string"
+      ],
+      "accessControlAllowCredentials": false,
+      "accessControlAllowHeaders": [
+        "string"
+      ],
+      "accessControlAllowMethods": [
+        "string"
+      ]
+    },
+    "workflowStatus": "APPROVED",
+    "createdTime": "2017-02-20T13:57:16.229",
+    "lastUpdatedTime": "2017-02-20T13:57:16.229",
+    "endpointConfig": {
+      "endpoint_type": "http",
+      "sandbox_endpoints": {
+        "url": "https://localhost:9443/am/sample/pizzashack/v1/api/"
+      },
+      "production_endpoints": {
+        "url": "https://localhost:9443/am/sample/pizzashack/v1/api/"
+      },
+      "endpoint_security": {
+        "sandbox": {
+          "password": null,
+          "tokenUrl": "http://localhost:9443/token",
+          "clientId": "cid123",
+          "clientSecret": "cs123",
+          "customParameters": {},
+          "type": "OAUTH",
+          "grantType": "CLIENT_CREDENTIALS",
+          "enabled": true,
+          "username": null
+        },
+        "production": {
+          "password": null,
+          "tokenUrl": "http://localhost:9443/token",
+          "clientId": "cid123",
+          "clientSecret": "cs123",
+          "customParameters": {},
+          "type": "OAUTH",
+          "grantType": "CLIENT_CREDENTIALS",
+          "enabled": true,
+          "username": null
+        }
+      }
+    },
+    "endpointImplementationType": "INLINE",
+    "scopes": [
+      {
+        "scope": {
+          "name": "apim:api_view",
+          "displayName": "api_view",
+          "description": "This Scope can used to view Apis",
+          "bindings": [
+            "admin",
+            "Internal/creator",
+            "Internal/publisher"
+          ]
+        },
+        "shared": true
+      }
+    ],
+    "operations": [
+      {
+        "target": "/order/{orderId}",
+        "verb": "POST",
+        "authType": "Application & Application User",
+        "throttlingPolicy": "Unlimited"
+      },
+      {
+        "target": "/menu",
+        "verb": "GET",
+        "authType": "Application & Application User",
+        "throttlingPolicy": "Unlimited"
+      }
+    ],
+    "threatProtectionPolicies": {
+      "list": [
+        {
+          "policyId": "string",
+          "priority": 0
+        }
+      ]
+    },
+    "categories": []
+  }

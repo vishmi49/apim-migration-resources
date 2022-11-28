@@ -1,0 +1,94 @@
+{
+    "name": "PizzaShackAPIProduct",
+    "context": "pizzaproduct",
+    "description": "This is a simple API for Pizza Shack online pizza delivery store",
+    "provider": "admin",
+    "hasThumbnail": false,
+    "state": "CREATED",
+    "enableSchemaValidation": false,
+    "enableStore": true,
+    "responseCachingEnabled": true,
+    "cacheTimeout": 300,
+    "visibility": "PUBLIC",
+    "visibleRoles": [],
+    "visibleTenants": [],
+    "accessControl": "NONE",
+    "accessControlRoles": [],
+    "gatewayEnvironments": [
+      "Production and Sandbox"
+    ],
+    "apiType": "APIProduct",
+    "transport": [
+      "http",
+      "https"
+    ],
+    "tags": [
+      "pizza",
+      "food"
+    ],
+    "policies": [
+      "Unlimited"
+    ],
+    "apiThrottlingPolicy": "Unlimited",
+    "authorizationHeader": "Authorization",
+    "securityScheme": [
+      "oauth2"
+    ],
+    "subscriptionAvailability": "CURRENT_TENANT",
+    "subscriptionAvailableTenants": [],
+    "additionalProperties": {
+      "property1": "string",
+      "property2": "string"
+    },
+    "monetization": {
+      "enabled": true,
+      "properties": {
+        "property1": "string",
+        "property2": "string"
+      }
+    },
+    "businessInformation": {
+      "businessOwner": "businessowner",
+      "businessOwnerEmail": "businessowner@wso2.com",
+      "technicalOwner": "technicalowner",
+      "technicalOwnerEmail": "technicalowner@wso2.com"
+    },
+    "corsConfiguration": {
+      "corsConfigurationEnabled": false,
+      "accessControlAllowOrigins": [
+        "string"
+      ],
+      "accessControlAllowCredentials": false,
+      "accessControlAllowHeaders": [
+        "string"
+      ],
+      "accessControlAllowMethods": [
+        "string"
+      ]
+    },
+    "createdTime": "2017-02-20T13:57:16.229",
+    "lastUpdatedTime": "2017-02-20T13:57:16.229",
+    "apis": [
+      {
+        "name": "PizzaShackAPI",
+        "apiId": "b09b45c9-aaca-4ca9-9ef0-ca5c63eb6041",
+        "version": "1.0",
+        "operations": [
+          {
+            "target": "/order/{orderId}",
+            "verb": "POST",
+            "authType": "Application & Application User",
+            "throttlingPolicy": "Unlimited"
+          },
+          {
+            "target": "/menu",
+            "verb": "GET",
+            "authType": "Application & Application User",
+            "throttlingPolicy": "Unlimited"
+          }
+        ]
+      }
+    ],
+    "scopes": [],
+    "categories": []
+  }

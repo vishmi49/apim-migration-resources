@@ -1,0 +1,11 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://services.lcm.governance.carbon.wso2.org">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ser:updateLifecycle>
+         <!--Optional:-->
+         <ser:oldName>?</ser:oldName>
+         <!--Optional:-->
+         <ser:configuration>?</ser:configuration>
+      </ser:updateLifecycle>
+   </soapenv:Body>
+</soapenv:Envelope>

@@ -1,0 +1,9 @@
+{
+    "name": "PizzaShackDoc",
+    "type": "HOWTO",
+    "summary": "Summary of PizzaShackAPI Documentation",
+    "sourceType": "INLINE",
+    "inlineContent": "This is doc content. This can have many lines.",
+    "visibility": "API_LEVEL",
+    "createdBy": "admin"
+  }

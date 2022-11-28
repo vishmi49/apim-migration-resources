@@ -1,0 +1,10 @@
+{
+    "name": "apim:api_view",
+    "displayName": "api_view",
+    "description": "This Scope can used to view Apis",
+    "bindings": [
+      "admin",
+      "Internal/creator",
+      "Internal/publisher"
+    ]
+  }

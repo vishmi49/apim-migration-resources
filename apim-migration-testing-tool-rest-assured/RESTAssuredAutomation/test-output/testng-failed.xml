@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite thread-count="1" parallel="tests" name="Failed suite [CreateData]" guice-stage="DEVELOPMENT">
+  <parameter name="tenantAdminPassword" value="wso2admin"/>
+  <parameter name="apiLifecycleStatusAction" value="Publish"/>
+  <parameter name="adminUserName" value="admin"/>
+  <parameter name="tenantUserPasswordCreator" value="creator2_Test"/>
+  <parameter name="tenantUserPublisher" value="creator2_Test@test15_wso2.com"/>
+  <parameter name="addRoleRequest" value="demoAddRoleRequest_Creator.xml"/>
+  <parameter name="tenantAdminUserName" value="wso2admin@test15_wso2.com"/>
+  <parameter name="apiCreationPayload" value="demoApiCretionPayload.json"/>
+  <parameter name="tenantUserCreator" value="creator2_Test@test15_wso2.com"/>
+  <parameter name="tenantUserPasswordPublisher" value="creator2_Test"/>
+  <parameter name="authenticateRequest" value="demoAuthenticateRequest.xml"/>
+  <parameter name="apiSearchingKeyWord" value="TEST API 1"/>
+  <parameter name="addUserRequest" value="demoAddUserRequest_Creator.xml"/>
+  <parameter name="genarateKeyPayloadListAsString" value="generateSandboxKey.json"/>
+  <parameter name="appPayloadListAsString" value="createNewApplication1.json"/>
+  <parameter name="createApiOpenApiDefinition" value="demoCreateApiOpenApiDefinition.json"/>
+  <parameter name="createTenantRequest" value="demoCreateTenantRequest.xml"/>
+  <parameter name="thumbnailImage" value="thumbnail2.jpg"/>
+  <parameter name="adminPassword" value="admin"/>
+  <test thread-count="1" parallel="tests" name="DemoDataPopulation(failed)">
+    <classes>
+      <class name="tests.DemoDataPopulation">
+        <methods>
+          <include name="test4_DevPortal" invocation-numbers="0"/>
+          <include name="test3_PublisherPortal" invocation-numbers="0"/>
+          <include name="initiaization"/>
+        </methods>
+      </class> <!-- tests.DemoDataPopulation -->
+    </classes>
+  </test> <!-- DemoDataPopulation(failed) -->
+</suite> <!-- Failed suite [CreateData] -->

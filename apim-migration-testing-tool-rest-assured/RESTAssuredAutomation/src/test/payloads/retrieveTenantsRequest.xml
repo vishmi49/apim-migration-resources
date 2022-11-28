@@ -1,0 +1,6 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://services.mgt.tenant.carbon.wso2.org">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ser:retrieveTenants/>
+   </soapenv:Body>
+</soapenv:Envelope>

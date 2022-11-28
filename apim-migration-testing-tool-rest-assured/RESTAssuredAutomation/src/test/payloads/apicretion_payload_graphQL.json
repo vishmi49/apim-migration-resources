@@ -1,0 +1,154 @@
+{
+  "name": "GraphQL_Test_API_1",
+  "version": "1.0.0",
+  "context": "graphqltestapi",
+  "policies": [
+    "Unlimited"
+  ],
+  "operations": [
+    {
+      "id": "0",
+      "target": "hero",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "1",
+      "target": "reviews",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "2",
+      "target": "search",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "3",
+      "target": "character",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "4",
+      "target": "droid",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "5",
+      "target": "human",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "6",
+      "target": "allHumans",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "7",
+      "target": "allDroids",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "8",
+      "target": "allCharacters",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "9",
+      "target": "starship",
+      "verb": "QUERY",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "10",
+      "target": "createReview",
+      "verb": "MUTATION",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    },
+    {
+      "id": "11",
+      "target": "reviewAdded",
+      "verb": "SUBSCRIPTION",
+      "authType": "Any",
+      "throttlingPolicy": null,
+      "scopes": [],
+      "usedProductIds": [],
+      "amznResourceName": null,
+      "amznResourceTimeout": null
+    }
+  ],
+  "endpointConfig": {
+    "endpoint_type": "http",
+    "sandbox_endpoints": {
+      "url": "sampleendpoint"
+    },
+    "production_endpoints": {
+      "url": "sampleendpoint"
+    }
+  },
+  "gatewayEnvironments": [
+    "Production and Sandbox"
+  ]
+}

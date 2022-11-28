@@ -1,0 +1,46 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name = "ValidateDataAfterMigration" parallel="tests" thread-count="1" verbose="1">
+
+ <!--BASIC DATA-->
+ <parameter name="baseURL" value="https://localhost:9443/" />
+ <parameter name="apiCount" value="2" />
+ 
+ <!--USER AND ROLE CREATION RELATED DATA-->
+ <parameter name="authenticateRequest" value="authenticateRequest.xml" />
+ <parameter name="addRoleRequest" value="addRoleRequest_Creator.xml" />
+ <parameter name="addUserRequest" value="addUserRequest_Creator.xml" />
+ 
+ <!--TENENTS RELATED DATA-->
+ <parameter name="createTenantRequest" value="request.xml" />
+ <parameter name="deactivateTenantRequest" value="deactivateTenantSoapRequest.xml" />
+ <parameter name="retrieveTenantsRequest" value="retrieveTenantsRequest.xml" />
+ <parameter name="checkDomainAvailabilityRequest" value="checkDomainAvailabilityRequest.xml" />
+ <parameter name="deleteTenantSoapRequest" value="deleteTenantSoapRequest.xml" />
+ 
+ <!--PUBLISHER PORTAL RELATED DATA-->
+ <parameter name="tenantAdminUser" value="creator1_Test@test1_tenant.com" />
+ <parameter name="tenantAdminUserPassword" value="creator1_Test" />
+ <parameter name="apiCreationPayload" value="apicretion_payload.json" />
+ <parameter name="createApiOpenApiDefinition" value="createApiOpenApiDefinition.json" />
+ <parameter name="thumbnailImage" value="thumbnail2.jpg" />
+ <parameter name="apiLifecycleStatusAction" value="Publish" />
+ <parameter name="schemaGraphQlPayload" value="schema_graphql.graphql" />
+ <parameter name="apiCretionPayloadGraphQL" value="apicretion_payload_graphQL.json" />
+  
+ <!--DEV PORTAL RELATED DATA-->
+ <parameter name="tenantAdminUser" value="creator1_Test@test1_tenant.com" />
+ <parameter name="tenantAdminUserPassword" value="creator1_Test" />
+ <parameter name="apiSearchingKeyWord" value="TEST API 1" />
+ <parameter name="appPayloadListAsString" value="createNewApplication1.json,createNewApplication2.json,createNewApplication3.json" />
+ <parameter name="genarateKeyPayloadListAsString" value="generateSandboxKey.json,generateProdKey.json,generateProdKey.json" />
+ <parameter name="restApiEndpoint" value="http://localhost:8280/t/test1_tenant.com/testapi1/1.0.0/menu" />
+ <parameter name="graphQlApiEndpoint" value="http://localhost:8080/graphql" />
+ 
+   <test name = "DataValidation">
+      <classes>
+         <class name = "tests.DataValidation" />
+      </classes>
+   </test>
+   
+</suite>

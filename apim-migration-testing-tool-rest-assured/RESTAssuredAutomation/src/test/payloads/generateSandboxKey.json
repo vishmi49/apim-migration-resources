@@ -1,0 +1,14 @@
+{
+    "keyType": "SANDBOX",
+    "keyManager": "Resident Key Manager",
+    "grantTypesToBeSupported": [
+      "client_credentials"
+    ],
+    "callbackUrl": "http://sample.com/callback/url",
+    "scopes": [
+      "am_application_scope",
+      "default"
+    ],
+    "validityTime": 7200,
+    "additionalProperties": {}
+  }

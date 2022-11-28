@@ -1,0 +1,9 @@
+{
+  "name": "TestingApp3",
+  "throttlingPolicy": "Unlimited",
+  "description": "Sample calculator application",
+  "tokenType": "JWT",
+  "groups": [],
+  "attributes": {},
+  "subscriptionScopes": []
+}

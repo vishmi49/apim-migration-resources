@@ -1,0 +1,25 @@
+{
+  "name": "Test API 2",
+  "context": "test16",
+  "version": "1.0.0",
+  
+  "gatewayEnvironments": [
+    "Production and Sandbox"
+  ],
+  "endpointConfig": {
+    "endpoint_type": "http",
+    "sandbox_endpoints": {
+      "url": "https://localhost:9443/am/sample/pizzashack/v1/api/"
+    },
+    "production_endpoints": {
+      "url": "https://localhost:9443/am/sample/pizzashack/v1/api/"
+    },
+    "endpoint_security": {
+      "sandbox": {
+      },
+      "production": {
+      }
+    }
+  },
+"policies": ["Unlimited"]
+}

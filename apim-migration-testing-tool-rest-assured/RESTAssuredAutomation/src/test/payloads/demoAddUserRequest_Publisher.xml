@@ -1,0 +1,30 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.ws.um.carbon.wso2.org" xmlns:xsd="http://common.mgt.user.carbon.wso2.org/xsd">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <ser:addUser>
+         <!--Optional:-->
+         <ser:userName>publisher1_Test</ser:userName>
+         <!--Optional:-->
+         <ser:credential>publisher1_Test</ser:credential>
+         <!--Zero or more repetitions:-->
+         <ser:roleList>publisherTest</ser:roleList>
+         <!--Zero or more repetitions:-->
+         <ser:claims>
+            <!--Optional:-->
+            <xsd:claimURI>http://wso2.org/claims/country</xsd:claimURI>
+            <!--Optional:-->
+            <xsd:value>England</xsd:value>
+         </ser:claims>
+         <ser:claims>
+            <!--Optional:-->
+            <xsd:claimURI>http://wso2.org/claims/organization</xsd:claimURI>
+            <!--Optional:-->
+            <xsd:value>Intuit</xsd:value>
+         </ser:claims>
+         <!--Optional:-->
+         <ser:profileName>publisher1_Test_ProfileName</ser:profileName>
+         <!--Optional:-->
+         <ser:requirePasswordChange>false</ser:requirePasswordChange>
+      </ser:addUser>
+   </soapenv:Body>
+</soapenv:Envelope>

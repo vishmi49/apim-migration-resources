@@ -1,0 +1,42 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name = "CreateData" parallel="tests" thread-count="1" verbose="1">
+
+ <!--BASIC DATA-->
+ <parameter name="adminUserName" value="admin" />
+ <parameter name="adminPassword" value="admin" />
+ 
+ <!--USER AND ROLE CREATION RELATED DATA-->
+ <parameter name="authenticateRequest" value="demoAuthenticateRequest.xml" />
+ <parameter name="addRoleRequest" value="demoAddRoleRequest_Creator.xml" />
+ <parameter name="addUserRequest" value="demoAddUserRequest_Creator.xml" />
+ 
+ <!--TENENTS RELATED DATA-->
+ <parameter name="createTenantRequest" value="demoCreateTenantRequest.xml" />
+ 
+ <!--PUBLISHER PORTAL RELATED DATA-->
+ <parameter name="tenantAdminUserName" value="wso2admin@test16_wso2.com" />
+ <parameter name="tenantAdminPassword" value="wso2admin" />
+ <parameter name="tenantUserPublisher" value="creator2_Test@test16_wso2.com" />
+ <parameter name="tenantUserPasswordPublisher" value="creator2_Test" />
+ <parameter name="apiCreationPayload" value="demoApiCretionPayload.json" />
+ <parameter name="createApiOpenApiDefinition" value="demoCreateApiOpenApiDefinition.json" />
+ <parameter name="thumbnailImage" value="thumbnail2.jpg" />
+ <parameter name="apiLifecycleStatusAction" value="Publish" />
+  
+ <!--DEV PORTAL RELATED DATA-->
+ <parameter name="tenantUserCreator" value="creator2_Test@test16_wso2.com" />
+ <parameter name="tenantUserPasswordCreator" value="creator2_Test" />
+ <parameter name="apiSearchingKeyWord" value="TEST API 1" />
+ <parameter name="appPayloadListAsString" value="createNewApplication1.json" />
+ <parameter name="genarateKeyPayloadListAsString" value="generateSandboxKey.json" />
+ 
+ 
+   <test name = "DemoDataPopulation">
+      <classes>
+         <class name = "tests.DemoDataPopulation" />
+      </classes>
+   </test>
+   
+   
+</suite>
