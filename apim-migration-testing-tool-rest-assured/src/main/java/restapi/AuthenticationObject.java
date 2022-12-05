@@ -1,5 +1,27 @@
+/*
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package restapi;
 
+/**
+ * .
+ * This class implemented method to create authentication object
+ */
 public class AuthenticationObject {
 
     private String username;
@@ -9,33 +31,21 @@ public class AuthenticationObject {
     private String tokenUrl;
     private String scopes;
     private String grantType;
-    private String contentType;   
-    
-    String[] defaultScopes = {Scopes.API_PUBLISH, Scopes.API_CREATE, Scopes.API_VIEW, Scopes.API_IMPORT_EXPORT, Scopes.API_MANAGE, Scopes.DOCUMENT_MANAGE, Scopes.APP_MANAGE, Scopes.APP_IMPORT_EXPORT,Scopes.SUBSCRIBE};
-    
+    private String contentType;
+
+    String[] defaultScopes = {Scopes.API_PUBLISH, Scopes.API_CREATE, Scopes.API_VIEW, Scopes.API_IMPORT_EXPORT, Scopes.API_MANAGE, Scopes.DOCUMENT_MANAGE, Scopes.APP_MANAGE, Scopes.APP_IMPORT_EXPORT, Scopes.SUBSCRIBE};
+
     public AuthenticationObject() {
-        
+
         this.username = "admin";
         this.userpassword = "admin";
         this.endpoint = "https://localhost:9443/client-registration/v0.17/register";
         this.tokenUrl = "https://localhost:8243/token";
         this.payloadPath = "./src/test/payloads/payload.json";
         this.grantType = GrantTypes.PASSSWORD;
-        this.scopes = String.join(" ",defaultScopes);
-        this.contentType = ContentTypes.APPLICATION_JSON;  
-        
-//        authenticationObject.setUsername("test1_admin@test1_tenant.com");
-//        authenticationObject.setUserpassword("test1_admin");
-        
-//      authenticationObject.setUsername("admin");
-//      authenticationObject.setUserpassword("admin");
-//      authenticationObject.setEndpoint("https://localhost:9443/client-registration/v0.17/register");
-//      authenticationObject.setTokenUrl("https://localhost:8243/token"); 
-//      authenticationObject.setPayloadPath("./src/test/payloads/payload.json");
-//      authenticationObject.setScopes(Scopes.API_PUBLISH, Scopes.API_CREATE, Scopes.API_VIEW, Scopes.API_IMPORT_EXPORT, Scopes.API_MANAGE, Scopes.DOCUMENT_MANAGE);
-//      authenticationObject.setContentType(ContentTypes.APPLICATION_JSON);
-//      authenticationObject.setGrantType(GrantTypes.PASSSWORD);
-        
+        this.scopes = String.join(" ", defaultScopes);
+        this.contentType = ContentTypes.APPLICATION_JSON;
+
     }
 
     /**
@@ -116,10 +126,10 @@ public class AuthenticationObject {
     }
 
     /**
-     * @param scope the scope to set
+     * @param scopes
      */
     public void setScopes(String... scopes) {
-        this.scopes = String.join(" ",scopes);
+        this.scopes = String.join(" ", scopes);
     }
 
     /**

@@ -1,21 +1,8 @@
 package tests;
 
-import java.io.FileReader;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.testng.annotations.Test;
-
 import ataf.actions.BaseTest;
-import restapi.ApimVersions;
-import restapi.publisher.Publisher;
-import io.restassured.response.Response;
-import io.restassured.path.json.JsonPath;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-public class CreateAPIs extends BaseTest{
+public class CreateAPIs extends BaseTest {
 
 //	private static Logger logger = LogManager.getLogger(TestClasses.class);
 //	

@@ -1,5 +1,24 @@
+/*
+ * Copyright (c) 2022, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
+ *
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package tests;
 
+import exceptions.RestAssuredMigrationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.annotations.Test;
@@ -13,18 +32,18 @@ import restapi.GrantTypes;
 import restapi.Scopes;
 import restapi.publisher.Publisher;
 
-public class RunTests{
-	String accessToken;
-        private static Logger logger = LogManager.getLogger(RunTests.class);
+public class RunTests {
+    String accessToken;
+    private static Logger logger = LogManager.getLogger(RunTests.class);
 
-	@Test
-	public void dataGeneration() {
+    @Test
+    public void dataGeneration() throws RestAssuredMigrationException {
 
-        AuthenticationObject authenticationObject = new AuthenticationObject(); 
+        AuthenticationObject authenticationObject = new AuthenticationObject();
         authenticationObject.setUsername("admin");
         authenticationObject.setUserpassword("admin");
         authenticationObject.setEndpoint("https://localhost:9443/client-registration/v0.17/register");
-        authenticationObject.setTokenUrl("https://localhost:8243/token"); 
+        authenticationObject.setTokenUrl("https://localhost:8243/token");
         authenticationObject.setPayloadPath("./src/test/payloads/payload.json");
         authenticationObject.setScopes(Scopes.API_PUBLISH, Scopes.API_CREATE, Scopes.API_VIEW, Scopes.API_IMPORT_EXPORT, Scopes.API_MANAGE);
         authenticationObject.setContentType(ContentTypes.APPLICATION_JSON);
@@ -37,26 +56,26 @@ public class RunTests{
         Publisher.Apis api = new Publisher.Apis(accessToken, ApimVersions.APIM_3_2);
 
         Response createApiRes = api.createApi(ContentTypes.APPLICATION_JSON, "apicretion_payload.json");
-        logger.info("Status Code [CREATE API]: "+createApiRes.statusCode());
+        logger.info("Status Code [CREATE API]: " + createApiRes.statusCode());
 
         Response searchApiRes = api.searchApis();
-        logger.info("Status Code [SEARCH API]: "+searchApiRes.statusCode());
-        
+        logger.info("Status Code [SEARCH API]: " + searchApiRes.statusCode());
+
         String apiId = searchApiRes.jsonPath().get("list[0]['id']");
-        logger.info("[SEARCHED API ID]: "+apiId);
+        logger.info("[SEARCHED API ID]: " + apiId);
 
         Response uploadApiThumbnailRes = api.uploadThumbnailImage("thumbnail2.jpg", apiId);
-        logger.info("Status Code [UPLOAD API THUMBNAIL]: "+uploadApiThumbnailRes.statusCode());
-       
+        logger.info("Status Code [UPLOAD API THUMBNAIL]: " + uploadApiThumbnailRes.statusCode());
+
         Response changeApiStatusRes = api.changeApiStatus(apiId, "Publish");
-        logger.info("Status Code [CHANGE API STATUS]: "+changeApiStatusRes.statusCode());
+        logger.info("Status Code [CHANGE API STATUS]: " + changeApiStatusRes.statusCode());
 
         Response getApiStatusRes = api.getApiStatus(apiId);
-        logger.info("Status Code [GET API STATUS]: "+getApiStatusRes.statusCode());
+        logger.info("Status Code [GET API STATUS]: " + getApiStatusRes.statusCode());
 
         Response getApiThumbnailRes = api.getThumbnailImage(apiId);
-        logger.info("Status Code [GET API THUMBNAIL]: "+getApiThumbnailRes.statusCode());
-        
+        logger.info("Status Code [GET API THUMBNAIL]: " + getApiThumbnailRes.statusCode());
+
         //API Product 
         // PublisherApiProducts apiProd = new PublisherApiProducts(accessToken,ApimVersions.APIM_3_2);
 
@@ -71,37 +90,37 @@ public class RunTests{
         // Response uploadProductThumbnailRes = apiProd.uploadProductThumbnail("thumbnail.jpg", apiProductId);
         // logger.info("Status Code [UPDATE API PRODUCT THUMBNAIL]: "+uploadProductThumbnailRes.statusCode());
 
-}
+    }
 
-        @Test
-        public void validateDataAPIM_3_2(){
-                Publisher.Apis api = new Publisher.Apis(accessToken,ApimVersions.APIM_3_2);
-                
-                Response searchApi = api.searchApis();
-                logger.info("Status Code [SEARCH API]: "+searchApi.statusCode());
-                String apiId = searchApi.jsonPath().get("list[0]['id']");
+    @Test
+    public void validateDataAPIM_3_2() throws RestAssuredMigrationException {
+        Publisher.Apis api = new Publisher.Apis(accessToken, ApimVersions.APIM_3_2);
 
-                Response getApiDetails = api.getApiDetails(apiId);
-                logger.info("Status Code [GET APIS DETAILS]: "+getApiDetails.statusCode());
+        Response searchApi = api.searchApis();
+        logger.info("Status Code [SEARCH API]: " + searchApi.statusCode());
+        String apiId = searchApi.jsonPath().get("list[0]['id']");
 
-                Response getApiThumbnail = api.getThumbnailImage(apiId);
-                logger.info("Status Code [GET API THUMBNAIL]: "+getApiThumbnail.statusCode());
+        Response getApiDetails = api.getApiDetails(apiId);
+        logger.info("Status Code [GET APIS DETAILS]: " + getApiDetails.statusCode());
 
-                Response getApiStatus = api.getApiStatus(apiId);
-                logger.info("Status Code [GET API STATUS]: "+getApiStatus.statusCode());
+        Response getApiThumbnail = api.getThumbnailImage(apiId);
+        logger.info("Status Code [GET API THUMBNAIL]: " + getApiThumbnail.statusCode());
 
-                // PublisherApiProducts apiProd = new PublisherApiProducts(accessToken, ApimVersions.APIM_3_2);
-                // Response searchApiProdsRes = apiProd.searchApiProduct();
-                // logger.info("Status Code [SEARCH API PRODUCTS]: "+searchApiProdsRes.statusCode());
-                // String apiProductId  = searchApiProdsRes.jsonPath().get("list[0]['id']");
-                
-                // Response getDetailsOfApiProdRes = apiProd.getDetailsOfApiProduct(apiProductId);
-                // logger.info("Status Code [GET DETAILS OF API PRODUCT]: "+getDetailsOfApiProdRes.statusCode());
-                
-                // Response getThumbnailOfApiprodRes = apiProd.getProductThumbnail(apiProductId);
-                // logger.info("Status Code [GET THUMBNAIL OF API PRODUCT]: "+getThumbnailOfApiprodRes.statusCode());
+        Response getApiStatus = api.getApiStatus(apiId);
+        logger.info("Status Code [GET API STATUS]: " + getApiStatus.statusCode());
+
+        // PublisherApiProducts apiProd = new PublisherApiProducts(accessToken, ApimVersions.APIM_3_2);
+        // Response searchApiProdsRes = apiProd.searchApiProduct();
+        // logger.info("Status Code [SEARCH API PRODUCTS]: "+searchApiProdsRes.statusCode());
+        // String apiProductId  = searchApiProdsRes.jsonPath().get("list[0]['id']");
+
+        // Response getDetailsOfApiProdRes = apiProd.getDetailsOfApiProduct(apiProductId);
+        // logger.info("Status Code [GET DETAILS OF API PRODUCT]: "+getDetailsOfApiProdRes.statusCode());
+
+        // Response getThumbnailOfApiprodRes = apiProd.getProductThumbnail(apiProductId);
+        // logger.info("Status Code [GET THUMBNAIL OF API PRODUCT]: "+getThumbnailOfApiprodRes.statusCode());
 
 
-        }
-    
+    }
+
 }
