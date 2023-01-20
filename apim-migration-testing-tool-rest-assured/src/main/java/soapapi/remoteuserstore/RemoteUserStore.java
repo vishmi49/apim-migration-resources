@@ -22,11 +22,10 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import exceptions.RestAssuredMigrationException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.testng.annotations.Test;
 
+import exceptions.RestAssuredMigrationException;
 import io.restassured.RestAssured;
 import io.restassured.path.xml.XmlPath;
 import io.restassured.response.Response;
@@ -40,7 +39,9 @@ public class RemoteUserStore {
     public RemoteUserStore(String accessToken, URI baseURL) {
         this.endPointUrl = baseURL.toString() + "services/RemoteUserStoreManagerService";
     }
-
+    public RemoteUserStore(URI baseURL) {
+        this.endPointUrl = baseURL.toString() + "services/RemoteUserStoreManagerService";
+    }
     public void authenticate(String tenantXmlFileName, TenantAdmin tenantAdmin) throws Exception {
 
         Response response = RestAssured.given()
@@ -59,34 +60,45 @@ public class RemoteUserStore {
 
     }
 
-    public void addRole(String tenantXmlFileName, TenantAdmin tenantAdmin) throws Exception {
-
+    public Response addRole(String roleSoapPayload, TenantAdmin tenantAdmin, boolean isXMlFile) throws Exception {
+    	
+    	String rolePayload = roleSoapPayload;
+    	if(isXMlFile) {
+    		rolePayload = getXMLPayload(roleSoapPayload);
+    	}
+    	
         Response response = RestAssured.given()
                 .relaxedHTTPSValidation()
                 .auth()
                 .basic(tenantAdmin.getUserName(), tenantAdmin.getPassword())
                 .header("SOAPAction", "urn:addRole")
                 .contentType("text/xml; charset=UTF-8;")
-                .body(getXMLPayload(tenantXmlFileName))
+                .body(rolePayload)
                 .when()
                 .post(endPointUrl);
+        return response;
 
 //            XmlPath jsXpath= new XmlPath(response.asString());
 //            String rate=jsXpath.getString("GetConversionRateResult");
 //            logger.info("[ADD ROLE]: "+rate);
     }
 
-    public void addUser(String tenantXmlFileName, TenantAdmin tenantAdmin) throws Exception {
+    public Response addUser(String userSoapPayload, TenantAdmin tenantAdmin, boolean isXMlFile) throws Exception {
 
+    	String userPayload = userSoapPayload;
+    	if(isXMlFile) {
+    		userPayload = getXMLPayload(userSoapPayload);
+    	}
         Response response = RestAssured.given()
                 .relaxedHTTPSValidation()
                 .auth()
                 .basic(tenantAdmin.getUserName(), tenantAdmin.getPassword())
                 .header("SOAPAction", "urn:addUser")
                 .contentType("text/xml; charset=UTF-8;")
-                .body(getXMLPayload(tenantXmlFileName))
+                .body(userPayload)
                 .when()
                 .post(endPointUrl);
+        return response;
 
 //            XmlPath jsXpath= new XmlPath(response.asString());
 //            String rate=jsXpath.getString("GetConversionRateResult");

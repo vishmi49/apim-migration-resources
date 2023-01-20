@@ -2626,13 +2626,14 @@ public class Admin {
 
         String accessToken;
         String endPoint;
+        String baseURL;
 
         String publisherApisString = "/system-scopes";
         String resourceParenPath = "./src/test/payloads/";
 
-        public SystemScopes(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public SystemScopes(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
-
+            this.baseURL = baseURL;
             FileInputStream input;
             Properties properties;
 
@@ -2642,9 +2643,9 @@ public class Admin {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_3_2");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -2748,29 +2749,29 @@ public class Admin {
          * @return Response
          */
 
-        public Response addNewRoleAlias(String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response addNewRoleAlias(String jsonPayload, boolean isFile) throws RestAssuredMigrationException {
 
-            byte[] payloadplj1;
-            String payloadpls1 = "";
-
-            try {
-                payloadplj1 = Files.readAllBytes(Paths.get(resourceParenPath + jsonPayloadPath));
-                payloadpls1 = new String(payloadplj1);
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while adding new role alias", e);
-
-            }
-
+        	String endPoint = "/system-scopes/role-aliases";
+        	
+        	if(isFile) {
+        		// jsonPayload = getPayloadFile(jsonPayload);
+        	}
+        	System.out.println(jsonPayload);
+        	System.out.println(this.endPoint + endPoint);
+        	System.out.println(this.baseURL);//
             Response addNewRoleAliasResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
-                    .basePath(payloadpls1)
+                    //.basePath("{\"count\":1,\"list\":[{\"role\":\"Internal/creator\",\"aliases\":[\"ADP_CREATOR\"]}]}")
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .put(endPoint + publisherApisString + "/role-aliases");
+                    .body(jsonPayload)
+                    .put(this.endPoint + endPoint);
 
             return addNewRoleAliasResponse;
+            
+            //https://localhost:9443/api/am/admin/v1/system-scopes/role-aliases
+            //https://localhost:9443/api/am/admin/v1/system-scopes/role-aliases
         }
     }
 

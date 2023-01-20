@@ -18,14 +18,16 @@
 
 package ataf.actions;
 
-import exceptions.RestAssuredMigrationException;
-import restapi.AuthenticationObject;
-
 import java.io.FileInputStream;
 import java.net.URI;
 import java.util.Properties;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.testng.annotations.BeforeTest;
 
-import org.testng.annotations.BeforeSuite;
+import exceptions.RestAssuredMigrationException;
+import restapi.AuthenticationObject;
+
 
 /**
  * .
@@ -33,10 +35,11 @@ import org.testng.annotations.BeforeSuite;
  */
 public class BaseTest {
 
+	private Logger logger;
     protected URI baseURL;
-    protected AuthenticationObject authenticationObject;
+    public AuthenticationObject authenticationObject;
 
-    @BeforeSuite
+    @BeforeTest
     public void initiaization() throws RestAssuredMigrationException {
         authenticationObject = new AuthenticationObject();
         FileInputStream input;
@@ -52,5 +55,12 @@ public class BaseTest {
         } catch (Exception e) {
             throw new RestAssuredMigrationException("Error occurred while retrieving the base URL", e);
         }
+        System.out.println(authenticationObject.getTokenUrl());
+    }
+    
+    public void log(String logMessage) {
+    	logger = LogManager.getLogger("Log");
+    	logger.info(logMessage);
+    	
     }
 }

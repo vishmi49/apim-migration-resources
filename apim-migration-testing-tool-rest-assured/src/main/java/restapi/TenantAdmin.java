@@ -26,10 +26,17 @@ public class TenantAdmin {
 
     String userName;
     String password;
+    String tenant;
 
     public TenantAdmin(String userName, String password) {
 
         this.userName = userName;
+        this.password = password;
+
+    }
+    public TenantAdmin(String userName, String password, String tenant) {
+
+        this.userName = userName+"@"+tenant;
         this.password = password;
 
     }

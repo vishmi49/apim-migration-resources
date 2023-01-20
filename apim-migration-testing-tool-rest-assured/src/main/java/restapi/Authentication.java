@@ -83,6 +83,8 @@ public class Authentication {
 
             String test = getClientIdResponse.jsonPath().prettify();
             System.out.println(test);
+            System.out.println("endpoint: "+ endpoint);
+            System.out.println("tokenUrl: "+tokenUrl);
             getAccessTokenResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
@@ -93,6 +95,13 @@ public class Authentication {
                     .queryParam("scope", scope)
                     .post(tokenUrl);
             System.out.println(getAccessTokenResponse.jsonPath());
+            System.out.println("Scope " + scope);
+            System.out.println("grant_type " + grantType);
+            System.out.println("password " + userpassword);
+            System.out.println("username " + username);
+            System.out.println("clientId " + getClientIdResponse.jsonPath().get("clientId").toString());
+            System.out.println("clientSecret " + getClientIdResponse.jsonPath().get("clientSecret").toString());
+//-d "grant_type=password&username=admin&password=admin&scope=apim:admin apim:tier_view"
 
             accessToken = getAccessTokenResponse.jsonPath().get("access_token").toString();
             System.out.println(accessToken);
