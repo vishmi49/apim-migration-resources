@@ -41,14 +41,14 @@ public class Admin {
 
         String accessToken;
         String endPoint;
-
+        String baseURL;
         String publisherApisString = "/throttling";
         String resourceParenPath = "./src/test/payloads/";
 
-        public ApplicationPolicyCollection(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public ApplicationPolicyCollection(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
             this.endPoint = endPoint;
-
+            this.baseURL = baseURL;
             FileInputStream input;
             Properties properties;
 
@@ -58,9 +58,9 @@ public class Admin {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_3_2");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -92,25 +92,21 @@ public class Admin {
          * @param jsonPayloadPath
          * @return Response
          */
-        public Response addApplicationThrottlingPolicies(String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response addApplicationThrottlingPolicies(String jsonPayload, boolean isFile) throws RestAssuredMigrationException {
 
-            byte[] payloadplj1;
-            String payloadpls1 = "";
+        	String endPoint = "/throttling/policies/application";
 
-            try {
-                payloadplj1 = Files.readAllBytes(Paths.get(resourceParenPath + jsonPayloadPath));
-                payloadpls1 = new String(payloadplj1);
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred when reading file content", e);
-            }
+        	if(isFile) {
+        		// jsonPayload = getPayloadFile(jsonPayload);
+        	}
+        	
             Response addApplicationThrottlingPoliciesResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
-                    .body(payloadpls1)
+                    .body(jsonPayload)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .post(endPoint + publisherApisString + "/policies/application");
+                    .post(this.endPoint+endPoint);
 
             return addApplicationThrottlingPoliciesResponse;
         }
@@ -437,14 +433,15 @@ public class Admin {
 
         String accessToken;
         String endPoint;
+        String baseURL;
 
         String publisherApisString = "/policies";
         String resourceParenPath = "./src/test/payloads/";
 
-        public SubscriptionPolicyCollection(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public SubscriptionPolicyCollection(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
             this.endPoint = endPoint;
-
+            this.baseURL = baseURL;
             FileInputStream input;
             Properties properties;
 
@@ -454,9 +451,9 @@ public class Admin {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_3_2");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -493,26 +490,21 @@ public class Admin {
          * @throws RestAssuredMigrationException
          */
 
-        public Response addSubscriptionThrottlingPolicy(String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response addSubscriptionThrottlingPolicy(String jsonPayload, boolean isFile) throws RestAssuredMigrationException {
 
-            byte[] payloadplj1;
-            String payloadpls1 = "";
+        	String endPoint = "/throttling/policies/subscription";
 
-            try {
-                payloadplj1 = Files.readAllBytes(Paths.get(resourceParenPath + jsonPayloadPath));
-                payloadpls1 = new String(payloadplj1);
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred when adding subscribing throttling policies", e);
-            }
+        	if(isFile) {
+        		// jsonPayload = getPayloadFile(jsonPayload);
+        	}
 
             Response addSubscriptionThrottlingPolicyResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
-                    .basePath(payloadpls1)
+                    .body(jsonPayload)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .post(endPoint + publisherApisString + "/policies/subscription");
+                    .post(this.endPoint + endPoint);
 
             return addSubscriptionThrottlingPolicyResponse;
         }
@@ -839,13 +831,15 @@ public class Admin {
 
         String accessToken;
         String endPoint;
+        String baseURL;
 
         String publisherApisString = "/policies";
         String resourceParenPath = "./src/test/payloads/";
 
-        public AdvancedPolicyCollection(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public AdvancedPolicyCollection(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
-
+            this.baseURL = baseURL;
+            
             FileInputStream input;
             Properties properties;
 
@@ -855,9 +849,9 @@ public class Admin {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_3_2");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -893,26 +887,20 @@ public class Admin {
          * @return
          */
 
-        public Response addAdvancedThrottlingPolicy(String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response addAdvancedThrottlingPolicy(String jsonPayload, boolean isFile) throws RestAssuredMigrationException {
 
-            byte[] payloadplj1;
-            String payloadpls1 = "";
+        	String endPoint = "/throttling/policies/advanced";
 
-            try {
-                payloadplj1 = Files.readAllBytes(Paths.get(resourceParenPath + jsonPayloadPath));
-                payloadpls1 = new String(payloadplj1);
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred when adding advanced throttling policies", e);
-            }
-
+        	if(isFile) {
+        		// jsonPayload = getPayloadFile(jsonPayload);
+        	}
             Response addAdvancedThrottlingPolicyResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
-                    .basePath(payloadpls1)
+                    .body(jsonPayload)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .post(endPoint + publisherApisString + "/policies/advanced");
+                    .post(this.endPoint+endPoint);
 
             return addAdvancedThrottlingPolicyResponse;
         }
@@ -2128,11 +2116,12 @@ public class Admin {
 
         String accessToken;
         String endPoint;
+        String baseURL;
 
         String publisherApisString = "/api-categories";
         String resourceParenPath = "./src/test/payloads/";
 
-        public ApiCategoryCollection(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public ApiCategoryCollection(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
 
             FileInputStream input;
@@ -2144,9 +2133,9 @@ public class Admin {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_3_2");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -2186,11 +2175,12 @@ public class Admin {
 
         String accessToken;
         String endPoint;
+        String baseURL;
 
         String publisherApisString = "/api-categories";
         String resourceParenPath = "./src/test/payloads/";
 
-        public ApiCategoryIndividual(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public ApiCategoryIndividual(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
 
             FileInputStream input;
@@ -2202,9 +2192,9 @@ public class Admin {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_3_2");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("admin_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -2222,26 +2212,20 @@ public class Admin {
          * @throws RestAssuredMigrationException
          */
 
-        public Response addApiCategories(String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response addApiCategories(String jsonPayloadPath, boolean isFile) throws RestAssuredMigrationException {
 
-            byte[] payloadplj1;
-            String payloadpls1 = "";
+        	String endPoint = "/api-categories";
 
-            try {
-                payloadplj1 = Files.readAllBytes(Paths.get(resourceParenPath + jsonPayloadPath));
-                payloadpls1 = new String(payloadplj1);
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred when reading file content", e);
-            }
-
+        	if(isFile) {
+        		// jsonPayload = getPayloadFile(jsonPayload);
+        	}
             Response addApiCategoriesResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
-                    .body(payloadpls1)
+                    .body(jsonPayloadPath)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .post(endPoint + publisherApisString);
+                    .post(this.endPoint + endPoint);
 
             return addApiCategoriesResponse;
         }
@@ -2756,22 +2740,15 @@ public class Admin {
         	if(isFile) {
         		// jsonPayload = getPayloadFile(jsonPayload);
         	}
-        	System.out.println(jsonPayload);
-        	System.out.println(this.endPoint + endPoint);
-        	System.out.println(this.baseURL);//
             Response addNewRoleAliasResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
-                    //.basePath("{\"count\":1,\"list\":[{\"role\":\"Internal/creator\",\"aliases\":[\"ADP_CREATOR\"]}]}")
                     .contentType(ContentTypes.APPLICATION_JSON)
                     .body(jsonPayload)
                     .put(this.endPoint + endPoint);
 
             return addNewRoleAliasResponse;
-            
-            //https://localhost:9443/api/am/admin/v1/system-scopes/role-aliases
-            //https://localhost:9443/api/am/admin/v1/system-scopes/role-aliases
         }
     }
 

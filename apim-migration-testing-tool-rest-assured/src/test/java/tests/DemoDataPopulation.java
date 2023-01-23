@@ -94,8 +94,8 @@ public class DemoDataPopulation extends BaseTest {
         RemoteUserStore rUserStore = new RemoteUserStore(accessToken, baseURL);
 
         TenantAdmin tenantAdmin = new TenantAdmin(tenantAdminUsername, tenantAdminPassword);
-        rUserStore.addRole(addRoleRequest, tenantAdmin);
-        rUserStore.addUser(addUserRequest, tenantAdmin);
+        rUserStore.addRole(addRoleRequest, tenantAdmin,true);
+        rUserStore.addUser(addUserRequest, tenantAdmin,true);
 
         logger.info("[USER STORE]: User store related tests were completed");
         TimeUnit.SECONDS.sleep(4);

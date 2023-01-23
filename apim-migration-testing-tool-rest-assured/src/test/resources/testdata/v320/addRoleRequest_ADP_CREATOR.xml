@@ -28,12 +28,9 @@
             <xsd:action>ui.execute</xsd:action>
             <!--Optional:-->
             <xsd:resourceId>/permission/admin/manage/resources/govern</xsd:resourceId>
-         </ser:permissions>
-         <ser:permissions>
-            <!--Optional:-->
-            <xsd:action>ui.execute</xsd:action>
-            <!--Optional:-->
             <xsd:resourceId>/permission/admin/manage/api/create</xsd:resourceId>
+            <xsd:resourceId>/permission/admin/login</xsd:resourceId>
+            <xsd:resourceId>/permission/admin/configure/governance</xsd:resourceId>
          </ser:permissions>
       </ser:addRole>
    </soapenv:Body>

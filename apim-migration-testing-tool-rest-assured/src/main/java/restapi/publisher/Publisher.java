@@ -2540,6 +2540,7 @@ public class Publisher {
         String endPoint;
         String accessToken;
         ApimVersions version;
+        String baseURL;
 
         String publisherScopesString = "/scopes";
 
@@ -2548,10 +2549,11 @@ public class Publisher {
 
         String resourceParentPath = "./src/test/payloads/";
 
-        public Scopes(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public Scopes(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
             this.version = version;
-
+            this.baseURL = baseURL;
+            
             FileInputStream input;
             Properties properties;
 
@@ -2561,9 +2563,9 @@ public class Publisher {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("publisher_url_3_2");
+                    this.endPoint = baseURL+ properties.getProperty("publisher_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("publisher_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("publisher_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -2599,23 +2601,21 @@ public class Publisher {
          * @return
          */
 
-        public Response addNewSharedScopes(String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response addNewSharedScopes(String jsonPayload, boolean isFile) throws RestAssuredMigrationException {
 
-            try {
-                payloadJson1 = Files.readAllBytes(Paths.get(resourceParentPath + jsonPayloadPath));
-                payloadString1 = new String(payloadJson1);
+        	String endPoint = "/scopes";
 
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while adding new shared scope", e);
-            }
-
+        	if(isFile) {
+        		// jsonPayload = getPayloadFile(jsonPayload);
+        	}
+        	System.out.println(">>>>>>>>> : " + this.endPoint + endPoint);
             Response getAllSharedScopesResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .body(payloadString1)
-                    .post(endPoint + publisherScopesString);
+                    .body(jsonPayload)
+                    .post(this.endPoint + endPoint);
 
             return getAllSharedScopesResponse;
         }

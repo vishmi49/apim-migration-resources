@@ -32,8 +32,11 @@ public class AuthenticationObject {
     private String scopes;
     private String grantType;
     private String contentType;
+    private String payload;
 
-    String[] defaultScopes = {Scopes.API_PUBLISH, Scopes.API_CREATE, Scopes.API_VIEW, Scopes.API_IMPORT_EXPORT, Scopes.API_MANAGE, Scopes.DOCUMENT_MANAGE, Scopes.APP_MANAGE, Scopes.APP_IMPORT_EXPORT, Scopes.SUBSCRIBE};
+
+
+	String[] defaultScopes = {Scopes.API_PUBLISH, Scopes.API_CREATE, Scopes.API_VIEW, Scopes.API_IMPORT_EXPORT, Scopes.API_MANAGE, Scopes.DOCUMENT_MANAGE, Scopes.APP_MANAGE, Scopes.APP_IMPORT_EXPORT, Scopes.SUBSCRIBE};
 
     public AuthenticationObject() {
 
@@ -45,9 +48,18 @@ public class AuthenticationObject {
         this.grantType = GrantTypes.PASSSWORD;
         this.scopes = String.join(" ", defaultScopes);
         this.contentType = ContentTypes.APPLICATION_JSON;
+        this.payload = defaultPayload();
 
     }
 
+    public String getPayload() {
+		return payload;
+	}
+
+	public void setPayload(String payload) {
+		this.payload = payload;
+	}
+	
     /**
      * @return String return the username
      */
@@ -159,5 +171,18 @@ public class AuthenticationObject {
     public void setContentType(String contentType) {
         this.contentType = contentType;
     }
+    
+    public String defaultPayload() {
+    	return """
+    		{
+			  "callbackUrl": "www.google.lk",
+			  "clientName": "rest_api_publisher",
+			  "owner": "admin@carbon.super",
+			  "grantType": "client_credentials password refresh_token",
+			  "saasApp": true
+			}
+    			""";
+    }
+
 
 }
