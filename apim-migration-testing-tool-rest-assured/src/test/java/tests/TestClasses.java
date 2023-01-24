@@ -37,6 +37,7 @@ import restapi.publisher.Publisher;
 public class TestClasses {
     String accessToken;
     String apiId = "";
+    String baseURL="";
     private static Logger logger = LogManager.getLogger(TestClasses.class);
 
     @Test
@@ -58,9 +59,9 @@ public class TestClasses {
 
         //API
         //PublisherApis api = new PublisherApis(accessToken, ApimVersions.APIM_3_2);
-        Publisher.Apis api = new Publisher.Apis(accessToken, ApimVersions.APIM_3_2);
+        Publisher.Apis api = new Publisher.Apis(baseURL,accessToken, ApimVersions.APIM_3_2);
 
-        Response createApiRes = api.createApi(ContentTypes.APPLICATION_JSON, "apicretion_payload_TestClasses.json");
+        Response createApiRes = api.createApi("apicretion_payload_TestClasses.json",true);
         logger.info("Status Code [CREATE API]: " + createApiRes.statusCode());
 
         Response searchApiRes = api.searchApis();
@@ -105,14 +106,14 @@ public class TestClasses {
         logger.info("Status Code [DELETE API PRODUCT LIFECYCLE]: " + deletePendingLifecycleStateChangeTasksRes.statusCode());
 
         //Scopes
-        Publisher.Scopes pScopes = new Publisher.Scopes(accessToken, ApimVersions.APIM_3_2);
+        Publisher.Scopes pScopes = new Publisher.Scopes(baseURL,accessToken, ApimVersions.APIM_3_2);
 
         Response getSharedScopesrRes = pScopes.getAllSharedScopes();
         logger.info("Status Code [GET ALL SHARED SCOPES]: " + getSharedScopesrRes.statusCode());
 
         String scopeId = getSharedScopesrRes.jsonPath().get("list[0]['id']");
 
-        Response addNewSharedScopesrRes = pScopes.addNewSharedScopes("addNewSharedScopes.json");
+        Response addNewSharedScopesrRes = pScopes.addNewSharedScopes("addNewSharedScopes.json",true);
         logger.info("Status Code [ADD NEW SHARED SCOPES]: " + addNewSharedScopesrRes.statusCode());
 
         Response getSharedScopeByIdRes = pScopes.getSharedScopeById(scopeId);
@@ -204,7 +205,7 @@ public class TestClasses {
 
     @Test
     public void validateDataAPIM_3_2() throws RestAssuredMigrationException {
-        Publisher.Apis api = new Publisher.Apis(accessToken, ApimVersions.APIM_3_2);
+        Publisher.Apis api = new Publisher.Apis(baseURL,accessToken, ApimVersions.APIM_3_2);
 
         Response searchApi = api.searchApis();
         logger.info("Status Code [SEARCH API]: " + searchApi.statusCode());

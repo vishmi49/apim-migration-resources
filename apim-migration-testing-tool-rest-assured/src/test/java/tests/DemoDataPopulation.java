@@ -116,7 +116,7 @@ public class DemoDataPopulation extends BaseTest {
         Authentication authentication = new Authentication(authenticationObject);
         String accessToken1 = authentication.getAccessToken();
 
-        Publisher.Apis api = new Publisher.Apis(accessToken1, ApimVersions.APIM_3_2);
+        Publisher.Apis api = new Publisher.Apis(baseURL.toString(),accessToken1, ApimVersions.APIM_3_2);
 
         Response createApiOpenApiDefinitionRes = api.importOpenAPIDefinition(createApiOpenApiDefinition, apiCreationPayload);
         logger.info("Status Code [CREATE OPEN API DEFINITION]: " + createApiOpenApiDefinitionRes.statusCode());

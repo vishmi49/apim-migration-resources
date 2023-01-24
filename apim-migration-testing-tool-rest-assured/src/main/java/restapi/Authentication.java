@@ -73,6 +73,9 @@ public class Authentication {
         try {
 //            authPlayloadJson = Files.readAllBytes(Paths.get(payloadPath));
 //            authPlayloadString = new String(authPlayloadJson);
+        	System.out.print(">>>>>>>>>>>>>>>>>>>>>>>>>>>> :: " + authPlayloadString);
+        	System.out.print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>username :: " + username);
+        	System.out.print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>userpassword :: " + userpassword);
             getClientIdResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()

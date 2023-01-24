@@ -34,6 +34,7 @@ import restapi.publisher.Publisher;
 
 public class RunTests {
     String accessToken;
+    String baseURL;
     private static Logger logger = LogManager.getLogger(RunTests.class);
 
     @Test
@@ -53,9 +54,9 @@ public class RunTests {
         accessToken = authentication.getAccessToken();
 
         //API
-        Publisher.Apis api = new Publisher.Apis(accessToken, ApimVersions.APIM_3_2);
+        Publisher.Apis api = new Publisher.Apis(baseURL,accessToken, ApimVersions.APIM_3_2);
 
-        Response createApiRes = api.createApi(ContentTypes.APPLICATION_JSON, "apicretion_payload.json");
+        Response createApiRes = api.createApi("apicretion_payload.json",true);
         logger.info("Status Code [CREATE API]: " + createApiRes.statusCode());
 
         Response searchApiRes = api.searchApis();
@@ -94,7 +95,7 @@ public class RunTests {
 
     @Test
     public void validateDataAPIM_3_2() throws RestAssuredMigrationException {
-        Publisher.Apis api = new Publisher.Apis(accessToken, ApimVersions.APIM_3_2);
+        Publisher.Apis api = new Publisher.Apis(baseURL,accessToken, ApimVersions.APIM_3_2);
 
         Response searchApi = api.searchApis();
         logger.info("Status Code [SEARCH API]: " + searchApi.statusCode());
