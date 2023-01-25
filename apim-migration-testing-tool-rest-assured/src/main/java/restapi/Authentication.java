@@ -61,6 +61,7 @@ public class Authentication {
         this.scope = authenticationObject.getScopes();
         this.grantType = authenticationObject.getGrantType();
         this.contentType = authenticationObject.getContentType();
+        this.authPlayloadString = authenticationObject.getPayload();
     }
 
     /**
@@ -70,8 +71,11 @@ public class Authentication {
 
     public String getAccessToken() throws RestAssuredMigrationException {
         try {
-            authPlayloadJson = Files.readAllBytes(Paths.get(payloadPath));
-            authPlayloadString = new String(authPlayloadJson);
+//            authPlayloadJson = Files.readAllBytes(Paths.get(payloadPath));
+//            authPlayloadString = new String(authPlayloadJson);
+        	System.out.print(">>>>>>>>>>>>>>>>>>>>>>>>>>>> :: " + authPlayloadString);
+        	System.out.print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>username :: " + username);
+        	System.out.print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>userpassword :: " + userpassword);
             getClientIdResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()

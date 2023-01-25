@@ -42,6 +42,7 @@ public class Publisher {
 
         String accessToken = "";
         String endPoint = "";
+        String baseURL;
         ApimVersions version;
 
         Response searchApisResponse;
@@ -70,9 +71,10 @@ public class Publisher {
         String publisherApisString = "/apis";
         String resourceParenPath = "./src/test/payloads/";
 
-        public Apis(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public Apis(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
             this.version = version;
+            this.baseURL = baseURL;
 
             FileInputStream input;
             Properties properties;
@@ -83,9 +85,9 @@ public class Publisher {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("publisher_url_3_2");
+                    this.endPoint = baseURL + properties.getProperty("publisher_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("publisher_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("publisher_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -125,19 +127,22 @@ public class Publisher {
          * @throws RestAssuredMigrationException
          */
 
-        public Response createApi(String contentType, String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response createApi(String jsonPayload, boolean isFile) throws RestAssuredMigrationException {
 
             try {
-                apiCreationPayloadJson = Files.readAllBytes(Paths.get(resourceParenPath + jsonPayloadPath));
-                apiCreationPayloadString = new String(apiCreationPayloadJson);
+            	String endPoint = "/apis";
+
+            	if(isFile) {
+            		// jsonPayload = getPayloadFile(jsonPayload);
+            	}
 
                 createApiResponse = RestAssured.given()
                         .relaxedHTTPSValidation()
                         .auth()
                         .oauth2(accessToken)
-                        .body(apiCreationPayloadString)
-                        .contentType(contentType)
-                        .post(endPoint + publisherApisString);
+                        .body(jsonPayload)
+                        .contentType(ContentTypes.APPLICATION_JSON)
+                        .post(this.endPoint + endPoint);
 
             } catch (Exception e) {
                 throw new RestAssuredMigrationException("Error occurred while creating the API", e);
@@ -183,7 +188,7 @@ public class Publisher {
                     .auth()
                     .oauth2(accessToken)
                     .contentType("application/json")
-                    .post(endPoint + publisherApisString + "/copy-api?newVersion=" + apiVersion + "&defaultVersion=" + defaultVersion + "&apiId=" + apiId);
+                    .post(this.endPoint + "/apis/copy-api?newVersion=" + apiVersion + "&defaultVersion=" + defaultVersion + "&apiId=" + apiId);
             return createNewApiVersiResponse;
 
         }
@@ -197,23 +202,15 @@ public class Publisher {
          * @return update API response
          */
 
-        public Response updateApi(String contentType, String apiId, String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response updateApi(String contentType, String apiId, String payload) throws RestAssuredMigrationException {
 
-            try {
-                updateApiPayloadJson = Files.readAllBytes(Paths.get(resourceParenPath + jsonPayloadPath));
-                updateApiPayloadString = new String(updateApiPayloadJson);
-
-                updateApiResponse = RestAssured.given()
+        	updateApiResponse = RestAssured.given()
                         .relaxedHTTPSValidation()
                         .auth()
                         .oauth2(accessToken)
-                        .body(updateApiPayloadString)
+                        .body(payload)
                         .contentType(contentType)
-                        .put(endPoint + publisherApisString + "/" + apiId);
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while updating the API", e);
-            }
+                        .put(this.endPoint + "/apis/" + apiId);
 
             return updateApiResponse;
 
@@ -594,12 +591,13 @@ public class Publisher {
          * @return
          */
         public Response changeApiStatus(String apiId, String action) {
+        	System.out.print("=================== :: "+ accessToken);
             Response changeApiStatusResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .post(endPoint + publisherApisString + "/change-lifecycle?apiId=" + apiId + "&action=" + action);
+                    .post(endPoint + "/apis/change-lifecycle?apiId=" + apiId + "&action=" + action);
 
             return changeApiStatusResponse;
         }
@@ -934,24 +932,21 @@ public class Publisher {
          * @return Response
          */
 
-        public Response addNewDocToApi(String apiId, String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response addNewDocToApi(String apiId, String jsonPayload, boolean isFile) throws RestAssuredMigrationException {
 
-            try {
-                payloadplj1 = Files.readAllBytes(Paths.get(resourceParenPath + jsonPayloadPath));
-                payloadpls1 = new String(payloadplj1);
+        	String endPoint = "/documents";
 
-            } catch (Exception e) {
-
-                throw new RestAssuredMigrationException("Error occurred while creating API document", e);
-            }
-
+        	if(isFile) {
+        		// jsonPayload = getPayloadFile(jsonPayload);
+        	}
             Response addNewDocToApiResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .body(payloadpls1)
-                    .post(endPoint + publisherApisString + "/" + apiId + "/documents");
+                    .body(jsonPayload)
+                    .post(this.endPoint + "/apis/" + apiId + "/documents");
+
 
             return addNewDocToApiResponse;
         }
@@ -1034,7 +1029,19 @@ public class Publisher {
                     .auth()
                     .oauth2(accessToken)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .get(endPoint + publisherApisString + "/" + apiId + "/documents/" + documenetId + "/content");
+                    .get(this.endPoint + "/apis/" + apiId + "/documents/" + documenetId + "/content");
+
+            return getContentOfDocOfApiResponse;
+        }
+        
+        public Response addContentOfDocOfApi(String apiId, String documenetId, String content) {
+            Response getContentOfDocOfApiResponse = RestAssured.given()
+                    .relaxedHTTPSValidation()
+                    .auth()
+                    .oauth2(accessToken)
+                    .contentType("multipart/form-data")
+                    .multiPart("inlineContent", content)
+                    .post(this.endPoint + "/apis/" + apiId + "/documents/" + documenetId + "/content");
 
             return getContentOfDocOfApiResponse;
         }
@@ -1050,14 +1057,14 @@ public class Publisher {
          * @return Response
          */
 
-        public Response uploadContentOfDocOfApi(String apiId, String documenetId, String dataPath) {
+        public Response uploadContentOfDocOfApi(String apiId, String documenetId, String filePath) {
             Response uploadContentOfDocOfApiResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
                     .contentType(ContentTypes.MULTIPART_FORMDATA)
-                    .multiPart(new File(resourceParenPath + dataPath))
-                    .post(endPoint + publisherApisString + "/" + apiId + "/documents/" + documenetId + "/content");
+                    .multiPart(new File(filePath))
+                    .post(this.endPoint + "/apis/" + apiId + "/documents/" + documenetId + "/content");
 
             return uploadContentOfDocOfApiResponse;
         }
@@ -1102,6 +1109,17 @@ public class Publisher {
 
             return getAllMediationPoliciesOfAPIRes;
         }
+        
+        public Response getAllMediationPolicies() {
+            Response getAllMediationPoliciesOfAPIRes = RestAssured.given()
+                    .relaxedHTTPSValidation()
+                    .auth()
+                    .oauth2(accessToken)
+                    .contentType(ContentTypes.APPLICATION_JSON)
+                    .get(this.endPoint + "/mediation-policies");
+
+            return getAllMediationPoliciesOfAPIRes;
+        }
 
         /**
          * .
@@ -1112,13 +1130,15 @@ public class Publisher {
          * @return
          */
 
-        public Response addApiSpecificMediationPolicy(String apiId) {
+        public Response addApiSpecificMediationPolicy(String apiId, String filePath) {
             Response addApiSpecificMediationPolicyRes = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
-                    .contentType(ContentTypes.APPLICATION_JSON)
-                    .post(endPoint + publisherApisString + "/" + apiId + "/mediation-policies");
+                    .contentType("multipart/form-data")
+                    .multiPart("mediationPolicyFile", new File(filePath))
+                    .multiPart("type", "in")
+                    .post(this.endPoint + "/apis/" + apiId + "/mediation-policies");
 
             return addApiSpecificMediationPolicyRes;
         }
@@ -2540,6 +2560,7 @@ public class Publisher {
         String endPoint;
         String accessToken;
         ApimVersions version;
+        String baseURL;
 
         String publisherScopesString = "/scopes";
 
@@ -2548,10 +2569,11 @@ public class Publisher {
 
         String resourceParentPath = "./src/test/payloads/";
 
-        public Scopes(String accessToken, ApimVersions version) throws RestAssuredMigrationException {
+        public Scopes(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
             this.version = version;
-
+            this.baseURL = baseURL;
+            
             FileInputStream input;
             Properties properties;
 
@@ -2561,9 +2583,9 @@ public class Publisher {
                 input = new FileInputStream(path);
                 properties.load(input);
                 if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("publisher_url_3_2");
+                    this.endPoint = baseURL+ properties.getProperty("publisher_url_3_2");
                 } else {
-                    this.endPoint = properties.getProperty("base_url") + properties.getProperty("publisher_url_4_1");
+                    this.endPoint = baseURL + properties.getProperty("publisher_url_4_1");
                 }
 
             } catch (Exception e) {
@@ -2599,23 +2621,20 @@ public class Publisher {
          * @return
          */
 
-        public Response addNewSharedScopes(String jsonPayloadPath) throws RestAssuredMigrationException {
+        public Response addNewSharedScopes(String jsonPayload, boolean isFile) throws RestAssuredMigrationException {
 
-            try {
-                payloadJson1 = Files.readAllBytes(Paths.get(resourceParentPath + jsonPayloadPath));
-                payloadString1 = new String(payloadJson1);
+        	String endPoint = "/scopes";
 
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while adding new shared scope", e);
-            }
-
+        	if(isFile) {
+        		// jsonPayload = getPayloadFile(jsonPayload);
+        	}
             Response getAllSharedScopesResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
                     .oauth2(accessToken)
                     .contentType(ContentTypes.APPLICATION_JSON)
-                    .body(payloadString1)
-                    .post(endPoint + publisherScopesString);
+                    .body(jsonPayload)
+                    .post(this.endPoint + endPoint);
 
             return getAllSharedScopesResponse;
         }

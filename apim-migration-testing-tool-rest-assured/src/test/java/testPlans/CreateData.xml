@@ -43,10 +43,10 @@
      <parameter name="tenantAdminUser" value="creator1_Test@test1_tenant.com" />
      <parameter name="tenantAdminUserPassword" value="creator1_Test" />
 
-    <parameter name="tenantAdminUserName" value="wso2user" />
-    <parameter name="tenantAdminPassword" value="wso2user" />
+    <parameter name="tenantAdminUserName" value="admin" />
+    <parameter name="tenantAdminPassword" value="admin" />
     <parameter name="tenantAdminUser1" value="wso2user_creator1@test2_wso2.com" />
-    <parameter name="tenantAdminUser1Password" value="wso2user_creator1"
+    <parameter name="tenantAdminUser1Password" value="wso2user_creator1"/>
     <parameter name="apiCreationPayload" value="apicretion_payload.json"/>
     <parameter name="createApiOpenApiDefinition" value="createApiOpenApiDefinition.json"/>
     <parameter name="thumbnailImage" value="thumbnail2.jpg"/>
