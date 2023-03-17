@@ -98,6 +98,9 @@ public class Authentication {
                     .queryParam("password", userpassword)
                     .queryParam("scope", scope)
                     .post(tokenUrl);
+            System.out.println("Status code : " + getAccessTokenResponse.statusCode());
+            System.out.println("response : " + getAccessTokenResponse.body().asPrettyString());
+            
             System.out.println(getAccessTokenResponse.jsonPath());
             System.out.println("Scope " + scope);
             System.out.println("grant_type " + grantType);
@@ -108,7 +111,7 @@ public class Authentication {
 //-d "grant_type=password&username=admin&password=admin&scope=apim:admin apim:tier_view"
 
             accessToken = getAccessTokenResponse.jsonPath().get("access_token").toString();
-            System.out.println(accessToken);
+            System.out.println("Access Token : "+accessToken);
 
         } catch (Exception e) {
             throw new RestAssuredMigrationException("Error occurred while generating access token", e);

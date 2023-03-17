@@ -109,6 +109,74 @@ public class AdminData {
 			  }
 			}
 				""";
+		
+		// 4.2.0 payload
+//		return """
+//				{
+//				  "policyName": "ADPBrass",
+//				  "description": "Allows 20 requests per minute",
+//				  "defaultLimit": {
+//				    "type": "REQUESTCOUNTLIMIT",
+//				    "requestCount": {
+//				      "requestCount": "20",
+//				      "timeUnit": "min",
+//				      "unitTime": "1"
+//				    }
+//				  },
+//				  "subscriberCount": 0,
+//				  "rateLimitCount": "5",
+//				  "rateLimitTimeUnit": "min",
+//				  "billingPlan": "FREE",
+//				  "stopOnQuotaReach": true,
+//				  "customAttributes": [
+//				    
+//				  ],
+//				  "graphQLMaxComplexity": 0,
+//				  "graphQLMaxDepth": 0,
+//				  "monetization": {
+//				    "monetizationPlan": "FIXEDRATE",
+//				    "properties": {
+//				      "fixedPrice": "",
+//				      "pricePerRequest": "",
+//				      "currencyType": "",
+//				      "billingCycle": "week"
+//				    }
+//				  },
+//				  "permissions": {
+//				    "permissionType": "ALLOW",
+//				    "roles": [
+//				      "Internal/everyone"
+//				    ]
+//				  }
+//				}
+//				""";
+		
+//		// payload in documentation
+//		// "subscriberCount": 0,(this is for webhooks) is mandatory in 4.2.0, but this is not mention in the documentation
+//		return """
+//				{
+//			  "policyId": "78c3ebff-176d-40d8-9377-fb3276528291",
+//			  "policyName": "Gold2",
+//			  "displayName": "Gold",
+//			  "description": "Allows 5000 requests per minute",
+//			  "isDeployed": true,
+//			  "graphQLMaxComplexity": 0,
+//			  "graphQLMaxDepth": 0,
+//			  "defaultLimit": {
+//			    "type": "REQUESTCOUNTLIMIT",
+//			    "requestCount": {
+//			      "timeUnit": "min",
+//			      "unitTime": 1,
+//			      "requestCount": 5000
+//			    }
+//			  },
+//			  "subscriberCount": 9,
+//			  "rateLimitCount": 0,
+//			  "customAttributes": [],
+//			  "stopOnQuotaReach": true,
+//			  "billingPlan": "FREE"
+//			}
+//				""";
 	}
 	
 	public static String getScopeJsonPayload(String name, String displayName, String description, String bindings) {
@@ -122,5 +190,49 @@ public class AdminData {
 				""";
 		return jsonPayload.formatted(name, displayName, description, bindings);
 		
+	}
+	
+	public static class TestData420 {
+		public static String getSubscriptionThrottlingPolicyADPBrass() {
+			return """
+					{
+					  "policyName": "ADPBrass",
+					  "description": "Allows 20 requests per minute",
+					  "defaultLimit": {
+					    "type": "REQUESTCOUNTLIMIT",
+					    "requestCount": {
+					      "requestCount": "20",
+					      "timeUnit": "min",
+					      "unitTime": "1"
+					    }
+					  },
+					  "subscriberCount": 0,
+					  "rateLimitCount": "5",
+					  "rateLimitTimeUnit": "sec",
+					  "billingPlan": "FREE",
+					  "stopOnQuotaReach": true,
+					  "customAttributes": [
+
+					  ],
+					  "graphQLMaxComplexity": "10",
+					  "graphQLMaxDepth": "5",
+					  "monetization": {
+					    "monetizationPlan": "FIXEDRATE",
+					    "properties": {
+					      "fixedPrice": "",
+					      "pricePerRequest": "",
+					      "currencyType": "",
+					      "billingCycle": "week"
+					    }
+					  },
+					  "permissions": {
+					    "permissionType": "ALLOW",
+					    "roles": [
+					      "Internal/everyone"
+					    ]
+					  }
+					}
+						""";
+		}
 	}
 }

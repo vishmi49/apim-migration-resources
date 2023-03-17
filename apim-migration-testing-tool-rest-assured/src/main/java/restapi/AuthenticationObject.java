@@ -43,7 +43,7 @@ public class AuthenticationObject {
         this.username = "admin";
         this.userpassword = "admin";
         this.endpoint = "https://localhost:9443/client-registration/v0.17/register";
-        this.tokenUrl ="https://localhost:8243/token"; //"https://localhost:8243/token";https://localhost:9443/oauth2/token
+        this.tokenUrl ="https://localhost:9443/oauth2/token"; // 3.2.0 : "https://localhost:8243/token"; //"https://localhost:8243/token";4.1.0/v3 : https://localhost:9443/oauth2/token
         this.payloadPath = "./src/test/payloads/payload.json";
         this.grantType = GrantTypes.PASSSWORD;
         this.scopes = String.join(" ", defaultScopes);

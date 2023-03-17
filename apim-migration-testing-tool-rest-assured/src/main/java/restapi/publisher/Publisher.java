@@ -76,23 +76,24 @@ public class Publisher {
             this.version = version;
             this.baseURL = baseURL;
 
-            FileInputStream input;
-            Properties properties;
-
-            try {
-                String path = "./src/test/resources/config.properties";
-                properties = new Properties();
-                input = new FileInputStream(path);
-                properties.load(input);
-                if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = baseURL + properties.getProperty("publisher_url_3_2");
-                } else {
-                    this.endPoint = baseURL + properties.getProperty("publisher_url_4_1");
-                }
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
-            }
+//            FileInputStream input;
+//            Properties properties;
+//
+//            try {
+//                String path = "./src/test/resources/config.properties";
+//                properties = new Properties();
+//                input = new FileInputStream(path);
+//                properties.load(input);
+//                if (version == ApimVersions.APIM_3_2) {
+//                    this.endPoint = baseURL + properties.getProperty("publisher_url_3_2");
+//                } else {
+//                    this.endPoint = baseURL + properties.getProperty("publisher_url_4_1");
+//                }
+//
+//            } catch (Exception e) {
+//                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
+//            }
+            this.endPoint = baseURL + getEndpoint(version);
 
         }
 
@@ -2574,24 +2575,24 @@ public class Publisher {
             this.version = version;
             this.baseURL = baseURL;
             
-            FileInputStream input;
-            Properties properties;
-
-            try {
-                String path = "./src/test/resources/config.properties";
-                properties = new Properties();
-                input = new FileInputStream(path);
-                properties.load(input);
-                if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = baseURL+ properties.getProperty("publisher_url_3_2");
-                } else {
-                    this.endPoint = baseURL + properties.getProperty("publisher_url_4_1");
-                }
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while retrieving properties ", e);
-            }
-
+//            FileInputStream input;
+//            Properties properties;
+//
+//            try {
+//                String path = "./src/test/resources/config.properties";
+//                properties = new Properties();
+//                input = new FileInputStream(path);
+//                properties.load(input);
+//                if (version == ApimVersions.APIM_3_2) {
+//                    this.endPoint = baseURL+ properties.getProperty("publisher_url_3_2");
+//                } else {
+//                    this.endPoint = baseURL + properties.getProperty("publisher_url_4_1");
+//                }
+//
+//            } catch (Exception e) {
+//                throw new RestAssuredMigrationException("Error occurred while retrieving properties ", e);
+//            }
+            this.endPoint = baseURL + getEndpoint(version);
         }
 
         /**
@@ -3110,6 +3111,31 @@ public class Publisher {
 
     }
 
+    public static String getEndpoint(ApimVersions version) throws RestAssuredMigrationException {
+        try {
+            String path = "./src/test/resources/config.properties";
+            Properties properties = new Properties();
+            FileInputStream input = new FileInputStream(path);
+            String apiEndpoint="";
+            properties.load(input);
+            
+            switch(version) {
+            case APIM_3_2:
+              apiEndpoint = properties.getProperty("publisher_url_3_2");
+              break;
+            case APIM_4_1:
+            	apiEndpoint = properties.getProperty("publisher_url_4_1");
+              break;
+            case APIM_4_2:
+            	apiEndpoint = properties.getProperty("publisher_url_4_2");
+            }
+            
+            return apiEndpoint;
+
+        } catch (Exception e) {
+            throw new RestAssuredMigrationException("Error occurred while retrieving API Endpoint URL for config file", e);
+        }
+    }
 
 }
 

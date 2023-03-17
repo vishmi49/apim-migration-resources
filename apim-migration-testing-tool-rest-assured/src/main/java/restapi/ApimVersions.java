@@ -23,5 +23,5 @@ package restapi;
  * This implemented to define APIM versions
  */
 public enum ApimVersions {
-    APIM_3_2, APIM_4_1;
+    APIM_3_2, APIM_4_1, APIM_4_2;
 }

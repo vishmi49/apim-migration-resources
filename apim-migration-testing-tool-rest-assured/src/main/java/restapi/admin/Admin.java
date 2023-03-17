@@ -49,23 +49,24 @@ public class Admin {
             this.accessToken = accessToken;
             this.endPoint = endPoint;
             this.baseURL = baseURL;
-            FileInputStream input;
-            Properties properties;
-
-            try {
-                String path = "./src/test/resources/config.properties";
-                properties = new Properties();
-                input = new FileInputStream(path);
-                properties.load(input);
-                if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
-                } else {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
-                }
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while retrieving url", e);
-            }
+//            FileInputStream input;
+//            Properties properties;
+//
+//            try {
+//                String path = "./src/test/resources/config.properties";
+//                properties = new Properties();
+//                input = new FileInputStream(path);
+//                properties.load(input);
+//                if (version == ApimVersions.APIM_3_2) {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
+//                } else {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
+//                }
+//
+//            } catch (Exception e) {
+//                throw new RestAssuredMigrationException("Error occurred while retrieving url", e);
+//            }
+            this.endPoint = baseURL + getEndpoint(version);
         }
 
         /**
@@ -442,24 +443,24 @@ public class Admin {
             this.accessToken = accessToken;
             this.endPoint = endPoint;
             this.baseURL = baseURL;
-            FileInputStream input;
-            Properties properties;
-
-            try {
-                String path = "./src/test/resources/config.properties";
-                properties = new Properties();
-                input = new FileInputStream(path);
-                properties.load(input);
-                if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
-                } else {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
-                }
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
-            }
-
+//            FileInputStream input;
+//            Properties properties;
+//
+//            try {
+//                String path = "./src/test/resources/config.properties";
+//                properties = new Properties();
+//                input = new FileInputStream(path);
+//                properties.load(input);
+//                if (version == ApimVersions.APIM_3_2) {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
+//                } else {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
+//                }
+//
+//            } catch (Exception e) {
+//                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
+//            }
+            this.endPoint = baseURL + getEndpoint(version);
         }
 
         /**
@@ -497,7 +498,7 @@ public class Admin {
         	if(isFile) {
         		// jsonPayload = getPayloadFile(jsonPayload);
         	}
-
+        	System.out.print("addSubscriptionThrottlingPolicy : " + this.endPoint + endPoint);
             Response addSubscriptionThrottlingPolicyResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
@@ -825,8 +826,34 @@ public class Admin {
 
     /**
      * This class implemented the advanced policy related functionalities.
+     * @throws RestAssuredMigrationException 
      */
 
+    public static String getEndpoint(ApimVersions version) throws RestAssuredMigrationException {
+        try {
+            String path = "./src/test/resources/config.properties";
+            Properties properties = new Properties();
+            FileInputStream input = new FileInputStream(path);
+            String apiEndpoint="";
+            properties.load(input);
+            
+            switch(version) {
+            case APIM_3_2:
+              apiEndpoint = properties.getProperty("admin_url_3_2");
+              break;
+            case APIM_4_1:
+            	apiEndpoint = properties.getProperty("admin_url_4_1");
+              break;
+            case APIM_4_2:
+            	apiEndpoint = properties.getProperty("admin_url_4_2");
+            }
+            
+            return apiEndpoint;
+
+        } catch (Exception e) {
+            throw new RestAssuredMigrationException("Error occurred while retrieving API Endpoint URL for config file", e);
+        }
+    }
     public static class AdvancedPolicyCollection {
 
         String accessToken;
@@ -840,24 +867,26 @@ public class Admin {
             this.accessToken = accessToken;
             this.baseURL = baseURL;
             
-            FileInputStream input;
-            Properties properties;
-
-            try {
-                String path = "./src/test/resources/config.properties";
-                properties = new Properties();
-                input = new FileInputStream(path);
-                properties.load(input);
-                if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
-                } else {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
-                }
-
-            } catch (Exception e) {
-
-                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
-            }
+//            FileInputStream input;
+//            Properties properties;
+//
+//            try {
+//                String path = "./src/test/resources/config.properties";
+//                properties = new Properties();
+//                input = new FileInputStream(path);
+//                properties.load(input);
+//                if (version == ApimVersions.APIM_3_2) {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
+//                } else {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
+//                }
+//
+//            } catch (Exception e) {
+//
+//                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
+//            }
+            
+            this.endPoint = baseURL + getEndpoint(version);
         }
 
         /**
@@ -894,6 +923,7 @@ public class Admin {
         	if(isFile) {
         		// jsonPayload = getPayloadFile(jsonPayload);
         	}
+        	System.out.println("addAdvancedThrottlingPolicy_endpoint : " + this.endPoint+endPoint);
             Response addAdvancedThrottlingPolicyResponse = RestAssured.given()
                     .relaxedHTTPSValidation()
                     .auth()
@@ -2183,23 +2213,24 @@ public class Admin {
         public ApiCategoryIndividual(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
 
-            FileInputStream input;
-            Properties properties;
-
-            try {
-                String path = "./src/test/resources/config.properties";
-                properties = new Properties();
-                input = new FileInputStream(path);
-                properties.load(input);
-                if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
-                } else {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
-                }
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
-            }
+//            FileInputStream input;
+//            Properties properties;
+//
+//            try {
+//                String path = "./src/test/resources/config.properties";
+//                properties = new Properties();
+//                input = new FileInputStream(path);
+//                properties.load(input);
+//                if (version == ApimVersions.APIM_3_2) {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
+//                } else {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
+//                }
+//
+//            } catch (Exception e) {
+//                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
+//            }
+            this.endPoint = baseURL + getEndpoint(version);
 
         }
 
@@ -2618,23 +2649,25 @@ public class Admin {
         public SystemScopes(String baseURL, String accessToken, ApimVersions version) throws RestAssuredMigrationException {
             this.accessToken = accessToken;
             this.baseURL = baseURL;
-            FileInputStream input;
-            Properties properties;
-
-            try {
-                String path = "./src/test/resources/config.properties";
-                properties = new Properties();
-                input = new FileInputStream(path);
-                properties.load(input);
-                if (version == ApimVersions.APIM_3_2) {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
-                } else {
-                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
-                }
-
-            } catch (Exception e) {
-                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
-            }
+//            FileInputStream input;
+//            Properties properties;
+//
+//            try {
+//                String path = "./src/test/resources/config.properties";
+//                properties = new Properties();
+//                input = new FileInputStream(path);
+//                properties.load(input);
+//                if (version == ApimVersions.APIM_3_2) {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_3_2");
+//                } else {
+//                    this.endPoint = baseURL + properties.getProperty("admin_url_4_1");
+//                }
+//
+//            } catch (Exception e) {
+//                throw new RestAssuredMigrationException("Error occurred while retrieving URL", e);
+//            }
+            
+            this.endPoint = baseURL + getEndpoint(version);
 
         }
 

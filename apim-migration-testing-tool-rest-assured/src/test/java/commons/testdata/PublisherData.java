@@ -326,4 +326,54 @@ public class PublisherData {
 				""";
 		return payload.formatted(inMediationPolicy,outMediationPolicy,faultMediationPolicy);
 	}
+	
+	public static class TestDataV420{
+		public static String getAPIADPRestAPIJsonPayload() {
+			
+			
+			String s = """
+					{
+				  "name": "ADPRestAPI",
+				  "version": "1.0.0",
+				  "context": "adp-rest",
+				  "policies": [
+				    "ADPBrass"
+				  ],
+				  "endpointConfig": {
+				    "endpoint_type": "http",
+				    "sandbox_endpoints": {
+				      "url": "http://localhost:8090/"
+				    },
+				    "production_endpoints": {
+				      "url": "http://localhost:8090/"
+				    }
+				  },
+				  "gatewayEnvironments": [
+				    "Production and Sandbox"
+				  ]
+				}
+					""";
+			
+			return """
+				{
+				   "name":"ADPRestAPI",
+				   "version":"1.0.0",
+				   "context":"adp-rest",
+				   "policies":[
+				      "ADPBrass"
+				   ],
+				   "endpointConfig":{
+				      "endpoint_type":"http",
+				      "sandbox_endpoints":{
+				         "url":"http://localhost:8090/"
+				      },
+				      "production_endpoints":{
+				         "url":"http://localhost:8090/"
+				      }
+				   }
+				}
+					""";
+
+		}
+	}
 }
